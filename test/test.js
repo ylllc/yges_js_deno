@@ -5,7 +5,7 @@
 
 // Test of Unit Test //
 
-import test from '../lib/unittest.js';
+import test from '../api/unittest.js';
 
 function delay(ms) {
 	return new Promise((resolve)=>setTimeout(resolve,ms));
