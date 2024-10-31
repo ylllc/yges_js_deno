@@ -1,9 +1,9 @@
-// † Yggdrasil Essense for Node.js † //
-// ==================================== //
-// © 2024 Yggdrasil Leaves, LLC.        //
-//        All rights reserved.          //
+// † Yggdrasil Essense for JavaScript † //
+// ====================================== //
+// © 2024 Yggdrasil Leaves, LLC.          //
+//        All rights reserved.            //
 
-// Unit Test Utility //
+// Unit Test Utility for Deno //
 
 import {
 	assert,
