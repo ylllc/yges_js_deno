@@ -13,7 +13,9 @@ But we'll not help you:-P
 
 ## Documentation
 
-Not yet.
+see web version.  
+https://github.com/ylllc/yges_js_web  
+Someday, it will be imported as submodule.  
 
 ## Testing
 
