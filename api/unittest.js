@@ -10,6 +10,8 @@ import {
 } from "https://deno.land/std@0.65.0/testing/asserts.ts";
 
 export default {
+	name:'YgEs_UnitTest',
+	User:{},
 
 	chk:(cond,msg)=>{assert(cond,msg)},
 	chk_loose:(v1,v2,msg)=>{assert(v1==v2,msg)},
