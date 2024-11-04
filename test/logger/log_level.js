@@ -20,24 +20,24 @@ var scenaria=[
 		proc:()=>{
 			// set showable log level 
 			log.Showable=log.LEVEL.DEBUG;
-			test.chk_strict(count,0,'mismatch');
+			test.chk_strict(count,0,'not logged yet');
 			log.debug('?');
-			test.chk_strict(count,1,'mismatch');
+			test.chk_strict(count,1,'debug logged');
 			log.trace('?'); // will be suppressed 
-			test.chk_strict(count,1,'mismatch');
+			test.chk_strict(count,1,'trace log  suppressed');
 
 			// local log (unoverriden)
 			var ll1=log.createLocal('Local1',log.LEVEL.WARN);
-			ll1.notice('?');
-			test.chk_strict(count,1,'mismatch');
+			ll1.notice('?') // will be suppressed ;
+			test.chk_strict(count,1,'notice log suppressed');
 			ll1.warn('?');
-			test.chk_strict(count,2,'mismatch');
+			test.chk_strict(count,2,'warn logged');
 
 			// local log (instant overriden)
 			var ll2=log.createLocal('Local2');
 			ll2.Way=(msg)=>{count+=10;};
 			ll2.info('?');
-			test.chk_strict(count,12,'mismatch');
+			test.chk_strict(count,12,'local logged');
 		},
 	},
 ]
