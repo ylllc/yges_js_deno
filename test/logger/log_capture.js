@@ -14,7 +14,7 @@ log.Format=(capt,lev,msg)=>{
 	return capt+':'+lev+':'+msg;
 }
 log.Way=(msg)=>{
-	test.chk_strict(msg,subj,'mismatch');
+	test.chk_strict(msg,subj,'captured log');
 }
 
 // set showable log level 

@@ -3,7 +3,7 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Logger Examples //
+// Examples: Logger //
 
 import log from '../api/logger.js';
 
