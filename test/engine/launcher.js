@@ -20,7 +20,7 @@ eng.start();
 
 var scenaria=[
 	{
-		title:'launcher',
+		title:'Launcher',
 		proc:async ()=>{
 			var lnc=eng.createLauncher('test launcher');
 			lnc.Limit=0;

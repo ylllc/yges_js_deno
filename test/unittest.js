@@ -14,7 +14,7 @@ function delay(ms) {
 var scenaria=[
 	// test 1 
 	{
-		title:'test now',
+		title:'Test Now',
 		proc:()=>{
 			// can test by any conditions 
 			test.chk(true, 'always');
@@ -26,7 +26,7 @@ var scenaria=[
 	},
 	// test 2 
 	{
-		title:'with waiting',
+		title:'Test With Waiting',
 		proc: async ()=>{
 			//  the process is kept until all test were ended 
 			await delay(3000);
@@ -35,7 +35,7 @@ var scenaria=[
 	},
 	// test 3 
 	{
-		title:'ignored',
+		title:'Test Ignored',
 		filter:false,
 		proc: async ()=>{
 			//  will not step it by filtered out

@@ -15,7 +15,7 @@ log.Way=(msg)=>{
 
 var scenaria=[
 	{
-		title:'happening resolving',
+		title:'Happening Resolving',
 		proc:()=>{
 			var hap_local1=hap_global.createLocal();
 			var hap_local2=hap_local1.createLocal();

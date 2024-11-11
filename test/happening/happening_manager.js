@@ -10,13 +10,13 @@ import hap_global from '../../api/happening.js';
 
 var scenaria=[
 	{
-		title:'global manager',
+		title:'Global Happenning Manager',
 		proc:()=>{
 			test.chk_strict(true,hap_global.isCleaned(),'initialised global manager');
 		},
 	},
 	{
-		title:'local manager',
+		title:'Local Happening Manager',
 		proc:()=>{
 			var hap_local1=hap_global.createLocal();
 			var hap_local2=hap_local1.createLocal();

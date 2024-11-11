@@ -25,7 +25,7 @@ log.Caption='Global';
 
 var scenaria=[
 	{
-		title:'log capturer',
+		title:'Log Capturer',
 		proc:()=>{
 			subj='Global:3:test-msg';
 			log.info('test-msg');

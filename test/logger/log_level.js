@@ -16,7 +16,7 @@ log.Way=(msg)=>{
 
 var scenaria=[
 	{
-		title:'log level',
+		title:'Log Level',
 		proc:()=>{
 			// set showable log level 
 			log.Showable=log.LEVEL.DEBUG;

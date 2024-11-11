@@ -14,7 +14,7 @@ var acc0=max*(max-1)/2;
 
 var scenaria=[
 	{
-		title:'step iterator',
+		title:'Step Iterator',
 		proc:async ()=>{
 			var acc1=0,acc2=0,ct=0;
 
@@ -33,7 +33,7 @@ var scenaria=[
 		},
 	},
 	{
-		title:'array iterator',
+		title:'Array Iterator',
 		proc:async ()=>{
 			var t=[...Array(max).keys()];
 			var acc1=0,ct=0;
@@ -50,7 +50,7 @@ var scenaria=[
 		},
 	},
 	{
-		title:'dict iterator',
+		title:'Dict Iterator',
 		proc:async ()=>{
 			var t={}
 			for(var i=0;i<max;++i)t['_'+i]=i;
