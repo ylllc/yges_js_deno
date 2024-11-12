@@ -23,8 +23,6 @@ var mif={
 		if(val===Infinity)return true;
 		if(val===-Infinity)return true;
 		return false;
-		if(typeof val!=='number')return false;
-		return isNaN(val)===isFinite(val);
 	},
 
 	isEmpty:(val)=>{
