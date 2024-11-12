@@ -140,7 +140,7 @@ var mif={
 		return JSON.stringify(val);
 	},
 
-	safestepiter:(bgn,end,step,cbiter)=>{
+	safeStepIter:(bgn,end,step,cbiter)=>{
 
 		var cnt=bgn;
 		if(!step){
@@ -165,7 +165,7 @@ var mif={
 		return cnt;
 	},
 
-	safearrayiter:(src,cbiter)=>{
+	safeArrayIter:(src,cbiter)=>{
 
 		var abort=false;
 		for(var t of src){
@@ -176,7 +176,7 @@ var mif={
 		}
 	},
 
-	safedictiter:(src,cbiter)=>{
+	safeDictIter:(src,cbiter)=>{
 
 		var abort=false;
 		for(var k in src){

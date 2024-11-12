@@ -22,14 +22,14 @@ var scenaria=[
 			test.chk_strict(acc0,acc1,'standard loop');
 
 			await new Promise((ok,ng)=>{
-				util.safestepiter(0,max,1,(i_)=>{
+				util.safeStepIter(0,max,1,(i_)=>{
 					setTimeout(()=>{
 						acc2+=i_;
 						if(++ct==max)ok();
 					},10);
 				});
 			});
-			test.chk_strict(acc0,acc2,'safestepiter: '+acc2);
+			test.chk_strict(acc0,acc2,'safeStepIter: '+acc2);
 		},
 	},
 	{
@@ -39,14 +39,14 @@ var scenaria=[
 			var acc1=0,ct=0;
 
 			await new Promise((ok,ng)=>{
-				util.safearrayiter(t,(i_)=>{
+				util.safeArrayIter(t,(i_)=>{
 					setTimeout(()=>{
 						acc1+=i_;
 						if(++ct==max)ok();
 					},10);
 				});
 			});
-			test.chk_strict(acc0,acc1,'safearrayiter: '+acc1);
+			test.chk_strict(acc0,acc1,'safeArrayIter: '+acc1);
 		},
 	},
 	{
@@ -57,14 +57,14 @@ var scenaria=[
 			var acc1=0,ct=0;
 
 			await new Promise((ok,ng)=>{
-				util.safedictiter(t,(k,v)=>{
+				util.safeDictIter(t,(k,v)=>{
 					setTimeout(()=>{
 						acc1+=v;
 						if(++ct==max)ok();
 					},10);
 				});
 			});
-			test.chk_strict(acc0,acc1,'safedictiter: '+acc1);
+			test.chk_strict(acc0,acc1,'safeDictIter: '+acc1);
 		},
 	},
 ]

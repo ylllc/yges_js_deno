@@ -18,7 +18,7 @@ var launcher=eng.createLauncher({
 	limit:3, // can limit parallel proc 
 });
 
-util.safestepiter(0,10,1,(i)=>{
+util.safeStepIter(0,10,1,(i)=>{
 	launcher.launch({
 		user:{
 			// initial settings 
