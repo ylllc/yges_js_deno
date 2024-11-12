@@ -39,7 +39,7 @@ var mif={
 		return true;
 	},
 
-	booleanize:(val)=>{
+	booleanize:(val,stringable=false)=>{
 		if(val===null)return false;
 		if(val===undefined)return false;
 		switch(typeof val){
@@ -51,10 +51,12 @@ var mif={
 			break;
 
 			case 'string':
-			if(val.match(rx_zero))return false;
-			if(val.match(rx_false))return false;
-			if(val.match(rx_null))return false;
-			if(val.match(rx_undefined))return false;
+			if(stringable){
+				if(val.match(rx_zero))return false;
+				if(val.match(rx_false))return false;
+				if(val.match(rx_null))return false;
+				if(val.match(rx_undefined))return false;
+			}
 			break;
 
 			case 'object':
@@ -63,16 +65,18 @@ var mif={
 		return !!val;
 	},
 
-	trinarize:(val)=>{
+	trinarize:(val,stringable=false)=>{
 		if(val==null)return null;
 		if(val===undefined)return null;
 		switch(typeof val){
 			case 'string':
-			if(val.match(rx_null))return null;
-			if(val.match(rx_undefined))return null;
+			if(stringable){
+				if(val.match(rx_null))return null;
+				if(val.match(rx_undefined))return null;
+			}
 			break;
 		}
-		return mif.booleanize(val);
+		return mif.booleanize(val,stringable);
 	},
 
 	zerofill:(val,col,sgn=false)=>{

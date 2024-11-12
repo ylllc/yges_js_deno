@@ -72,7 +72,9 @@ test({
 	'!!':(val)=>!!val?'true':'false',
 	'isValid':(val)=>util.isValid(val)?'true':'false',
 	'booleanize':(val)=>util.booleanize(val),
+	'stringable booleanize':(val)=>util.booleanize(val,true),
 	'trinarize':(val)=>util.trinarize(val),
+	'stringable trinarize':(val)=>util.trinarize(val,true),
 },{
 	'""':"",
 	'0':0,
