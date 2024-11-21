@@ -13,9 +13,9 @@ But we'll not help you:-P
 
 ## Documentation
 
-see web version.  
-https://github.com/ylllc/yges_js_web  
-Someday, it will be imported as submodule.  
+see web version that placed in web submodule.  
+to build by Doxygen.  
+see web/README.md  
 
 ## Testing
 
