@@ -22,6 +22,16 @@ var scenaria=[
 			test.chk_loose(1, '1', 'loose comparing');
 			// strict comparing 
 			test.chk_strict(1, 1, 'strict comparing');
+			// leftside less than rightside 
+			test.chk_less(1,2);
+			// leftside equal or less than rightside 
+			test.chk_less_eq(1,2);
+			test.chk_less_eq(1,1);
+			// leftside greater than rightside 
+			test.chk_great(2,1);
+			// leftside equal or greater than rightside 
+			test.chk_great_eq(2,1);
+			test.chk_great_eq(2,2);
 		},
 	},
 	// test 2 
@@ -39,7 +49,7 @@ var scenaria=[
 		filter:false,
 		proc: async ()=>{
 			//  will not step it by filtered out
-			test.chk(false, 'deny');
+			test.never('deny');
 		},
 	},
 	// more ...
