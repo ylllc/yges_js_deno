@@ -13,6 +13,8 @@ const rx_false=/^false$/i;
 const rx_undefined=/^undefined$/i;
 
 var mif={
+	name:'YgEs_Utilities',
+	User:{},
 
 	isJustNaN:(val)=>{
 		if(typeof val!=='number')return false;
