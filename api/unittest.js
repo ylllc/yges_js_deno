@@ -9,13 +9,25 @@ import {
 	assert,
 } from "https://deno.land/std@0.65.0/testing/asserts.ts";
 
+import util from './util.js';
+
+function _cpmsg(msg,v1,op,v2){
+	if(!msg)msg='Test Mismatch:';
+	return ''+msg+' ('+util.inspect(v1)+' '+op+' '+util.inspect(v2)+')';
+}
+
 export default {
 	name:'YgEs_UnitTest',
 	User:{},
 
-	chk:(cond,msg)=>{assert(cond,msg)},
-	chk_loose:(v1,v2,msg)=>{assert(v1==v2,msg)},
-	chk_strict:(v1,v2,msg)=>{assert(v1===v2,msg)},
+	never:(msg=null)=>{assert(false,msg)},
+	chk:(cond,msg=null)=>{assert(cond,msg)},
+	chk_loose:(v1,v2,msg=null)=>{assert(v1==v2,_cpmsg(msg,v1,'==',v2))},
+	chk_strict:(v1,v2,msg=null)=>{assert(v1===v2,_cpmsg(msg,v1,'===',v2))},
+	chk_less:(v1,v2,msg=null)=>{assert(v1<v2,_cpmsg(msg,v1,'<',v2))},
+	chk_less_eq:(v1,v2,msg=null)=>{assert(v1<=v2,_cpmsg(msg,v1,'<=',v2))},
+	chk_great:(v1,v2,msg=null)=>{assert(v1>v2,_cpmsg(msg,v1,'>',v2))},
+	chk_great_eq:(v1,v2,msg=null)=>{assert(v1>=v2,_cpmsg(msg,v1,'>=',v2))},
 
 	run:(scn)=>{
 
