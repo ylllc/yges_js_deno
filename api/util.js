@@ -144,6 +144,18 @@ var mif={
 		return JSON.stringify(val);
 	},
 
+	fromError:(err)=>{
+		return {
+			name:err.name,
+			msg:err.message,
+			file:err.fileName,
+			line:err.lineNumber,
+			col:err.columnNumber,
+			stack:err.stack,
+			src:err,
+		}
+	},
+
 	safeStepIter:(bgn,end,step,cbiter)=>{
 
 		var cnt=bgn;
