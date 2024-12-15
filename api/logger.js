@@ -3,6 +3,8 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
+import util from './util.js';
+
 // Logger //
 
 // log level 
@@ -18,6 +20,11 @@ const _log_level_lookup=Object.freeze(ll);
 const _default_showable=_log_level_lookup.INFO;
 
 function _default_format(capt,lev,msg){
+
+	switch(typeof msg){
+		case 'function': msg=msg(); break;
+		case 'object': msg=util.inspect(msg); break;
+	}
 
 	var lln=_log_level_names[lev]??('?'+lev+'?');
 	if(capt)capt='{'+capt+'} ';
