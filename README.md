@@ -30,3 +30,7 @@ $ deno test
 
 Can one touch testing with test_all.bat
 
+### Known Problem
+
+- deno test makes suspicious leak detection on the Engine.
+	but can end process normally, it's indicated a Deno's bug.

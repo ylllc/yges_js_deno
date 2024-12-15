@@ -5,8 +5,10 @@
 
 // Async Procedure Engine //
 
-import hap from './happening.js';
+import hap_global from './happening.js';
 import log from './logger.js';
+import util from './util.js';
+import timing from './timing.js';
 
 const DEFAULT_ROOT_CYCLE=20;
 const DEFAULT_LAUNCHER_CYCLE=20;
@@ -16,13 +18,6 @@ const CLASS_LAUNCHER='YgEs_Launcher';
 const CLASS_LAUNCHERPROC='YgEs_LauncherProc';
 const CLASS_DELAYPROC='YgEs_DelayProc';
 const CLASS_ROOT='YgEs_RootLauncher';
-
-var notice=hap.createLocal('YgEs_Engnie_Happening_Notice');
-notice.Happened=(h)=>{log.notice(h.ToJSON());}
-var warn=notice.createLocal('YgEs_Engnie_Happening_Warn');
-warn.Happened=(h)=>{log.warn(h.ToJSON());}
-var fatal=warn.createLocal('YgEs_Engnie_Happening_Fatal');
-fatal.Happened=(h)=>{log.fatal(h.ToJSON());	}
 
 function _create_proc(prm){
 
@@ -34,11 +29,10 @@ function _create_proc(prm){
 	var started=false;
 	var finished=false;
 	var aborted=false;
-	var promise=null;
 
 	var proc={
 		name:prm.name??CLASS_PROC,
-		HappenTo:prm.happen??null,
+		HappenTo:(prm.happen??hap_global).createLocal(),
 		User:prm.user??{},
 
 		isStarted:()=>started,
@@ -55,11 +49,11 @@ function _create_proc(prm){
 					cb_start(proc.User);
 				}
 				catch(e){
-					(proc.HappenTo??fatal).happenProp({
+					proc.HappenTo.happenProp({
 						class:CLASS_PROC,
 						cause:'throw from start',
 						src:proc,
-						err:e,
+						err:util.fromError(e),
 					});
 					proc.abort();
 				}
@@ -73,16 +67,16 @@ function _create_proc(prm){
 					cb_abort(proc.User);
 				}
 				catch(e){
-					(proc.HappenTo??fatal).happenProp({
+					proc.HappenTo.happenProp({
 						class:CLASS_PROC,
 						cause:'throw from abort',
 						src:proc,
-						err:e,
+						err:util.fromError(e),
 					});
 				}
 			}
 			else{
-				(proc.HappenTo??warn).happenProp({
+				proc.HappenTo.happenProp({
 					class:CLASS_PROC,
 					cause:'abort',
 					src:proc,
@@ -95,11 +89,11 @@ function _create_proc(prm){
 				if(cb_poll(proc.User))return true;
 			}
 			catch(e){
-				(proc.HappenTo??fatal).happenProp({
+				proc.HappenTo.happenProp({
 					class:CLASS_PROC,
 					cause:'throw from poll',
 					src:proc,
-					err:e,
+					err:util.fromError(e),
 				});
 				proc.abort();
 				return false;
@@ -110,55 +104,55 @@ function _create_proc(prm){
 					finished=true;
 				}
 				catch(e){
-					(proc.HappenTo??fatal).happenProp({
+					proc.HappenTo.happenProp({
 						class:CLASS_PROC,
 						cause:'throw from done',
 						src:proc,
-						err:e,
+						err:util.fromError(e),
 					});
 					proc.abort();
 					return false;
 				}
+			}
+			else{
+				finished=true;
 			}
 			return false;
 		},
 
 		sync:(cb_sync,interval=null)=>{
 			if(!cb_sync){
-				(proc.HappenTo??notice).happenProp({
+				proc.HappenTo.happenProp({
 					class:CLASS_LAUNCHER,
 					cause:'empty callback from sync',
 				});
 				return;
 			}
 			if(interval===null)interval=DEFAULT_SYNC_CYCLE;
-			(async()=>{
-				while(!proc.isEnd()){
-					await new Promise(ok=>setTimeout(ok,interval));
-				}
-				try{
-					cb_sync(proc.User);
-				}
-				catch(e){
-					(proc.HappenTo??fatal).happenProp({
-						class:CLASS_PROC,
-						cause:'throw from sync',
-						src:proc,
-						err:e,
-					});
-				}
-			})();
+			timing.sync(interval,
+				()=>{return proc.isEnd();},
+				()=>{
+					try{
+						cb_sync(proc.User);
+					}
+					catch(e){
+						proc.HappenTo.happenProp({
+							class:CLASS_PROC,
+							cause:'throw from sync',
+							src:proc,
+							err:util.fromError(e),
+						});
+					}
+				},
+			);
 		},
-
 		toPromise:(breakable,interval=null)=>{
-			if(promise)return promise;
-			promise=new Promise((ok,ng)=>{
+			return timing.toPromise((ok,ng)=>{
 				proc.sync(()=>{
 					if(breakable || finished)ok(proc.User);
 					else ng(new Error('abort',{cause:proc.User}));
 				},interval);
 			});
-			return promise;
 		},
 	}
 	return proc;
@@ -168,22 +162,37 @@ function _create_launcher(prm){
 
 	var abandoned=false;
 	var aborted=false;
-	var promise=null;
 
 	var lnc={
 		name:prm.name??CLASS_LAUNCHER,
-		HappenTo:prm.happen??null,
+		HappenTo:(prm.happen??hap_global).createLocal(),
 		Limit:prm.limit??-1,
 		Cycle:prm.cycle??DEFAULT_LAUNCHER_CYCLE,
 		User:prm.user??{},
 
+		_sub:[],
 		_launch:[],
 		_active:[],
 
-		isEnd:()=>{return lnc._launch.length+lnc._active.length<1;},
+		isEnd:()=>{
+			if(lnc._launch.length>0)return false;
+			if(lnc._active.length>0)return false;
+			for(var sub of lnc._sub){
+				if(!sub.isEnd())return false;
+			}
+			return true;
+		},
 		isAbandoned:()=>abandoned,
-		countActive:()=>lnc._active.length,
-		countHeld:()=>lnc._launch.length,
+		countActive:()=>{
+			var n=lnc._active.length
+			for(var sub of lnc._sub)n+=sub.countActive();
+			return n;
+		},
+		countHeld:()=>{
+			var n=lnc._launch.length
+			for(var sub of lnc._sub)n+=sub.countHeld();
+			return n;
+		},
 
 		abandon:()=>{
 			abandoned=true;
@@ -192,26 +201,24 @@ function _create_launcher(prm){
 
 		createLauncher:(prm={})=>{
 			var sub=_create_launcher(prm);
-			lnc.launch({
-				name:CLASS_LAUNCHERPROC,
-				cb_poll:(user)=>{
-					sub.poll();
-					return !sub.isAbandoned();
-				},
-				cb_abort:()=>{
-					sub.abort();
-				},
-			});
+			lnc._sub.push(sub);
 			return sub;
 		},
 
 		launch:(prm={})=>{
+			if(mif.isAbandoned()){
+				lnc.HappenTo.happenMsg('the Engine was abandoned, no longer launch new procedures.');
+				return;
+			}
+			if(!_working){
+				log.notice('the Engine not startted. call start() to run.');
+			}
 			if(abandoned){
 				if(prm.cb_abort)prm.cb_abort();
 				return;
 			}
 			if(!prm.cb_poll){
-				(lnc.HappenTo??notice).happenProp({
+				lnc.HappenTo.happenProp({
 					class:CLASS_LAUNCHER,
 					cause:'empty pollee',
 				});
@@ -231,12 +238,18 @@ function _create_launcher(prm){
 		abort:()=>{
 			if(lnc.isEnd())return;
 			aborted=true;
+			for(var sub of lnc._sub)sub.abort();
+			lnc._sub=[]
 			for(var proc of lnc._launch)proc.abort();
 			lnc._launch=[]
 			for(var proc of lnc._active)proc.abort();
 			lnc._active=[]
 		},
 		poll:()=>{
+			for(var sub of lnc._sub){
+				sub.poll();
+			}
+
 			var cont=[]
 			for(var proc of lnc._active){
 				if(proc.poll())cont.push(proc);
@@ -258,42 +271,41 @@ function _create_launcher(prm){
 
 		sync:(cb_sync,interval=null)=>{
 			if(!cb_sync){
-				(lnc.HappenTo??notice).happenProp({
+				lnc.HappenTo.happenProp({
 					class:CLASS_LAUNCHER,
 					cause:'empty callback from sync',
 				});
 				return;
 			}
 			if(interval===null)interval=DEFAULT_SYNC_CYCLE;
-			(async()=>{
-				while(!abandoned){
+			timing.sync(interval,
+				()=>{
 					lnc.poll();
-					if(lnc.isEnd())break;
-					await new Promise(ok=>setTimeout(ok,interval));
+					return lnc.isEnd();
+				},
+				()=>{
+					try{
+						cb_sync(lnc.User);
+					}
+					catch(e){
+						lnc.HappenTo.happenProp({
+							class:CLASS_PROC,
+							cause:'throw from sync',
+							src:lnc,
+							err:util.fromError(e),
+						});
+					}
 				}
-				try{
-					cb_sync(lnc.User);
-				}
-				catch(e){
-					(proc.HappenTo??fatal).happenProp({
-						class:CLASS_PROC,
-						cause:'throw from sync',
-						src:proc,
-						err:e,
-					});
-				}
-			})();
+			);
 		},
 
 		toPromise:(breakable,interval=null)=>{
-			if(promise)return promise;
-			promise=new Promise((ok,ng)=>{
+			return timing.toPromise((ok,ng)=>{
 				lnc.sync(()=>{
 					if(breakable || !aborted)ok(lnc.User);
 					else ng(new Error('abort',{cause:lnc.User}));
 				},interval);
 			});
-			return promise;
 		},
 
 		delay:(time,cb_done,cb_abort=null)=>{
@@ -318,29 +330,45 @@ const mif=_create_launcher({
 });
 
 var _working=false;
+var _cancel=null;
+
+function _poll_engine(){
+
+	if(!_working)return;
+	if(mif.isAbandoned())return;
+
+	mif.poll();
+
+	_cancel=timing.delay(mif.Cycle,()=>{
+		_cancel=null;
+		_poll_engine();
+	});
+}
+
+function _stop_engine(){
+
+	_working=false;
+	if(_cancel!=null)_cancel();
+}
 
 mif.start=()=>{
 
 	if(mif.isAbandoned())return;
 	if(_working)return;
 	_working=true;
-	(async()=>{
-		while(_working && !mif.isAbandoned()){
-			mif.poll();
-			await new Promise(ok=>setTimeout(ok,mif.Cycle));
-		}
-	})();
+	_poll_engine();
 }
 
 mif.stop=()=>{
 
+	_stop_engine();
 	if(mif.isAbandoned())return;
 	mif.abort();
-	_working=false;
 }
 
 mif.shutdown=()=>{
 	mif.abandon();
+	_stop_engine();
 }
 
 export default mif;
