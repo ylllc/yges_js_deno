@@ -10,6 +10,7 @@ import {
 } from "https://deno.land/std@0.65.0/testing/asserts.ts";
 
 import util from './util.js';
+import hap_global from './happening.js';
 
 function _cpmsg(msg,v1,op,v2){
 	if(!msg)msg='Test Mismatch:';
@@ -35,19 +36,30 @@ export default {
 		// unselected tests are ignored. 
 		// (use insted of Deno.test({only:true}) to suppress redundant log) 
 		var puf=false;
-		for(var t of scn){
+		for(let t of scn){
 			if(!t.pickup)continue;
 			puf=true;
 			break;
 		}
 
-		for(var t of scn){
+		for(let t of scn){
 			if(puf && !t.pickup)continue;
 			if(t.filter!==undefined && !t.filter)continue;
 			Deno.test({
 				name: t.title,
-				fn: t.proc,
+				fn: async ()=>{
+					await t.proc();
+//					await new Promise((ok)=>{setTimeout(ok,1000);});
+				},
 			});
 		}
+
+		Deno.test({
+			name: 'Final Cleanup',
+			fn: ()=>{
+				hap_global.cleanup();
+				if(!hap_global.isCleaned())throw util.inspect(hap_global.getInfo());
+			},
+		});
 	},
 };
