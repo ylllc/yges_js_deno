@@ -7,6 +7,8 @@
 
 import test from '../../api/unittest.js';
 import eng from '../../api/engine.js';
+import log from '../../api/logger.js';
+import hap_global from '../../api/happening.js';
 
 const PROCS=100;
 const LIMIT=30;
@@ -16,13 +18,20 @@ var count_start=0;
 var count_done=0;
 var count_abort=0;
 
+var hap_local=hap_global.createLocal({
+	happen:(hap)=>{log.fatal(hap.GetProp());},
+});
+
 eng.start();
 
 var scenaria=[
 	{
 		title:'Launcher',
 		proc:async ()=>{
-			var lnc=eng.createLauncher('test launcher');
+			var lnc=eng.createLauncher({
+				name:'test launcher',
+				happen:hap_local,
+			});
 			lnc.Limit=0;
 			test.chk_strict(0,lnc.countActive(),'empty launcher');
 			test.chk_strict(0,lnc.countHeld(),'empty launcher');

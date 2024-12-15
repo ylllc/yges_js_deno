@@ -6,9 +6,10 @@
 // Happening Manager //
 
 import log from './logger.js';
+import util from './util.js';
 
 function _default_happened(hap){
-	log.fatal(hap.ToJSON());	
+	log.fatal(hap.GetProp());	
 }
 function _default_abandoned(hap){
 	log.warn('* Abandoned * '+hap.ToString());	
@@ -17,7 +18,7 @@ function _default_resolved(hap){
 	log.debug('* Resolved * '+hap.ToString());	
 }
 
-function _create_happening(cbprop,cbstr,init=null){
+function _create_happening(cbprop,cbstr,cberr,init=null){
 
 	var hap={
 		name:init?.name??'YgEs_Happening',
@@ -27,6 +28,7 @@ function _create_happening(cbprop,cbstr,init=null){
 		GetProp:cbprop,
 		ToString:cbstr,
 		ToJSON:()=>JSON.stringify(hap.GetProp()),
+		ToError:cberr,
 		Resolved:init?.Resolved??_default_resolved,
 		Abandoned:init?.Abandoned??_default_abandoned,
 
@@ -49,16 +51,16 @@ function _create_happening(cbprop,cbstr,init=null){
 	return hap;
 }
 
-function _create_manager(name,parent=null){
+function _create_manager(prm,parent=null){
 
 	var mng={
-		name:'YgEs_HappeningManager',
+		name:prm.name??'YgEs_HappeningManager',
 		issues:[],
 		children:[],
-		Happened:null,
-		User:{},
+		Happened:prm.happen??null,
+		User:prm.user??{},
 
-		createLocal:(name='YgEs_HappeningManager')=>_create_manager(name,mng),
+		createLocal:(prm={})=>_create_manager(prm,mng),
 
 		abandon:()=>{
 			for(var sub of mng.children){
@@ -96,6 +98,19 @@ function _create_manager(name,parent=null){
 			}
 		},
 
+		getInfo:()=>{
+			var info={name:mng.name,issues:[],children:[]}
+			for(var hap of mng.issues){
+				if(hap.resolved)continue;
+				info.issues.push({name:hap.name,prop:hap.GetProp()});
+			}
+			for(var sub of mng.children){
+				var si=sub.getInfo();
+				if(si.issues.length>0 || si.children.length>0)info.children.push(si);
+			}
+			return info;
+		},
+
 		poll:(cb)=>{
 			if(!cb)return;
 			for(var hap of mng.issues){
@@ -122,6 +137,7 @@ function _create_manager(name,parent=null){
 			return mng.happen(_create_happening(
 				()=>{return {msg:''+msg}},
 				()=>''+msg,
+				()=>new Error(msg),
 				init
 			));
 		},
@@ -130,22 +146,16 @@ function _create_manager(name,parent=null){
 			return mng.happen(_create_happening(
 				()=>prop,
 				()=>JSON.stringify(prop),
+				()=>new Error(JSON.stringify(prop)),
 				init
 			));
 		},
 
 		happenError:(err,init=null)=>{
 			return mng.happen(_create_happening(
-				()=>{return {
-					name:err.name,
-					msg:err.message,
-					file:err.fileName,
-					line:err.lineNumber,
-					col:err.columnNumber,
-					stack:err.stack,
-					src:err,
-				}},
+				()=>{return util.fromError(err)},
 				()=>''+err,
+				()=>err,
 				init
 			));
 		},

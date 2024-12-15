@@ -29,6 +29,14 @@ log.put(log.LEVEL.INFO,'INFO Log too');
 // overlevel logs are always suppressed 
 log.put(log.LEVEL.NEVER,'NEVER Log');
 
+// can output an object directly, without JSON.stringify(), more correct   
+var obj={a:1,b:NaN,c:Infinity,d:[undefined]}
+log.debug(JSON.stringify(obj));
+log.debug(obj);
+
+// can postpone creating message to suppress CPU cost
+log.debug(()=>'deferred message creation: '+Math.log10(1000));
+
 // create local log instance 
 var ll1=log.createLocal('Local',log.LEVEL.TRACE);
 

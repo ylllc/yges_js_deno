@@ -7,10 +7,16 @@
 
 import test from '../../api/unittest.js';
 import eng from '../../api/engine.js';
+import log from '../../api/logger.js';
+import hap_global from '../../api/happening.js';
 
 var count_start=0;
 var count_done=0;
 var count_abort=0;
+
+var hap_local=hap_global.createLocal({
+	happen:(hap)=>{log.fatal(hap.GetProp());},
+});
 
 eng.start();
 
@@ -19,6 +25,7 @@ var scenaria=[
 		title:'Root Async Proc',
 		proc:async ()=>{
 			var proc=eng.launch({
+				happen:hap_local,
 				cb_start:(user)=>{
 					user.lock=true;
 					++count_start;
