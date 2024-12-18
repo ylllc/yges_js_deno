@@ -22,11 +22,11 @@ function _error_default(res,code,msg){
 	res.end('['+code+'] '+msg);
 }
 
-function _route_new(map,user){
+function _route_new(map,opt={}){
 
 	var rt={
 		name:'YgEs_HTTPRoute',
-		User:user,
+		User:opt.user??{},
 		Map:map,
 
 		walk:(wlk)=>{
@@ -42,11 +42,11 @@ function _route_new(map,user){
 	return rt;
 }
 
-function _present_new(meth,user){
+function _present_new(meth,opt={}){
 
 	var pt={
 		name:'YgEs_HTTPPresent',
-		User:user,
+		User:opt.user??{},
 		Meth:meth,
 
 		walk:(wlk)=>{
@@ -61,24 +61,39 @@ function _present_new(meth,user){
 	return pt;
 }
 
-function _transfer_new(dir,opt,user){
+function _transfer_new(dir,opt={}){
 
 	var tt={
 		name:'YgEs_HTTPTransfer',
-		User:user,
+		User:opt.user??{},
 		Dir:dir,
 		Charset:(path)=>mif.DefaultCharset,
 		Indices:['index.html','index.htm'],
 
 		walk:(wlk)=>{
-			// subpath 
+
+			// empty subpath requires entering to fix base 
+			if(wlk.level>=wlk.layer.length && wlk.layer[wlk.layer.length-1]!=''){
+				wlk.parsed.path+='/';
+				var url=wlk.parsed.bake();
+				wlk.res.writeHead(301,{Location:url});
+				wlk.res.end();
+				return;
+			}
+
 			var subpath=wlk.layer.slice(wlk.level).join('/');
+			var srcpath=tt.Dir+'/'+subpath;
+
+			if(opt.route && opt.route[subpath]){
+				_route_new(opt.route,{user:tt.User}).walk(wlk);
+				return;
+			}
 
 			timing.toPromise(async (ok,ng)=>{
 
-				var st=await file.stat(tt.Dir+'/'+subpath);
+				var st=await file.stat(srcpath);
 
-				if(subpath!='' && subpath.substring(subpath.length-1)!='/'){
+				if(srcpath.substring(srcpath.length-1)!='/'){
 					// check file exists 
 					if(!st){
 						wlk.ctl.Error(wlk.res,404,'Not found');
@@ -86,19 +101,26 @@ function _transfer_new(dir,opt,user){
 						return;
 					}
 
-					// add extra / when subpath is directory 
-					if(st.isDir())subpath+='/';
+					// add extra / when srcpath is directory 
+					if(st.isDir()){
+						wlk.parsed.path+='/';
+						var url=wlk.parsed.bake();
+						wlk.res.writeHead(301,{Location:url});
+						wlk.res.end();
+						ok();
+						return;
+					}
 				}
 
-				if(subpath=='' || subpath.substring(subpath.length-1)=='/'){
+				if(srcpath.substring(srcpath.length-1)=='/'){
 					// try finding an index file 
 					var f=false;
 					for(var n of tt.Indices){
-						var st2=await file.stat(tt.Dir+'/'+subpath+n);
+						var st2=await file.stat(srcpath+n);
 						if(!st2)continue;
 						if(!st2.isFile())continue;
 						f=true;
-						subpath+=n;
+						srcpath+=n;
 						st=st2;
 						break;
 					}
@@ -110,18 +132,18 @@ function _transfer_new(dir,opt,user){
 				}
 
 				// content type	
-				var ext=path.extname(subpath);
+				var ext=path.extname(srcpath);
 				if(ext)ext=ext.substring(1);
 				var type=mime.getType(ext);
 				if(!type)type='apllication/octet-stream';
 				else if(type=='text/html'){
 					// charset 
 					var cs=tt.Charset;
-					if(typeof cs=='function')cs=cs(subpath);
+					if(typeof cs=='function')cs=cs(srcpath);
 					if(cs)type+=';charset='+cs;
 				}
 
-				var body=await file.load(tt.Dir+'/'+subpath);
+				var body=await file.load(srcpath);
 				wlk.res.writeHead(200,{'Content-Type':type,'Content-Length':st.getSize()});
 				wlk.res.end(body);
 			},(res)=>{
@@ -201,34 +223,6 @@ function _server_new(port,route,opt){
 	ctl.getPort=()=>port;
 	ctl.Route=route;
 	ctl.Error=_error_default;
-
-
-//	var ctl={
-//		happen:hap,
-//		Route:route,
-//		Error:_error_default,
-//
-//		close:()=>{
-//			if(!_internal)return;
-//			_internal.close(()=>{
-//				_working=false;
-//			});
-//			_internal=null;
-//			log.info('end of server port '+port);
-//		},
-//
-//		cb_start:(user)=>{
-//			log.info('bgn of server port '+port);
-//			_internal.listen(port);
-//		},
-//		cb_done:(user)=>{
-//		},
-//		cb_abort:(user)=>{
-//		},
-//		cb_poll:(user)=>{
-//			return _working;
-//		},
-//	}
 	return ctl;
 }
 
