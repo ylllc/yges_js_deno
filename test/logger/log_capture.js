@@ -10,11 +10,11 @@ import log from '../../api/logger.js';
 
 // capture a log for test 
 var subj=null;
-log.Format=(capt,lev,msg)=>{
-	return capt+':'+lev+':'+msg;
+log.Format=(src)=>{
+	src.Msg=src.Capt+':'+src.Lev+':'+src.Msg;
 }
-log.Way=(msg)=>{
-	test.chk_strict(msg,subj,'captured log');
+log.Way=(src)=>{
+	test.chk_strict(src.Msg,subj,'captured log');
 }
 
 // set showable log level 

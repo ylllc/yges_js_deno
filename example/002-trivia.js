@@ -3,18 +3,18 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Examples: Value Trivia //
+// Examples: Value Trivia --------------- //
 
-import log from '../api/logger.js';
-import util from '../api/util.js';
+import Log from '../api/logger.js';
+import Util from '../api/util.js';
 
 function test(func,data){
 
-	for(var f in func){
-		log.info('-=-=-=-=-=-=-=-=- '+f+' -=-=-=-=-=-=-=-=-');
-		for(var d in data){
-			try{log.info(d+' => '+func[f](data[d]));}
-			catch(e){log.fatal(e.message);}
+	for(let f in func){
+		Log.info('-=-=-=-=-=-=-=-=- '+f+' -=-=-=-=-=-=-=-=-');
+		for(let d in data){
+			try{Log.info(d+' => '+func[f](data[d]));}
+			catch(e){Log.fatal(e.message);}
 		}
 	}
 }
@@ -23,7 +23,7 @@ test({
 	'==NaN':(val)=>(val==NaN)?'true':'false',
 	'===NaN':(val)=>(val===NaN)?'true':'false',
 	'isNaN':(val)=>isNaN(val)?'true':'false',
-	'isJustNaN':(val)=>util.isJustNaN(val)?'true':'false',
+	'isJustNaN':(val)=>Util.isJustNaN(val)?'true':'false',
 },{
 	'NaN':NaN,
 	'undefined':undefined,
@@ -39,7 +39,7 @@ test({
 	'==Infinity':(val)=>(val==Infinity)?'true':'false',
 	'===Infinity':(val)=>(val===Infinity)?'true':'false',
 	'!isFinite':(val)=>!isFinite(val)?'true':'false',
-	'isJustInfinity':(val)=>util.isJustInfinity(val)?'true':'false',
+	'isJustInfinity':(val)=>Util.isJustInfinity(val)?'true':'false',
 },{
 	'Infinity':Infinity,
 	'-Infinity':-Infinity,
@@ -56,7 +56,7 @@ test({
 	'===null':(val)=>(val===null)?'true':'false',
 	'==undefined':(val)=>(val==undefined)?'true':'false',
 	'===undefined':(val)=>(val===undefined)?'true':'false',
-	'isEmpty':(val)=>util.isEmpty(val)?'true':'false',
+	'isEmpty':(val)=>Util.isEmpty(val)?'true':'false',
 },{
 	'""':"",
 	'0':0,
@@ -70,11 +70,11 @@ test({
 
 test({
 	'!!':(val)=>!!val?'true':'false',
-	'isValid':(val)=>util.isValid(val)?'true':'false',
-	'booleanize':(val)=>util.booleanize(val),
-	'stringable booleanize':(val)=>util.booleanize(val,true),
-	'trinarize':(val)=>util.trinarize(val),
-	'stringable trinarize':(val)=>util.trinarize(val,true),
+	'isValid':(val)=>Util.isValid(val)?'true':'false',
+	'booleanize':(val)=>Util.booleanize(val),
+	'stringable booleanize':(val)=>Util.booleanize(val,true),
+	'trinarize':(val)=>Util.trinarize(val),
+	'stringable trinarize':(val)=>Util.trinarize(val,true),
 },{
 	'""':"",
 	'0':0,
@@ -95,8 +95,8 @@ test({
 
 test({
 	'padStart':(val)=>(''+val).padStart(8,'0'),
-	'zerofill':(val)=>util.zerofill(val,8),
-	'zerofill+':(val)=>util.zerofill(val,8,true),
+	'zerofill':(val)=>Util.zerofill(val,8),
+	'zerofill+':(val)=>Util.zerofill(val,8,true),
 },{
 	'0':0,
 	'123.4':123.4,
@@ -106,9 +106,9 @@ test({
 
 test({
 	'toString':(val)=>val.toString(),
-	'justString':(val)=>util.justString(val),
+	'justString':(val)=>Util.justString(val),
 	'JSON':(val)=>JSON.stringify(val),
-	'inspect':(val)=>util.inspect(val),
+	'inspect':(val)=>Util.inspect(val),
 },
 {
 	'false':false,

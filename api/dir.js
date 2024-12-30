@@ -3,25 +3,27 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Directory Control //
+import YgEs from './common.js';
+import HappeningManager from './happening.js';
+import AgentManager from './agent.js';
+import Timing from './timing.js';
+import FS from './fs_ll.js';
 
-import hap_global from './happening.js';
-import workmng from './worker.js';
-import timing from './timing.js';
-import fs from './fs_ll.js';
+// Directory Control -------------------- //
+(()=>{ // local namespace 
 
 function _target(dir,prepare,parent){
 
 	var ws={
 		name:'YgEs_DirTarget',
-		happen:mif.Happen.createLocal(),
+		happen:Dir.Happen.createLocal(),
 
 		getPath:()=>dir,
 
 		cb_open:(wk)=>{
 			var done=false;
-			timing.fromPromise(
-				fs.mkdir(dir,{recursive:prepare}),
+			Timing.fromPromise(
+				FS.mkdir(dir,{recursive:prepare}),
 				(res)=>{
 					done=true;
 				},
@@ -33,29 +35,30 @@ function _target(dir,prepare,parent){
 		},
 	};
 	if(parent)ws.delendencies=[parent.fetch()]
-	var wk=workmng.standby(ws);
+	var wk=AgentManager.standby(ws);
 
 	wk.getPath=()=>dir;
 	wk.subdir=(path,prepare)=>_target(dir+'/'+path,prepare,wk);
 	wk.relative=(path)=>dir+'/'+path;
 
-	wk.exists=()=>fs.exists(dir);
+	wk.exists=()=>FS.exists(dir);
 
 	return wk;
 }
 
-var mif={
+let Dir=YgEs.Dir={
 	name:'YgEs_DirControl',
 	User:{},
-	Happen:hap_global,
+	Happen:HappeningManager,
 
-	exists:(path)=>fs.exists(path),
-	isDir:(path)=>fs.isDir(path),
+	exists:(path)=>FS.exists(path),
+	isDir:(path)=>FS.isDir(path),
 
-	stat:(path,opt={})=>fs.stat(path,opt),
-	mkdir:(path,opt={})=>fs.mkdir(path,opt),
+	stat:(path,opt={})=>FS.stat(path,opt),
+	mkdir:(path,opt={})=>FS.mkdir(path,opt),
 
 	target:(dir,prepare)=>_target(dir,prepare,null),
 }
 
-export default mif;
+})();
+export default YgEs.Dir;

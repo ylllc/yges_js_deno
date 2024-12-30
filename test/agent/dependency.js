@@ -3,11 +3,11 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Worker Dependencies Test //
+// Agent Dependencies Test -------------- //
 
 import test from '../../api/unittest.js';
 import eng from '../../api/engine.js';
-import workmng from '../../api/worker.js';
+import workmng from '../../api/agent.js';
 import log from '../../api/logger.js';
 import hap_global from '../../api/happening.js';
 
@@ -17,7 +17,7 @@ var worker=null;
 var handle=null;
 var launcher=eng.createLauncher();
 var hap_local=hap_global.createLocal({
-	happen:(hap)=>{log.fatal(hap.GetProp());},
+	happen:(hap)=>{log.fatal(hap.getProp());},
 });
 
 var workset1={
@@ -54,14 +54,14 @@ var workset2={
 	},
 	cb_ready:(worker)=>{
 		test.chk_strict(worker.isReady(),true);
-		test.chk_strict(worker.getDependencies().w1.isOpenWorker(),true);
+		test.chk_strict(worker.getDependencies().w1.isOpenAgent(),true);
 
 		handle.close();
 		test.chk_strict(worker.isOpen(),false);
 	},
 	cb_close:(worker)=>{
 		test.chk_strict(worker.isReady(),false);
-		test.chk_strict(worker.getDependencies().w1.isOpenWorker(),false);
+		test.chk_strict(worker.getDependencies().w1.isOpenAgent(),false);
 	},
 	cb_finish:(worker)=>{
 		test.chk_strict(worker.isBusy(),false);
@@ -70,7 +70,7 @@ var workset2={
 
 var scenaria=[
 	{
-		title:'Worker Dependencies',
+		title:'Agent Dependencies',
 		proc:async ()=>{
 			worker=workmng.standby(workset2);
 			handle=worker.open();

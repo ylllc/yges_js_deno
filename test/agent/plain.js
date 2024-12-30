@@ -3,18 +3,18 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Plain Worker Test //
+// Plain Agent Test --------------------- //
 
 import test from '../../api/unittest.js';
 import eng from '../../api/engine.js';
-import workmng from '../../api/worker.js';
+import workmng from '../../api/agent.js';
 import hap_global from '../../api/happening.js';
 
 eng.start();
 
 var scenaria=[
 	{
-		title:'Plain Worker',
+		title:'Plain Agent',
 		proc:async ()=>{
 			var w=workmng.standby({});
 			test.chk_strict(w.isOpen(),false);

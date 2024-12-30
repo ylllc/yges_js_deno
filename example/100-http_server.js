@@ -3,49 +3,55 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Example: HTTP Server //
+import Engine from '../api/engine.js';
+import Timing from '../api/timing.js';
+import HTTPServer from '../api/http_server.js';
+import File from '../api/file.js';
 
-import engine from '../api/engine.js';
-import timing from '../api/timing.js';
-import server from '../api/http_server.js';
-import file from '../api/file.js';
+// Examples: HTTP Server ---------------- //
 
 const LIFEFILE='../server_running';
-const DOCSROOT='../web/docs/html';
-
-function bye(wlk){
-	file.remove(LIFEFILE);
-	wlk.res.end('See You Again!');
-}
+const PUBLIC_ROOT='../web/public';
+const DOCS_ROOT='../web/docs/html';
+const TEST_ROOT='../web/test';
 
 function hello_world(wlk){
 	wlk.res.end('Hello World!');
 }
 
-var route1=server.route({
-	'bye':server.present({GET:bye}),
-	'':server.present({GET:hello_world}),
+var route1=HTTPServer.present({GET:hello_world});
+var route2=HTTPServer.serve(PUBLIC_ROOT,{
+	route:{
+		'doc':HTTPServer.serve(DOCS_ROOT),
+		'test':HTTPServer.serve(TEST_ROOT,{
+			dirent:true,
+			deepent:-1,
+			mtime:true,
+			filter:(srcdir,name,stat)=>{
+				return name.at(0)!='.';
+			},
+		}),
+	},
 });
-var route2=server.transfer(DOCSROOT);
 
-engine.start();
+Engine.start();
 
-var srv1=server.setup(8080,route1).fetch();
-var srv2=server.setup(8888,route2).fetch();
+var srv1=HTTPServer.setup(8080,route1).fetch();
+var srv2=HTTPServer.setup(8888,route2).fetch();
 
 (async()=>{
-	await file.save(LIFEFILE,'');
+	await File.save(LIFEFILE,'');
 
 	srv1.open();
 	srv2.open();
 
-	await timing.syncKit(100,()=>{
-		return !file.exists(LIFEFILE);
+	await Timing.syncKit(100,()=>{
+		return !File.exists(LIFEFILE);
 	}).promise();
 
 	srv1.close();
 	srv2.close();
 
-	await engine.toPromise();
-	engine.shutdown();
+	await Engine.toPromise();
+	Engine.shutdown();
 })();

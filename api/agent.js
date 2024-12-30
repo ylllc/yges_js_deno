@@ -3,37 +3,39 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Worker //
+import YgEs from './common.js';
+import HappeningManager from './happening.js';
+import Engine from './engine.js';
+import StateMachine from './stmac.js';
+import Util from './util.js';
 
-import hap_global from './happening.js';
-import engine from './engine.js';
-import stmac from './stmac.js';
-import util from './util.js';
+// Agent -------------------------------- //
+(()=>{ // local namespace 
 
 // state 
 const _state_names=Object.freeze(['IDLE','BROKEN','DOWN','REPAIR','UP','REST','TROUBLE','HEALTHY']);
 
 // make reverse lookup 
-var ll={}
-for(var i in _state_names)ll[_state_names[i]]=parseInt(i);
+let ll={}
+for(let i in _state_names)ll[_state_names[i]]=parseInt(i);
 const _state_lookup=Object.freeze(ll);
 
 function _standby(prm){
 
-	var opencount=0;
-	var ctrl=null;
-	var ready=false;
-	var halt=false;
-	var restart=false;
-	var aborted=false;
-	var wait=[]
+	let opencount=0;
+	let ctrl=null;
+	let ready=false;
+	let halt=false;
+	let restart=false;
+	let aborted=false;
+	let wait=[]
 
-	var name=prm.name??'YgEs_Worker';
-	var happen=prm.happen??hap_global.createLocal();
-	var launcher=prm.launcher??engine.createLauncher();
-	var user=prm.user??{};
+	let name=prm.name??'YgEs_Agent';
+	let happen=prm.happen??HappeningManager.createLocal();
+	let launcher=prm.launcher??Engine.createLauncher();
+	let user=prm.user??{};
 
-	var getInfo=(phase)=>{
+	let getInfo=(phase)=>{
 		return {
 			name:name,
 			phase:phase,
@@ -43,7 +45,7 @@ function _standby(prm){
 		}
 	}
 
-	var states={
+	let states={
 		'IDLE':{
 			poll_keep:(ctrl,user)=>{
 				if(opencount<1)return true;
@@ -67,14 +69,14 @@ function _standby(prm){
 				try{
 					//start repairing 
 					wait=[]
-					if(prm.cb_repair)prm.cb_repair(worker);
+					if(prm.cb_repair)prm.cb_repair(agent);
 				}
 				catch(e){
 					happen.happenProp({
-						class:'YgEs_Worker_Error',
+						class:'YgEs_Agent_Error',
 						cause:'throw from a callback',
 						src:getInfo('cb_repair'),
-						err:util.fromError(e),
+						err:YgEs.fromError(e),
 					});
 				}
 			},
@@ -85,18 +87,18 @@ function _standby(prm){
 				}
 
 				// wait for delendencies 
-				var cont=[]
-				for(var d of wait){
+				let cont=[]
+				for(let d of wait){
 					try{
 						if(d())continue;
 						cont.push(d);
 					}
 					catch(e){
 						happen.happenProp({
-							class:'YgEs_Worker_Error',
+							class:'YgEs_Agent_Error',
 							cause:'throw from a callback',
 							src:getInfo('wait for repair'),
-							err:util.fromError(e),
+							err:YgEs.fromError(e),
 						});
 					}
 				}
@@ -115,42 +117,42 @@ function _standby(prm){
 
 					// down dependencles too 
 					if(prm.dependencies){
-						util.safeDictIter(prm.dependencies,(k,h)=>{
+						Util.safeDictIter(prm.dependencies,(k,h)=>{
 							h.close();
 						});
 					}
 
 					if(ctrl.getPrevState()=='UP'){
-						if(prm.cb_back)prm.cb_back(worker);
+						if(prm.cb_back)prm.cb_back(agent);
 					}
 					else{
-						if(prm.cb_close)prm.cb_close(worker);
+						if(prm.cb_close)prm.cb_close(agent);
 					}
 				}
 				catch(e){
 					happen.happenProp({
-						class:'YgEs_Worker_Error',
+						class:'YgEs_Agent_Error',
 						cause:'throw from a callback',
 						src:getInfo('cb_close'),
-						err:util.fromError(e),
+						err:YgEs.fromError(e),
 					});
 				}
 			},
 			poll_keep:(ctrl,user)=>{
 
 				// wait for delendencies 
-				var cont=[]
-				for(var d of wait){
+				let cont=[]
+				for(let d of wait){
 					try{
 						if(d())continue;
 						cont.push(d);
 					}
 					catch(e){
 						happen.happenProp({
-							class:'YgEs_Worker_Error',
+							class:'YgEs_Agent_Error',
 							cause:'throw from a callback',
 							src:getInfo('wait for down'),
-							err:util.fromError(e),
+							err:YgEs.fromError(e),
 						});
 					}
 				}
@@ -164,11 +166,11 @@ function _standby(prm){
 			cb_start:(ctrl,user)=>{
 				try{
 					wait=[]
-					if(prm.cb_open)prm.cb_open(worker);
+					if(prm.cb_open)prm.cb_open(agent);
 
 					// up dependencles too 
 					if(prm.dependencies){
-						util.safeDictIter(prm.dependencies,(k,h)=>{
+						Util.safeDictIter(prm.dependencies,(k,h)=>{
 							h.open();
 							wait.push(()=>h.isReady());
 						});
@@ -176,10 +178,10 @@ function _standby(prm){
 				}
 				catch(e){
 					happen.happenProp({
-						class:'YgEs_Worker_Error',
+						class:'YgEs_Agent_Error',
 						cause:'throw from a callback',
 						src:getInfo('cb_open'),
-						err:util.fromError(e),
+						err:YgEs.fromError(e),
 					});
 				}
 			},
@@ -187,18 +189,18 @@ function _standby(prm){
 				if(opencount<1 || restart)return 'DOWN';
 
 				// wait for delendencies 
-				var cont=[]
-				for(var d of wait){
+				let cont=[]
+				for(let d of wait){
 					try{
 						if(d())continue;
 						cont.push(d);
 					}
 					catch(e){
 						happen.happenProp({
-							class:'YgEs_Worker_Error',
+							class:'YgEs_Agent_Error',
 							cause:'throw from a callback',
 							src:getInfo('wait for up'),
-							err:util.fromError(e),
+							err:YgEs.fromError(e),
 						});
 					}
 				}
@@ -211,14 +213,14 @@ function _standby(prm){
 					try{
 						// mark ready before callback 
 						ready=true;
-						if(prm.cb_ready)prm.cb_ready(worker);
+						if(prm.cb_ready)prm.cb_ready(agent);
 					}
 					catch(e){
 						happen.happenProp({
-							class:'YgEs_Worker_Error',
+							class:'YgEs_Agent_Error',
 							cause:'throw from a callback',
 							src:getInfo('cb_ready'),
-							err:util.fromError(e),
+							err:YgEs.fromError(e),
 						});
 					}
 				}
@@ -233,14 +235,14 @@ function _standby(prm){
 				if(!happen.isCleaned())return 'TROUBLE';
 
 				try{
-					if(prm.poll_healthy)prm.poll_healthy(worker);
+					if(prm.poll_healthy)prm.poll_healthy(agent);
 				}
 				catch(e){
 					happen.happenProp({
-						class:'YgEs_Worker_Error',
+						class:'YgEs_Agent_Error',
 						cause:'throw from a callback',
 						src:getInfo('poll_healthy'),
-						err:util.fromError(e),
+						err:YgEs.fromError(e),
 					});
 					return 'TROUBLE';
 				}
@@ -256,14 +258,14 @@ function _standby(prm){
 				if(happen.isCleaned())return 'HEALTHY';
 
 				try{
-					if(prm.poll_trouble)prm.poll_trouble(worker);
+					if(prm.poll_trouble)prm.poll_trouble(agent);
 				}
 				catch(e){
 					happen.happenProp({
-						class:'YgEs_Worker_Error',
+						class:'YgEs_Agent_Error',
 						cause:'throw from a callback',
 						src:getInfo('poll_trouble'),
-						err:util.fromError(e),
+						err:YgEs.fromError(e),
 					});
 				}
 				if(!happen.isCleaned())return 'HALT';
@@ -287,7 +289,7 @@ function _standby(prm){
 		},
 	}
 
-	var worker={
+	let agent={
 		name:name,
 		User:user,
 
@@ -305,16 +307,16 @@ function _standby(prm){
 		restart:()=>{restart=true;},
 
 		fetch:()=>{
-			return handle(worker);
+			return handle(agent);
 		},
 		open:()=>{
-			var h=worker.fetch();
+			let h=agent.fetch();
 			h.open();
 			return h;
 		},
 	}
 
-	var ctrlopt={
+	let ctrlopt={
 		name:name+'_Control',
 		happen:happen,
 		launcher:launcher,
@@ -322,40 +324,40 @@ function _standby(prm){
 		cb_done:(user)=>{
 			ctrl=null;
 			aborted=false;
-			if(prm.cb_finish)prm.cb_finish(worker,happen.isCleaned());
+			if(prm.cb_finish)prm.cb_finish(agent,happen.isCleaned());
 		},
 		cb_abort:(user)=>{
 			ctrl=null;
 			aborted=true;
-			if(prm.cb_abort)prm.cb_abort(worker);
+			if(prm.cb_abort)prm.cb_abort(agent);
 		},
 	}
 
-	var handle=(w)=>{
-		var in_open=false;
-		var h={
+	let handle=(w)=>{
+		let in_open=false;
+		let h={
 			name:name+'_Handle',
 
-			getWorker:()=>{return worker;},
-			getLauncher:()=>worker.getLauncher(),
-			getHappeningManager:()=>worker.getHappeningManager(),
-			getDependencies:()=>worker.getDependencies(),
+			getAgent:()=>{return agent;},
+			getLauncher:()=>agent.getLauncher(),
+			getHappeningManager:()=>agent.getHappeningManager(),
+			getDependencies:()=>agent.getDependencies(),
 
 			isOpenHandle:()=>in_open,
-			isOpenWorker:()=>worker.isOpen(),
-			isBusy:()=>worker.isBusy(),
-			isReady:()=>worker.isReady(),
-			isHalt:()=>worker.isHalt(),
-			getState:()=>worker.getState(),
+			isOpenAgent:()=>agent.isOpen(),
+			isBusy:()=>agent.isBusy(),
+			isReady:()=>agent.isReady(),
+			isHalt:()=>agent.isHalt(),
+			getState:()=>agent.getState(),
 
-			restart:()=>worker.restart(),
+			restart:()=>agent.restart(),
 
 			open:()=>{
 				if(!in_open){
 					in_open=true;
 					++opencount;
 				}
-				if(!ctrl)ctrl=stmac.run('IDLE',states,ctrlopt);
+				if(!ctrl)ctrl=StateMachine.run('IDLE',states,ctrlopt);
 			},
 			close:()=>{
 				if(!in_open)return;
@@ -366,12 +368,11 @@ function _standby(prm){
 		return h;
 	}
 
-	return worker;
+	return agent;
 }
 
-
-var mif={
-	name:'YgEs_WorkerContainer',
+YgEs.AgentManager={
+	name:'YgEs_AgentManager',
 	User:{},
 
 	standby:_standby,
@@ -379,4 +380,5 @@ var mif={
 	run:(prm)=>{return _standby(prm).open();},
 }
 
-export default mif;
+})();
+export default YgEs.AgentManager;

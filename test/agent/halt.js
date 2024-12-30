@@ -3,11 +3,11 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Rescue Locked Worker Test //
+// Rescue Locked Agent Test ------------- //
 
 import test from '../../api/unittest.js';
 import eng from '../../api/engine.js';
-import workmng from '../../api/worker.js';
+import workmng from '../../api/agent.js';
 import log from '../../api/logger.js';
 import hap_global from '../../api/happening.js';
 
@@ -20,11 +20,11 @@ var handle2=null;
 var launcher=eng.createLauncher();
 var hap_local1=hap_global.createLocal({
 	happen:(hap)=>{
-//		log.fatal(hap.GetProp());
+//		log.fatal(hap.getProp());
 	},
 });
 var hap_local2=hap_global.createLocal({
-	happen:(hap)=>{log.fatal(hap.GetProp());},
+	happen:(hap)=>{log.fatal(hap.getProp());},
 });
 
 var workset1={
@@ -93,7 +93,7 @@ var workset2={
 
 var scenaria=[
 	{
-		title:'Rescue Locked Worker',
+		title:'Rescue Locked Agent',
 		proc:async ()=>{
 			worker1=workmng.standby(workset1);
 			test.chk_strict(worker1.User.count,1);

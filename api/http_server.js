@@ -3,74 +3,95 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// HTTP Server for Deno //
-
-import log_global from './logger.js';
-import hap_global from './happening.js';
-import engine from './engine.js';
-import workmng from './worker.js';
-import timing from './timing.js';
-import urlb from './urlbuild.js';
-import file from './file.js';
+import YgEs from './common.js';
+import Log from './logger.js';
+import HappeningManager from './happening.js';
+import Engine from './engine.js';
+import AgentManager from './agent.js';
+import Timing from './timing.js';
+import URLBuild from './urlbuild.js';
+import File from './file.js';
 
 import http from 'node:http';
 import path from 'node:path';
 import mime from 'npm:mime-lite';
+
+// HTTP Server for Deno ----------------- //
+(()=>{ // local namespace 
 
 function _error_default(res,code,msg){
 	res.writeHead(code,{'Content-Type':'text/plain'});
 	res.end('['+code+'] '+msg);
 }
 
-function _route_new(map,opt={}){
+async function _transfer(res,stat,type=null,cs=null){
 
-	var rt={
-		name:'YgEs_HTTPRoute',
-		User:opt.user??{},
-		Map:map,
-
-		walk:(wlk)=>{
-			var n=wlk.layer[wlk.level];
-			if(!rt.Map[n]){
-				wlk.ctl.Error(wlk.res,404,'Not found');
-				return;
-			}
-			++wlk.level;
-			rt.Map[n].walk(wlk);
-		},
+	// content type	
+	if(!type){
+		var ext=path.extname(stat.getPath());
+		if(ext)ext=ext.substring(1);
+		type=mime.getType(ext);
 	}
-	return rt;
+	if(!type)type='apllication/octet-stream';
+	else if(type=='text/html'){
+		// charset 
+		if(typeof cs=='function')cs=cs(stat.getPath());
+		if(cs)type+=';charset='+cs;
+	}
+
+	var body=await File.load(stat.getPath());
+	res.writeHead(200,{'Content-Type':type,'Content-Length':stat.getSize()});
+	res.end(body);
 }
 
-function _present_new(meth,opt={}){
+async function _dirent(basedir,srcdir,deep,opt){
 
-	var pt={
-		name:'YgEs_HTTPPresent',
-		User:opt.user??{},
-		Meth:meth,
-
-		walk:(wlk)=>{
-			var m=wlk.req.method;
-			if(!pt.Meth[m]){
-				wlk.ctl.Error(res,405,'Not allowed');
-				return;
-			}
-			pt.Meth[m](wlk);
-		},
+	let t={
+		parent:(basedir!=srcdir),
+		dirs:{},
+		files:{}
 	}
-	return pt;
+
+	let g=await File.glob(srcdir,'*');
+	for(let f of g){
+		let path=srcdir+f;
+		let st=await File.stat(path);
+		if(opt.filter){
+			if(!opt.filter(srcdir,f,st))continue;
+		}
+
+		if(st.isFile()){
+			let u={size:st.getSize()}
+			if(opt.mtime)u.mtime=st.getModifyTime()?.toISOString();
+			if(opt.ctime)u.ctime=st.getChangeTime()?.toISOString();
+			if(opt.atime)u.atime=st.getAccessTime()?.toISOString();
+			if(opt.btime)u.btime=st.getBirthTime()?.toISOString();
+			t.files[f]=u;
+		}
+		else if(st.isDir()){
+			if(deep)t.dirs[f]=await _dirent(basedir,srcdir+f+'/',(deep<0)?deep:(deep-1),opt);
+			else t.dirs[f]={};
+		}
+	}
+	return t;
 }
 
-function _transfer_new(dir,opt={}){
+function _serve_new(dir,opt={}){
 
 	var tt={
-		name:'YgEs_HTTPTransfer',
+		name:'YgEs_HTTPServe',
 		User:opt.user??{},
 		Dir:dir,
-		Charset:(path)=>mif.DefaultCharset,
+		Charset:(path)=>HTTPServer.DefaultCharset,
 		Indices:['index.html','index.htm'],
 
 		walk:(wlk)=>{
+
+			var step=wlk.layer[wlk.level];
+			if(opt.route && opt.route[step]){
+				_route_new(opt.route,{user:tt.User}).walk(wlk);
+				return;
+			}
 
 			// empty subpath requires entering to fix base 
 			if(wlk.level>=wlk.layer.length && wlk.layer[wlk.layer.length-1]!=''){
@@ -82,16 +103,12 @@ function _transfer_new(dir,opt={}){
 			}
 
 			var subpath=wlk.layer.slice(wlk.level).join('/');
-			var srcpath=tt.Dir+'/'+subpath;
+			var basepath=tt.Dir+'/';
+			var srcpath=basepath+subpath;
 
-			if(opt.route && opt.route[subpath]){
-				_route_new(opt.route,{user:tt.User}).walk(wlk);
-				return;
-			}
+			Timing.toPromise(async (ok,ng)=>{
 
-			timing.toPromise(async (ok,ng)=>{
-
-				var st=await file.stat(srcpath);
+				var st=await File.stat(srcpath);
 
 				if(srcpath.substring(srcpath.length-1)!='/'){
 					// check file exists 
@@ -113,39 +130,44 @@ function _transfer_new(dir,opt={}){
 				}
 
 				if(srcpath.substring(srcpath.length-1)=='/'){
-					// try finding an index file 
-					var f=false;
-					for(var n of tt.Indices){
-						var st2=await file.stat(srcpath+n);
-						if(!st2)continue;
-						if(!st2.isFile())continue;
-						f=true;
-						srcpath+=n;
-						st=st2;
-						break;
-					}
-					if(!f){
-						wlk.ctl.Error(wlk.res,404,'Not found');
+					if(opt.dirent){
+						// get dirents 
+						var g=await _dirent(basepath,srcpath,opt.deepent,{
+							filter:opt.filter??null,
+							symlink:opt.symlink??false,
+							mtime:opt.mtime??false,
+							ctime:opt.ctime??false,
+							atime:opt.atime??false,
+							btime:opt.btime??false,
+						});
+						var s=JSON.stringify(g);
+						wlk.res.writeHead(200,{'Content-Type':'application/json','Content-Length':s.length});
+						wlk.res.end(s);
 						ok();
 						return;
 					}
+					else{
+						// try finding an index file 
+						var f=false;
+						for(var n of tt.Indices){
+							var st2=await File.stat(srcpath+n);
+							if(!st2)continue;
+							if(!st2.isFile())continue;
+							f=true;
+							srcpath+=n;
+							st=st2;
+							break;
+						}
+						if(!f){
+							wlk.ctl.Error(wlk.res,403,'Forbidden');
+							ok();
+							return;
+						}
+					}
 				}
 
-				// content type	
-				var ext=path.extname(srcpath);
-				if(ext)ext=ext.substring(1);
-				var type=mime.getType(ext);
-				if(!type)type='apllication/octet-stream';
-				else if(type=='text/html'){
-					// charset 
-					var cs=tt.Charset;
-					if(typeof cs=='function')cs=cs(srcpath);
-					if(cs)type+=';charset='+cs;
-				}
-
-				var body=await file.load(srcpath);
-				wlk.res.writeHead(200,{'Content-Type':type,'Content-Length':st.getSize()});
-				wlk.res.end(body);
+				await _transfer(wlk.res,st,null,tt.Charset);
+				ok();
 			},(res)=>{
 				return res;
 			},(err)=>{
@@ -154,6 +176,45 @@ function _transfer_new(dir,opt={}){
 		},
 	}
 	return tt;
+}
+
+function _present_new(meth,opt={}){
+
+	var pt={
+		name:'YgEs_HTTPPresent',
+		User:opt.user??{},
+		Meth:meth,
+
+		walk:(wlk)=>{
+			var m=wlk.req.method;
+			if(!pt.Meth[m]){
+				wlk.ctl.Error(wlk.res,405,'Not allowed');
+				return;
+			}
+			pt.Meth[m](wlk);
+		},
+	}
+	return pt;
+}
+
+function _route_new(map,opt={}){
+
+	var rt={
+		name:'YgEs_HTTPRoute',
+		User:opt.user??{},
+		Map:map,
+
+		walk:(wlk)=>{
+			var n=wlk.layer[wlk.level];
+			if(!rt.Map[n]){
+				wlk.ctl.Error(wlk.res,404,'Not found');
+				return;
+			}
+			++wlk.level;
+			rt.Map[n].walk(wlk);
+		},
+	}
+	return rt;
 }
 
 function _walk(wlk){
@@ -177,7 +238,7 @@ function _request(ctl,req,res){
 			ctl:ctl,
 			req:req,
 			res:res,
-			parsed:urlb.parse(req.url),
+			parsed:URLBuild.parse(req.url),
 		}
 		wlk.layer=wlk.parsed.extractPath();
 		wlk.level=1;
@@ -190,17 +251,17 @@ function _request(ctl,req,res){
 	}
 }
 
-function _server_new(port,route,opt){
+function _listener_new(port,route,opt){
 
-	var log=opt.logger??log_global;
+	var log=opt.logger??Log;
 
 	var _working=true;
 	var _internal=http.createServer((req,res)=>_request(ctl,req,res));
 
 	var ws={
 		name:'YgEs_HTTPServer',
-		happen:opt.happen??hap_global.createLocal(),
-		launcher:opt.launcher??engine.createLauncher(),
+		happen:opt.happen??HappeningManager.createLocal(),
+		launcher:opt.launcher??Engine.createLauncher(),
 		user:opt.user??{},
 
 		cb_open:(wk)=>{
@@ -219,25 +280,27 @@ function _server_new(port,route,opt){
 		},
 	}
 
-	var ctl=workmng.standby(ws);
+	var ctl=AgentManager.standby(ws);
 	ctl.getPort=()=>port;
 	ctl.Route=route;
 	ctl.Error=_error_default;
 	return ctl;
 }
 
-var mif={
+let HTTPServer=YgEs.HTTPServer={
 	name:'YgEs_HTTPServer',
 	User:{},
 	DefaultCharset:'utf-8',
 
 	setup:(port,route,opt={})=>{
-		return _server_new(port,route,opt);
+		return _listener_new(port,route,opt);
 	},
 
-	route:_route_new,
+	transfer:_transfer,
+	serve:_serve_new,
 	present:_present_new,
-	transfer:_transfer_new,
+	route:_route_new,
 }
 
-export default mif;
+})();
+export default YgEs.HTTPServer;

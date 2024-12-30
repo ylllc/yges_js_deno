@@ -5,63 +5,66 @@
 
 // Examples: Logger //
 
-import log from '../api/logger.js';
+import Log from '../api/logger.js';
 
 // set showable log level 
-log.Showable=log.LEVEL.DEBUG;
+Log.Showable=Log.LEVEL.DEBUG;
 
 // set global log caption 
-log.Caption='Global';
+Log.Caption='Global';
 
 // put log 
-log.tick('TICK Log'); // will be suppressed 
-log.trace('TRACE Log'); // will be suppressed 
-log.debug('DEBUG Log');
-log.info('INFO Log');
-log.notice('NOTICE Log');
-log.warn('WARN Log');
-log.fatal('FATAL Log');
-log.alert('ALERT Log');
-log.emerg('EMERG Log');
+Log.tick('TICK Log'); // will be suppressed 
+Log.trace('TRACE Log'); // will be suppressed 
+Log.debug('DEBUG Log');
+Log.info('INFO Log');
+Log.notice('NOTICE Log');
+Log.warn('WARN Log');
+Log.fatal('FATAL Log');
+Log.alert('ALERT Log');
+Log.emerg('EMERG Log');
 
 // put log with variable level
-log.put(log.LEVEL.INFO,'INFO Log too');
+Log.put(Log.LEVEL.INFO,'INFO Log too');
 // overlevel logs are always suppressed 
-log.put(log.LEVEL.NEVER,'NEVER Log');
+Log.put(Log.LEVEL.NEVER,'NEVER Log');
 
 // can output an object directly, without JSON.stringify(), more correct   
-var obj={a:1,b:NaN,c:Infinity,d:[undefined]}
-log.debug(JSON.stringify(obj));
-log.debug(obj);
+let obj={a:1,b:NaN,c:Infinity,d:[undefined]}
+Log.debug(JSON.stringify(obj));
+Log.debug(obj);
 
-// can postpone creating message to suppress CPU cost
-log.debug(()=>'deferred message creation: '+Math.log10(1000));
+// can outputan object as extra properties 
+// useful on frontend, put on console without stringify 
+Log.debug('Log Props',obj);
+
+// can postpone creating message to reduce CPU cost
+Log.debug(()=>'deferred message creation: '+Math.log10(1000));
 
 // create local log instance 
-var ll1=log.createLocal('Local',log.LEVEL.TRACE);
+let ll1=Log.createLocal('Local',Log.LEVEL.TRACE);
 
 // put local log 
 ll1.tick('Local TICK Log'); // will be suppressed 
 ll1.trace('Local TRACE Log');
-ll1.put(log.LEVEL.DEBUG,'Local DEBUG Log');
+ll1.put(Log.LEVEL.DEBUG,'Local DEBUG Log');
 
 // can override output 
-log.Format=(capt,lev,msg)=>{
-	// returning is not necessarily a string 
-	// but must acceptable in LogWay 
-	return {capt:capt,lev:lev,msg:msg}
+Log.Format=(src)=>{
 }
-log.Way=(msg)=>{
-	console.log(JSON.stringify(msg));
+Log.Way=(src)=>{
+	console.log(JSON.stringify(src));
 }
-log.debug('Global override log');
+Log.debug('Global override log');
 // overridings affect to unoverridden local log 
 ll1.debug('Local override log');
 
 // local overridings are selected first 
-var ll2=ll1.createLocal('Local2');
-ll2.Format=(capt,lev,msg)=>msg;
-ll2.Way=(msg)=>{
-	console.log(msg);
+let ll2=ll1.createLocal('Local2');
+ll2.Format=(src)=>{
+	src.Msg='* '+src.Msg+' *';
+}
+ll2.Way=(src)=>{
+	console.log(src.Msg);
 }
 ll2.info('super-overridden local log');

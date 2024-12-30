@@ -3,26 +3,28 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// File Control //
+import YgEs from './common.js';
+import HappeningManager from './happening.js';
+import FS from './fs_ll.js';
 
-import hap_global from './happening.js';
-import workmng from './worker.js';
-import timing from './timing.js';
-import fs from './fs_ll.js';
+// File Control ------------------------- //
+(()=>{ // local namespace 
 
-var mif={
+YgEs.File={
 	name:'YgEs_FileControl',
 	User:{},
-	Happen:hap_global,
+	Happen:HappeningManager,
 
-	exists:(path)=>fs.exists(path),
-	isFile:(path)=>fs.isFile(path),
+	exists:(path)=>FS.exists(path),
+	isFile:(path)=>FS.isFile(path),
 
-	stat:(path,opt={})=>fs.stat(path,opt),
-	load:(path,opt={})=>fs.load(path,opt),
-	save:(path,data,opt={})=>fs.save(path,data,opt),
-	remove:(path,opt={})=>fs.remove(path,opt),
-	
+	stat:(path,opt={})=>FS.stat(path,opt),
+	load:(path,opt={})=>FS.load(path,opt),
+	save:(path,data,opt={})=>FS.save(path,data,opt),
+	remove:(path,opt={})=>FS.remove(path,opt),
+
+	glob:(dir,ptn)=>FS.glob(dir,ptn),
 }
 
-export default mif;
+})();
+export default YgEs.File;
