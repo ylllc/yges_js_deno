@@ -42,11 +42,11 @@ Access by your web browser.
 
 - http://localhost:8080/
 	- Hello World!
-- http://localhost:8088/
+- http://localhost:8888/
 	- Show the Home Page.
-- http://localhost:8088/doc/
+- http://localhost:8888/doc/
 	- Show docs. (see Documentation)
-- http://localhost:8088/test.html
+- http://localhost:8888/test.html
 	- Run Test Runner.
 
 ### Shutdown the server
