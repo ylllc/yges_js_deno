@@ -3,25 +3,27 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Statemachine //
+import YgEs from './common.js';
+import Engine from './engine.js';
+import HappeningManager from './happening.js';
 
-import engine from './engine.js';
-import hap_global from './happening.js';
+// Statemachine ------------------------- //
+(()=>{ // local namespace 
 
 function _run(start,states={},opt={}){
 
-	var launcher=opt.launcher??engine;
-	var cur=null;
+	let launcher=opt.launcher??YgEs.Engine;
+	let cur=null;
 
-	var name=opt.name??'YgEs_Statemachine';
-	var happen=opt.happen??hap_global;
-	var user=opt.user??{};
+	let name=opt.name??'YgEs_Statemachine';
+	let happen=opt.happen??HappeningManager;
+	let user=opt.user??{};
 
-	var state_prev=null;
-	var state_cur=null;
-	var state_next=start;
+	let state_prev=null;
+	let state_cur=null;
+	let state_next=start;
 
-	var ctrl={
+	let ctrl={
 		name:name+'_Control',
 		User:{},
 		getHappeningManager:()=>happen,
@@ -30,7 +32,7 @@ function _run(start,states={},opt={}){
 		getNextState:()=>state_next,
 	}
 
-	var getInfo=(phase)=>{
+	let getInfo=(phase)=>{
 		return {
 			name:name,
 			prev:state_prev,
@@ -42,10 +44,10 @@ function _run(start,states={},opt={}){
 		}
 	}
 
-	var poll_nop=(user)=>{}
-	var poll_cur=poll_nop;
+	let poll_nop=(user)=>{}
+	let poll_cur=poll_nop;
 
-	var call_start=(user)=>{
+	let call_start=(user)=>{
 		if(state_next==null){
 			// normal end 
 			cur=null;
@@ -81,7 +83,7 @@ function _run(start,states={},opt={}){
 		// can try extra polling 
 		poll_cur(user);
 	}
-	var poll_up=(user)=>{
+	let poll_up=(user)=>{
 		try{
 			var r=cur.poll_up?cur.poll_up(ctrl,user):true;
 		}
@@ -120,7 +122,7 @@ function _run(start,states={},opt={}){
 			call_end(user);
 		}
 	}
-	var poll_keep=(user)=>{
+	let poll_keep=(user)=>{
 		try{
 			var r=cur.poll_keep?cur.poll_keep(ctrl,user):true;
 		}
@@ -146,7 +148,7 @@ function _run(start,states={},opt={}){
 			call_stop(user);
 		}
 	}
-	var call_stop=(user)=>{
+	let call_stop=(user)=>{
 		try{
 			if(cur.cb_stop)cur.cb_stop(ctrl,user);
 			poll_cur=poll_down;
@@ -163,7 +165,7 @@ function _run(start,states={},opt={}){
 		// can try extra polling 
 		poll_cur(user);
 	}
-	var poll_down=(user)=>{
+	let poll_down=(user)=>{
 		try{
 			var r=cur.poll_down?cur.poll_down(ctrl,user):true;
 		}
@@ -188,7 +190,7 @@ function _run(start,states={},opt={}){
 			call_end(user);
 		}
 	}
-	var call_end=(user)=>{
+	let call_end=(user)=>{
 		try{
 			if(cur.cb_end)cur.cb_end(ctrl,user);
 			call_start(user);
@@ -204,7 +206,7 @@ function _run(start,states={},opt={}){
 		}
 	}
 
-	var stmac={
+	let stmac={
 		name:name,
 		happen:happen,
 		user:user,
@@ -220,7 +222,7 @@ function _run(start,states={},opt={}){
 		cb_abort:opt.cb_abort??'',
 	}
 
-	var proc=launcher.launch(stmac);
+	let proc=launcher.launch(stmac);
 	ctrl.isStarted=proc.isStarted;
 	ctrl.isFinished=proc.isFinished;
 	ctrl.isAborted=proc.isAborted;
@@ -231,11 +233,12 @@ function _run(start,states={},opt={}){
 	return ctrl;
 }
 
-var mif={
+YgEs.StateMachine={
 	name:'YgEs_StateMachineContainer',
 	User:{},
 
 	run:_run,
 }
 
-export default mif;
+})();
+export default YgEs.StateMachine;

@@ -3,13 +3,13 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Example: Property Tree //
+// Example: Property Tree --------------- //
 
-import proptree from '../api/proptree.js';
-import log from '../api/logger.js';
+import PropTree from '../api/proptree.js';
+import Log from '../api/logger.js';
 
 console.log('--- Mono Mode ---');
-var t1=proptree.create();
+let t1=PropTree.create();
 console.log(t1.getType());
 console.log(t1.get());
 t1.set('Test');
@@ -20,7 +20,7 @@ console.log(t1.getType());
 console.log(t1.get());
 
 console.log('--- Array Mode ---');
-var t2=proptree.create([],true);
+let t2=PropTree.create([],true);
 t2.push(1);
 t2.push('2');
 t2.unshift(-3);
@@ -35,7 +35,7 @@ console.log(t2.shift());
 console.log(t2.export());
 
 console.log('--- Prop Mode ---');
-var t3=proptree.create({},true);
+let t3=PropTree.create({},true);
 t3.set('a',1);
 t3.set('b','2');
 t3.set('c',-3);
@@ -53,11 +53,11 @@ console.log(t3.get('d','b'));
 console.log(t3.get(['d','a']));
 
 console.log('--- Subinstance ---');
-var t3e=t3.dig('d','e');
+let t3e=t3.dig('d','e');
 t3e.set('f','G');
 console.log(t3.get('d','e','f'));
 
-var t3d=t3.ref('d');
+let t3d=t3.ref('d');
 console.log(t3d.get('a'));
 
 console.log('--- Merging ---');
@@ -84,16 +84,16 @@ console.log(t2.get('x'));
 console.log(t2.get(2));
 
 console.log('--- Importing ---');
-var src={a:10,b:['11',-12]}
-var t4=proptree.create(src,false);
+let src={a:10,b:['11',-12]}
+let t4=PropTree.create(src,false);
 console.log(t4.get('a')); // undefined 
 console.log(t4.get()); // can get all only
-var t5=proptree.create(src,true);
+let t5=PropTree.create(src,true);
 console.log(t5.get('a')); // 10
 
 console.log('--- Exporting ---');
 console.log(t3.export());
 
 console.log('--- Iteration ---');
-t3.each((k,t)=>{log.info('['+k+']='+JSON.stringify(t.export()));});
-t3.each('d',(k,t)=>{log.info('['+k+']='+JSON.stringify(t.export()));});
+t3.each((k,t)=>{Log.info('['+k+']='+JSON.stringify(t.export()));});
+t3.each('d',(k,t)=>{Log.info('['+k+']='+JSON.stringify(t.export()));});

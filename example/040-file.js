@@ -3,52 +3,55 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Examples: File Control //
+import Dir from '../api/dir.js';
+import File from '../api/file.js';
+import Engine from '../api/engine.js';
+import Timing from '../api/timing.js';
+import Log from '../api/logger.js';
 
-import dir from '../api/dir.js';
-import file from '../api/file.js';
-import engine from '../api/engine.js';
-import timing from '../api/timing.js';
-import log from '../api/logger.js';
+// Examples: File Control --------------- //
 
-engine.start();
+Engine.start();
 
 // prepare diretories 
-var basedir=dir.target('..',false);
-var tmpdir=basedir.subdir('tmp',true);
+let basedir=Dir.target('..',false);
+let tmpdir=basedir.subdir('tmp',true);
 
 // start async procedure 
 (async()=>{
 	// wait for tmpdir ready 
-	log.info(tmpdir.getPath()+': '+(tmpdir.exists()?'already':'not'));
-	var h_tmpdir=tmpdir.open();
-	await timing.syncKit(100,()=>{return h_tmpdir.isReady()}).promise();
-	log.info(tmpdir.getPath()+': '+(tmpdir.exists()?'ready':'not'));
+	Log.info(tmpdir.getPath()+': '+(tmpdir.exists()?'already':'not'));
+	let h_tmpdir=tmpdir.open();
+	await Timing.syncKit(100,()=>{return h_tmpdir.isReady()}).promise();
+	Log.info(tmpdir.getPath()+': '+(tmpdir.exists()?'ready':'not'));
 
 	// quick accesses 
-	var srcpath=basedir.relative('LICENSE');
-	var dstpath=tmpdir.relative('LICENSE');
-	var st=await file.stat(srcpath);
-	log.info('isDir: '+st.isDir());
-	log.info('isFile: '+st.isFile());
-	log.info('isSymLink: '+st.isSymLink());
-	log.info('DevID: '+st.getDevID());
-	log.info('Inode: '+st.getInode());
-	log.info('mode: '+st.getMode());
-	log.info('GID: '+st.getGID());
-	log.info('UID: '+st.getUID());
-	log.info('size: '+st.getSize());
-	log.info('aTime: '+st.getAccessTime());
-	log.info('mTime: '+st.getModifyTime());
-	log.info('cTime: '+st.getChangeTime());
-	log.info('bTime: '+st.getBirthTime());
-	var data=await file.load(srcpath);
-	await file.save(dstpath,data);
+	let srcpath=basedir.relative('LICENSE');
+	let dstpath=tmpdir.relative('LICENSE');
+	let st=await File.stat(srcpath);
+	Log.info('isDir: '+st.isDir());
+	Log.info('isFile: '+st.isFile());
+	Log.info('isSymLink: '+st.isSymLink());
+	Log.info('DevID: '+st.getDevID());
+	Log.info('Inode: '+st.getInode());
+	Log.info('mode: '+st.getMode());
+	Log.info('GID: '+st.getGID());
+	Log.info('UID: '+st.getUID());
+	Log.info('size: '+st.getSize());
+	Log.info('aTime: '+st.getAccessTime());
+	Log.info('mTime: '+st.getModifyTime());
+	Log.info('cTime: '+st.getChangeTime());
+	Log.info('bTime: '+st.getBirthTime());
+	let data=await File.load(srcpath);
+	await File.save(dstpath,data);
+
+	let files=await File.glob(basedir.getPath());
+	Log.info(files);
 
 	// close tmpdir (still keep in filesystem) 
 	h_tmpdir.close();
 
-	engine.sync((dmy)=>{
-		engine.shutdown();
+	Engine.sync((dmy)=>{
+		Engine.shutdown();
 	});
 })();

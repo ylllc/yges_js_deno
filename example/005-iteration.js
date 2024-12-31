@@ -3,9 +3,9 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Examples: Iterators //
+// Examples: Iterators ------------------ //
 
-import util from '../api/util.js';
+import Util from '../api/util.js';
 import log from '../api/logger.js';
 
 // a famous problem 
@@ -26,21 +26,21 @@ for(var i=0;i<5;++i){
 }
 
 // safeStepIter() is masking the CRAZY coding. 
-util.safeStepIter(0,5,1,(i)=>{
+Util.safeStepIter(0,5,1,(i)=>{
 	setTimeout(()=>{
 		log.info('safe loop: '+i);
 	},100);
 });
 
 // can backword 
-util.safeStepIter(0,-5,-2,(i)=>{
+Util.safeStepIter(0,-5,-2,(i)=>{
 	setTimeout(()=>{
 		log.info('back skip loop: '+i);
 	},100);
 });
 
 // return false to break safe loop.
-util.safeStepIter(0,5,1,(i)=>{
+Util.safeStepIter(0,5,1,(i)=>{
 	setTimeout(()=>{
 		log.info('braking in the safe loop: '+i);
 	},100);
@@ -48,7 +48,7 @@ util.safeStepIter(0,5,1,(i)=>{
 });
 
 // unstoppable iterations are blocked. 
-util.safeStepIter(0,5,-1,(i)=>{
+Util.safeStepIter(0,5,-1,(i)=>{
 	setTimeout(()=>{
 		log.emerg('buggy loop: '+i);
 	},100);
@@ -56,7 +56,7 @@ util.safeStepIter(0,5,-1,(i)=>{
 
 // can iterate an array likewise 
 var a=[5,2.3,'x',5,-11]
-util.safeArrayIter(a,(v)=>{
+Util.safeArrayIter(a,(v)=>{
 	setTimeout(()=>{
 		log.info('array iteration: '+v);
 	},100);
@@ -64,7 +64,7 @@ util.safeArrayIter(a,(v)=>{
 
 // can iterate an object likewise 
 var b={'a':'B',4.4:-0.6,true:false}
-util.safeDictIter(b,(k,v)=>{
+Util.safeDictIter(b,(k,v)=>{
 	setTimeout(()=>{
 		log.info('object iteration: '+k+':'+v);
 	},100);

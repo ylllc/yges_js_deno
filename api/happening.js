@@ -3,41 +3,46 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Happening Manager //
+import YgEs from './common.js';
+import Log from './logger.js';
 
-import log from './logger.js';
-import util from './util.js';
+// Happening Manager -------------------- //
+(()=>{ // local namespace 
 
-function _default_happened(hap){
-	log.fatal(hap.GetProp());	
+let Log=YgEs.Log;
+
+function _yges_happening_default_happened(hap){
+	Log.fatal(hap.getProp());	
 }
-function _default_abandoned(hap){
-	log.warn('* Abandoned * '+hap.ToString());	
+function _yges_happening_default_abandoned(hap){
+	Log.warn('* Abandoned * '+hap.toString());	
 }
-function _default_resolved(hap){
-	log.debug('* Resolved * '+hap.ToString());	
+function _yges_happening_default_resolved(hap){
+	Log.debug('* Resolved * '+hap.toString());	
 }
 
-function _create_happening(cbprop,cbstr,cberr,init=null){
+function _yges_happening_create_happening(cbprop,cbstr,cberr,init={}){
 
-	var hap={
-		name:init?.name??'YgEs_Happening',
+	let cb_resolved=init.cb_resolved??_yges_happening_default_resolved;
+	let cb_abandoned=init.cb_abandoned??_yges_happening_default_abandoned;
+
+	let hap={
+		name:init.name??'YgEs_Happening',
 		resolved:false,
 		abandoned:false,
-		User:init?.User??{},
-		GetProp:cbprop,
-		ToString:cbstr,
-		ToJSON:()=>JSON.stringify(hap.GetProp()),
-		ToError:cberr,
-		Resolved:init?.Resolved??_default_resolved,
-		Abandoned:init?.Abandoned??_default_abandoned,
+		User:init.user??{},
+
+		getProp:cbprop,
+		toString:cbstr,
+		toJSON:()=>JSON.stringify(hap.getProp()),
+		toError:cberr,
 
 		isResolved:()=>hap.resolved,
 		resolve:()=>{
 			if(hap.resolved)return;
 			hap.resolved=true;
 			hap.abandoned=false;
-			if(hap.Resolved)hap.Resolved(hap);
+			if(cb_resolved)cb_resolved(hap);
 		},
 
 		isAbandoned:()=>hap.abandoned && !hap.resolved,
@@ -45,67 +50,67 @@ function _create_happening(cbprop,cbstr,cberr,init=null){
 			if(hap.resolved)return;
 			if(hap.abandoned)return;
 			hap.abandoned=true;
-			if(hap.Abandoned)hap.Abandoned(hap);
+			if(cb_abandoned)cb_abandoned(hap);
 		},
 	}
 	return hap;
 }
 
-function _create_manager(prm,parent=null){
+function _yges_happening_create_manager(prm,parent=null){
 
-	var mng={
+	let mng={
 		name:prm.name??'YgEs_HappeningManager',
 		issues:[],
 		children:[],
 		Happened:prm.happen??null,
 		User:prm.user??{},
 
-		createLocal:(prm={})=>_create_manager(prm,mng),
+		createLocal:(prm={})=>_yges_happening_create_manager(prm,mng),
 
 		abandon:()=>{
-			for(var sub of mng.children){
+			for(let sub of mng.children){
 				sub.abandon();
 			}
-			for(var hap of mng.issues){
+			for(let hap of mng.issues){
 				hap.abandon();
 			}
 			mng.issues=[]
 		},
 
 		countIssues:()=>{
-			var ct=mng.issues.length;
-			for(var sub of mng.children){
+			let ct=mng.issues.length;
+			for(let sub of mng.children){
 				ct+=sub.countIssues();
 			}
 			return ct;
 		},
 		isCleaned:()=>{
 			if(mng.issues.length>0)return false;
-			for(var sub of mng.children){
+			for(let sub of mng.children){
 				if(!sub.isCleaned())return false;
 			}
 			return true;
 		},
 		cleanup:()=>{
-			var tmp=[]
-			for(var hap of mng.issues){
+			let tmp=[]
+			for(let hap of mng.issues){
 				if(!hap.resolved)tmp.push(hap);
 			}
 			mng.issues=tmp;
 
-			for(var sub of mng.children){
+			for(let sub of mng.children){
 				sub.cleanup();
 			}
 		},
 
 		getInfo:()=>{
-			var info={name:mng.name,issues:[],children:[]}
-			for(var hap of mng.issues){
+			let info={name:mng.name,issues:[],children:[]}
+			for(let hap of mng.issues){
 				if(hap.resolved)continue;
-				info.issues.push({name:hap.name,prop:hap.GetProp()});
+				info.issues.push({name:hap.name,prop:hap.getProp()});
 			}
-			for(var sub of mng.children){
-				var si=sub.getInfo();
+			for(let sub of mng.children){
+				let si=sub.getInfo();
 				if(si.issues.length>0 || si.children.length>0)info.children.push(si);
 			}
 			return info;
@@ -113,12 +118,12 @@ function _create_manager(prm,parent=null){
 
 		poll:(cb)=>{
 			if(!cb)return;
-			for(var hap of mng.issues){
+			for(let hap of mng.issues){
 				if(hap.resolved)continue;
 				if(hap.abandoned)continue;
 				cb(hap);
 			}
-			for(var sub of mng.children){
+			for(let sub of mng.children){
 				sub.poll(cb);
 			}
 		},
@@ -126,15 +131,15 @@ function _create_manager(prm,parent=null){
 		_callHappened:(hap)=>{
 			if(mng.Happened)mng.Happened(hap);
 			else if(parent)parent._callHappened(hap);
-			else _default_happened(hap);
+			else _yges_happening_default_happened(hap);
 		},
 		happen:(hap)=>{
 			mng.issues.push(hap);
 			mng._callHappened(hap);
 			return hap;
 		},
-		happenMsg:(msg,init=null)=>{
-			return mng.happen(_create_happening(
+		happenMsg:(msg,init={})=>{
+			return mng.happen(_yges_happening_create_happening(
 				()=>{return {msg:''+msg}},
 				()=>''+msg,
 				()=>new Error(msg),
@@ -142,8 +147,8 @@ function _create_manager(prm,parent=null){
 			));
 		},
 
-		happenProp:(prop,init=null)=>{
-			return mng.happen(_create_happening(
+		happenProp:(prop,init={})=>{
+			return mng.happen(_yges_happening_create_happening(
 				()=>prop,
 				()=>JSON.stringify(prop),
 				()=>new Error(JSON.stringify(prop)),
@@ -151,9 +156,9 @@ function _create_manager(prm,parent=null){
 			));
 		},
 
-		happenError:(err,init=null)=>{
-			return mng.happen(_create_happening(
-				()=>{return util.fromError(err)},
+		happenError:(err,init={})=>{
+			return mng.happen(_yges_happening_create_happening(
+				()=>{return YgEs.fromError(err)},
 				()=>''+err,
 				()=>err,
 				init
@@ -164,7 +169,7 @@ function _create_manager(prm,parent=null){
 	return mng;
 }
 
+YgEs.HappeningManager=_yges_happening_create_manager('YgEs_GlobalHappeningManager');
 
-const mif=_create_manager('YgEs_GlobalHappeningManager');
-
-export default mif;
+})();
+export default YgEs.HappeningManager;

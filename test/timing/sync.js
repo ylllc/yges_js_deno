@@ -3,46 +3,46 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Resyncronize Test //
+import Test from '../../api/unittest.js';
+import Timing from '../../api/timing.js';
 
-import test from '../../api/unittest.js';
-import timing from '../../api/timing.js';
+// Resyncronize Test -------------------- //
 
 const interval=50;
-var count=0;
+let count=0;
 
-var scenaria=[
+const scenaria=[
 	{
 		title:'Sync',
-		proc:async ()=>{
-			var t1=Date.now();
+		proc:async (tool)=>{
+			let t1=Date.now();
 			await new Promise((ok,ng)=>{
-				var cancel=timing.sync(interval,()=>{
+				let cancel=Timing.sync(interval,()=>{
 					return ++count>=10;
 				},
 				()=>{ok();},
 				()=>{ng();});
 			});
-			var dt=Date.now()-t1;
-			test.chk_great(dt,interval*9);
-			test.chk_strict(count,10);
+			let dt=Date.now()-t1;
+			Test.chk_great(dt,interval*9);
+			Test.chk_strict(count,10);
 		},
 	},
 	{
 		title:'Abort Sync',
-		proc:async ()=>{
+		proc:async (tool)=>{
 			await new Promise((ok,ng)=>{
-				var cancel=timing.sync(interval,()=>{
+				let cancel=Timing.sync(interval,()=>{
 					return ++count>=20;
 				},
 				()=>{ng();},
 				()=>{ok();});
 
-				timing.delay(interval*5,()=>{cancel();});
-				test.chk_less(count,16);
+				Timing.delay(interval*5,()=>{cancel();});
+				Test.chk_less(count,16);
 			});
 		},
 	},
 ]
 
-test.run(scenaria);
+Test.run(scenaria);

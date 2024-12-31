@@ -3,13 +3,16 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Quick Queue //
+import YgEs from './common.js';
 
-function _create(args){
+// Quick Queue -------------------------- //
+(()=>{ // local namespace 
 
-	var cur=0;
+function _qq_create(args){
 
-	var q={
+	let cur=0;
+
+	let q={
 		name:'YgEs_QuickQueue',
 		User:{},
 
@@ -29,11 +32,12 @@ function _create(args){
 	return q;
 }
 
-var mif={
+YgEs.QuickQueue={
 	name:'YgEs_QuickQueueContainer',
 	User:{},
 
-	create:_create,
+	create:_qq_create,
 }
 
-export default mif;
+})();
+export default YgEs.QuickQueue;

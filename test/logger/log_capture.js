@@ -3,34 +3,34 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Log Capture Test //
+import Test from '../../api/unittest.js';
+import Log from '../../api/logger.js';
 
-import test from '../../api/unittest.js';
-import log from '../../api/logger.js';
+// Log Capture Test --------------------- //
 
 // capture a log for test 
-var subj=null;
-log.Format=(capt,lev,msg)=>{
-	return capt+':'+lev+':'+msg;
+let subj=null;
+Log.Format=(src)=>{
+	src.Msg=src.Capt+':'+src.Lev+':'+src.Msg;
 }
-log.Way=(msg)=>{
-	test.chk_strict(msg,subj,'captured log');
+Log.Way=(src)=>{
+	Test.chk_strict(src.Msg,subj,'captured log');
 }
 
 // set showable log level 
-log.Showable=log.LEVEL.DEBUG;
+Log.Showable=Log.LEVEL.DEBUG;
 
 // set global log caption 
-log.Caption='Global';
+Log.Caption='Global';
 
-var scenaria=[
+const scenaria=[
 	{
 		title:'Log Capturer',
-		proc:()=>{
+		proc:(tool)=>{
 			subj='Global:3:test-msg';
-			log.info('test-msg');
+			Log.info('test-msg');
 		},
 	},
 ]
 
-test.run(scenaria);
+Test.run(scenaria);

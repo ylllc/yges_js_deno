@@ -3,17 +3,17 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Examples: Async Proceure Engine //
+// Examples: Async Proceure Engine ------ //
 
-import eng from '../api/engine.js';
+import Engine from '../api/engine.js';
 import log from '../api/logger.js';
 import util from '../api/util.js';
 
 // start the Engine 
-eng.start();
+Engine.start();
 
 // local launcher 
-var launcher=eng.createLauncher({
+var launcher=Engine.createLauncher({
 	name:'MyLauncher',
 	limit:3, // can limit parallel proc 
 });
@@ -27,7 +27,7 @@ util.safeStepIter(0,10,1,(i)=>{
 		cb_start:(user)=>{
 			// called before running 
 			user.lock=true;
-			eng.delay(500,(ctx)=>{
+			Engine.delay(500,(ctx)=>{
 				user.lock=false;
 			});
 		},
@@ -52,7 +52,7 @@ launcher.sync((user)=>{
 // count up with 1 sec interval 
 function countup(max,now=0){
 
-	eng.delay(1000,(user)=>{
+	Engine.delay(1000,(user)=>{
 		if(now>=max)return;
 		++now;
 		log.info('count: '+now);
@@ -68,10 +68,10 @@ countup(10);
 // after 5 sec, the Engine is ended. 
 // and all pollings are aborted. 
 // and can exit.
-eng.delay(5000,(ctx)=>{
+Engine.delay(5000,(ctx)=>{
 	log.info('end of the engine');
 
-	eng.stop();
+	Engine.stop();
 },(ctx)=>{
 	log.info('abort root');
 });

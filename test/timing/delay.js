@@ -3,22 +3,22 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Delay Test //
+import Test from '../../api/unittest.js';
+import Timing from '../../api/timing.js';
 
-import test from '../../api/unittest.js';
-import timing from '../../api/timing.js';
+// Delay Test --------------------------- //
 
 const interval=100;
 
-var scenaria=[
+const scenaria=[
 	{
 		title:'Delay',
 		proc:async ()=>{
-			var t1=Date.now();
+			let t1=Date.now();
 			await new Promise((ok,ng)=>{
-				timing.delay(interval,()=>{
-					var dt=Date.now()-t1;
-					test.chk_great(dt,interval-(interval>>3));
+				Timing.delay(interval,()=>{
+					let dt=Date.now()-t1;
+					Test.chk_great(dt,interval-(interval>>3));
 					ok();
 				});
 			});
@@ -26,10 +26,10 @@ var scenaria=[
 	},
 	{
 		title:'Cancel Delay',
-		proc:async ()=>{
+		proc:async (tool)=>{
 			await new Promise((ok,ng)=>{
-				var cancel=timing.delay(interval,()=>{
-					test.never('not cancelled');
+				let cancel=Timing.delay(interval,()=>{
+					Test.never('not cancelled');
 				});
 				cancel();
 				ok();
@@ -38,4 +38,4 @@ var scenaria=[
 	},
 ]
 
-test.run(scenaria);
+Test.run(scenaria);

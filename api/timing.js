@@ -3,9 +3,11 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Basic Timing Features //
+import YgEs from './common.js';
 
-var mif={
+// Basic Timing Features ---------------- //
+
+let Timing=YgEs.Timing={
 	name:'YgEs_Timing',
 	User:{},
 
@@ -26,7 +28,7 @@ var mif={
 		});
 	},
 	toPromise:(cb_proc,cb_done=null,cb_fail=null)=>{
-		var p=new Promise((ok,ng)=>{
+		let p=new Promise((ok,ng)=>{
 			cb_proc(ok,ng);
 		}).then((r)=>{
 			if(cb_done)cb_done(r);
@@ -40,7 +42,7 @@ var mif={
 
 	delay:(ms,cb_done,cb_cancel=null)=>{
 
-		var h=null;
+		let h=null;
 		if(!cb_done)return ()=>{
 			if(cb_cancel)cb_cancel();
 		};
@@ -65,9 +67,9 @@ var mif={
 			if(cb_abort)cb_abort();
 		};
 
-		var cancel=null;
-		var next=()=>{
-			cancel=mif.delay(ms,()=>{
+		let cancel=null;
+		let next=()=>{
+			cancel=Timing.delay(ms,()=>{
 				cb_poll();
 				if(!cancel)return;
 				cancel=null;
@@ -88,13 +90,13 @@ var mif={
 		if(!cb_chk)return ()=>{};
 		if(!cb_done)return ()=>{};
 
-		var cancel=null;
+		let cancel=null;
 		if(cb_chk()){
 			cb_done();
 			return ()=>{};
 		}
 
-		cancel=mif.poll(ms,()=>{
+		cancel=Timing.poll(ms,()=>{
 			if(!cb_chk())return;
 			if(cancel){
 				cancel();
@@ -112,9 +114,9 @@ var mif={
 	},
 
 	delayKit:(ms,cb_done=null,cb_cancel=null)=>{
-		var kit={}
-		kit.promise=()=>mif.toPromise((ok,ng)=>{
-			kit.cancel=mif.delay(ms,
+		let kit={}
+		kit.promise=()=>Timing.toPromise((ok,ng)=>{
+			kit.cancel=Timing.delay(ms,
 			()=>{
 				if(cb_done)cb_done();
 				ok();
@@ -126,9 +128,9 @@ var mif={
 		return kit;
 	},
 	syncKit:(ms,cb_chk,cb_done=null,cb_abort=null)=>{
-		var kit={}
-		kit.promise=()=>mif.toPromise((ok,ng)=>{
-			kit.cancel=mif.sync(ms,cb_chk,
+		let kit={}
+		kit.promise=()=>Timing.toPromise((ok,ng)=>{
+			kit.cancel=Timing.sync(ms,cb_chk,
 			()=>{
 				if(cb_done)ok(cb_done());
 				else ok();
@@ -143,4 +145,4 @@ var mif={
 
 }
 
-export default mif;
+export default YgEs.Timing;

@@ -3,29 +3,20 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Async Procedure Test //
+import Test from '../../api/unittest.js';
 
-import test from '../../api/unittest.js';
-import eng from '../../api/engine.js';
-import log from '../../api/logger.js';
-import hap_global from '../../api/happening.js';
+// Engine Procedure Test ---------------- //
 
-var count_start=0;
-var count_done=0;
-var count_abort=0;
+let count_start=0;
+let count_done=0;
+let count_abort=0;
 
-var hap_local=hap_global.createLocal({
-	happen:(hap)=>{log.fatal(hap.GetProp());},
-});
-
-eng.start();
-
-var scenaria=[
+const scenaria=[
 	{
 		title:'Root Async Proc',
-		proc:async ()=>{
-			var proc=eng.launch({
-				happen:hap_local,
+		proc:async (tool)=>{
+			let proc=tool.Launcher.launch({
+				happen:tool.Launcher.HappenTo,
 				cb_start:(user)=>{
 					user.lock=true;
 					++count_start;
@@ -40,29 +31,28 @@ var scenaria=[
 					++count_abort;
 				}
 			});
-			test.chk_strict(1,count_start,'bgn - start');
-			test.chk_strict(0,count_done,'bgn - done');
-			test.chk_strict(0,count_abort,'bgn - abort');
-			test.chk_strict(true,proc.isStarted(),'bgn - started');
-			test.chk_strict(false,proc.isFinished(),'bgn - finished');
-			test.chk_strict(false,proc.isAborted(),'bgn - aborted');
-			test.chk_strict(false,proc.isEnd(),'bgn - end');
+			Test.chk_strict(1,count_start,'bgn - start');
+			Test.chk_strict(0,count_done,'bgn - done');
+			Test.chk_strict(0,count_abort,'bgn - abort');
+			Test.chk_strict(true,proc.isStarted(),'bgn - started');
+			Test.chk_strict(false,proc.isFinished(),'bgn - finished');
+			Test.chk_strict(false,proc.isAborted(),'bgn - aborted');
+			Test.chk_strict(false,proc.isEnd(),'bgn - end');
 
 			proc.User.lock=false;
 			await proc.toPromise(false);
 
-			test.chk_strict(1,count_start,'end - start');
-			test.chk_strict(1,count_done,'end - done');
-			test.chk_strict(0,count_abort,'end - abort');
-			test.chk_strict(true,proc.isStarted(),'end - started');
-			test.chk_strict(true,proc.isFinished(),'end - finished');
-			test.chk_strict(false,proc.isAborted(),'end - aborted');
-			test.chk_strict(true,proc.isEnd(),'end - end');
+			Test.chk_strict(1,count_start,'end - start');
+			Test.chk_strict(1,count_done,'end - done');
+			Test.chk_strict(0,count_abort,'end - abort');
+			Test.chk_strict(true,proc.isStarted(),'end - started');
+			Test.chk_strict(true,proc.isFinished(),'end - finished');
+			Test.chk_strict(false,proc.isAborted(),'end - aborted');
+			Test.chk_strict(true,proc.isEnd(),'end - end');
 
-			await eng.toPromise(false);
-			eng.shutdown();
+			await tool.Launcher.toPromise();
 		},
 	},
 ]
 
-test.run(scenaria);
+Test.run(scenaria);
