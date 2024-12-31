@@ -3,18 +3,21 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Unit Test Utility for Deno //
-
 import {
 	assert,
 } from "https://deno.land/std@0.65.0/testing/asserts.ts";
 
-import util from './util.js';
-import hap_global from './happening.js';
+import YgEs from './common.js';
+import Timing from './timing.js';
+import HappeningManager from './happening.js';
+import Engine from './engine.js';
+import Log from './logger.js';
+
+// Unit Test Utility for Deno ----------- //
 
 function _cpmsg(msg,v1,op,v2){
 	if(!msg)msg='Test Mismatch:';
-	return ''+msg+' ('+util.inspect(v1)+' '+op+' '+util.inspect(v2)+')';
+	return ''+msg+' ('+YgEs.inspect(v1)+' '+op+' '+YgEs.inspect(v2)+')';
 }
 
 export default {
@@ -35,31 +38,32 @@ export default {
 		// when there is even one pickup 
 		// unselected tests are ignored. 
 		// (use insted of Deno.test({only:true}) to suppress redundant log) 
-		var puf=false;
+		let puf=false;
 		for(let t of scn){
 			if(!t.pickup)continue;
 			puf=true;
 			break;
 		}
 
-		for(let t of scn){
-			if(puf && !t.pickup)continue;
-			if(t.filter!==undefined && !t.filter)continue;
-			Deno.test({
-				name: t.title,
-				fn: async ()=>{
-					await t.proc();
-//					await new Promise((ok)=>{setTimeout(ok,1000);});
-				},
-			});
-		}
-
-		Deno.test({
-			name: 'Final Cleanup',
-			fn: ()=>{
-				hap_global.cleanup();
-				if(!hap_global.isCleaned())throw util.inspect(hap_global.getInfo());
-			},
+		Timing.toPromise((ok,ng)=>{
+			for(let t of scn){
+				if(puf && !t.pickup)continue;
+				if(t.filter!==undefined && !t.filter)continue;
+				Deno.test({
+					name: t.title,
+					fn: async ()=>{
+						Engine.start();
+						let launcher=Engine.createLauncher();
+						await t.proc({
+							Launcher:launcher,
+							Log:Log.createLocal(t.title,Log.LEVEL.DEBUG),
+						});
+						launcher.abort();
+						if(!launcher.HappenTo.isCleaned())throw YgEs.inspect(launcher.HappenTo.getInfo());
+						Engine.stop();
+					},
+				});
+			}
 		});
 	},
 };

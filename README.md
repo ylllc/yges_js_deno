@@ -23,14 +23,40 @@ Run a Test Runner of Deno standard.
 
 ```
 $ cd test
-$ deno test
+$ deno test **/*
 ```
 
 ### for Windows
 
 Can one touch testing with test_all.bat
 
-### Known Problem
+## Sample web server
 
-- deno test makes suspicious leak detection on the Engine.
-	but can end process normally, it's indicated a Deno's bug.
+Run a server.  
+```
+$ cd example
+$ deno run --allow-net --allow-read --allow-write 100-http_server.js
+```
+
+Access by your web browser.  
+
+- http://localhost:8080/
+	- Hello World!
+- http://localhost:8088/
+	- Show the Home Page.
+- http://localhost:8088/doc/
+	- Show docs. (see Documentation)
+- http://localhost:8088/test.html
+	- Run Test Runner.
+
+### Shutdown the server
+
+```
+$ rm server_running
+```
+
+
+## Known Problem
+
+- in version 2.1.4, File.stat() not work.
+	- 2.0.6 can work.

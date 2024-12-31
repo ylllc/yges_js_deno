@@ -3,43 +3,43 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Log Level Test //
+import Test from '../../api/unittest.js';
+import Log from '../../api/logger.js';
 
-import test from '../../api/unittest.js';
-import log from '../../api/logger.js';
+// Log Level Test ----------------------- //
 
 // capture a log for test 
-var count=0;
-log.Way=(msg)=>{
+let count=0;
+Log.Way=(src)=>{
 	++count;
 }
 
-var scenaria=[
+const scenaria=[
 	{
 		title:'Log Level',
-		proc:()=>{
+		proc:(tool)=>{
 			// set showable log level 
-			log.Showable=log.LEVEL.DEBUG;
-			test.chk_strict(count,0,'not logged yet');
-			log.debug('?');
-			test.chk_strict(count,1,'debug logged');
-			log.trace('?'); // will be suppressed 
-			test.chk_strict(count,1,'trace log  suppressed');
+			Log.Showable=Log.LEVEL.DEBUG;
+			Test.chk_strict(count,0,'not logged yet');
+			Log.debug('?');
+			Test.chk_strict(count,1,'debug logged');
+			Log.trace('?'); // will be suppressed 
+			Test.chk_strict(count,1,'trace log  suppressed');
 
 			// local log (unoverriden)
-			var ll1=log.createLocal('Local1',log.LEVEL.WARN);
+			let ll1=Log.createLocal('Local1',Log.LEVEL.WARN);
 			ll1.notice('?') // will be suppressed ;
-			test.chk_strict(count,1,'notice log suppressed');
+			Test.chk_strict(count,1,'notice log suppressed');
 			ll1.warn('?');
-			test.chk_strict(count,2,'warn logged');
+			Test.chk_strict(count,2,'warn logged');
 
 			// local log (instant overriden)
-			var ll2=log.createLocal('Local2');
+			let ll2=Log.createLocal('Local2');
 			ll2.Way=(msg)=>{count+=10;};
 			ll2.info('?');
-			test.chk_strict(count,12,'local logged');
+			Test.chk_strict(count,12,'local logged');
 		},
 	},
 ]
 
-test.run(scenaria);
+Test.run(scenaria);

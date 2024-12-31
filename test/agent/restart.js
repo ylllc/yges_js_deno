@@ -3,52 +3,42 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
+import Test from '../../api/unittest.js';
+import AgentManager from '../../api/agent.js';
+
 // Agent Restart Test ------------------- //
 
-import test from '../../api/unittest.js';
-import eng from '../../api/engine.js';
-import workmng from '../../api/agent.js';
-import log from '../../api/logger.js';
-import hap_global from '../../api/happening.js';
+let agent=null;
+let handle=null;
 
-eng.start();
-
-var worker=null;
-var handle=null;
-var launcher=eng.createLauncher();
-var hap_local=hap_global.createLocal({
-	happen:(hap)=>{log.fatal(hap.getProp());},
-});
-
-var workset={
-	launcher:launcher,
-	happen:hap_local,
+let workset={
 	user:{count:1},
-	cb_open:(worker)=>{
-		++worker.User.count;
+	cb_open:(agent)=>{
+		++agent.User.count;
 	},
-	cb_ready:(worker)=>{
-		if(worker.User.count<10)worker.restart();
+	cb_ready:(agent)=>{
+		if(agent.User.count<10)agent.restart();
 		else handle.close();
 	},
-	cb_finish:(worker)=>{
-		test.chk_strict(worker.User.count,10);
+	cb_finish:(agent)=>{
+		Test.chk_strict(agent.User.count,10);
 	},
 }
 
-var scenaria=[
+const scenaria=[
 	{
 		title:'Agent Restart',
-		proc:async ()=>{
-			worker=workmng.standby(workset);
-			test.chk_strict(worker.User.count,1);
-			handle=worker.fetch();
+		proc:async (tool)=>{
+			workset.launcher=tool.Launcher;
+			workset.happen=tool.Launcher.HappenTo;
+			agent=AgentManager.standby(workset);
+			Test.chk_strict(agent.User.count,1);
+			handle=agent.fetch();
 			handle.open();
 
-			await launcher.toPromise();
-			eng.shutdown();
+			await tool.Launcher.toPromise();
 		},
 	},
 ]
 
-test.run(scenaria);
+Test.run(scenaria);

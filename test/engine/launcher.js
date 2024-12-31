@@ -3,40 +3,31 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-// Launcher Test //
+import Test from '../../api/unittest.js';
 
-import test from '../../api/unittest.js';
-import eng from '../../api/engine.js';
-import log from '../../api/logger.js';
-import hap_global from '../../api/happening.js';
+// Launcher Test ------------------------ //
 
 const PROCS=100;
 const LIMIT=30;
 const WAIT=500;
 
-var count_start=0;
-var count_done=0;
-var count_abort=0;
+let count_start=0;
+let count_done=0;
+let count_abort=0;
 
-var hap_local=hap_global.createLocal({
-	happen:(hap)=>{log.fatal(hap.GetProp());},
-});
-
-eng.start();
-
-var scenaria=[
+const scenaria=[
 	{
 		title:'Launcher',
-		proc:async ()=>{
-			var lnc=eng.createLauncher({
+		proc:async (tool)=>{
+			let lnc=tool.Launcher.createLauncher({
 				name:'test launcher',
-				happen:hap_local,
+				happen:tool.Launcher.HappenTo,
 			});
 			lnc.Limit=0;
-			test.chk_strict(0,lnc.countActive(),'empty launcher');
-			test.chk_strict(0,lnc.countHeld(),'empty launcher');
+			Test.chk_strict(0,lnc.countActive(),'empty launcher');
+			Test.chk_strict(0,lnc.countHeld(),'empty launcher');
 
-			for(var i=0;i<PROCS;++i){
+			for(let i=0;i<PROCS;++i){
 				lnc.launch({
 					cb_start:(user)=>{
 						user.until=new Date(Date.now()+WAIT);
@@ -53,33 +44,32 @@ var scenaria=[
 					}
 				});
 			}
-			test.chk_strict(0,count_start,'bgn - start');
-			test.chk_strict(0,count_done,'bgn - done');
-			test.chk_strict(0,count_abort,'bgn - abort');
+			Test.chk_strict(0,count_start,'bgn - start');
+			Test.chk_strict(0,count_done,'bgn - done');
+			Test.chk_strict(0,count_abort,'bgn - abort');
 
-			test.chk_strict(0,lnc.countActive(),'held launcher');
-			test.chk_strict(PROCS,lnc.countHeld(),'held launcher');
+			Test.chk_strict(0,lnc.countActive(),'held launcher');
+			Test.chk_strict(PROCS,lnc.countHeld(),'held launcher');
 			lnc.Limit=LIMIT;
 
-			eng.delay(WAIT/2,(user)=>{
-				test.chk_strict(LIMIT,lnc.countActive(),'start launcher: '+lnc.countActive());
-				test.chk_strict(PROCS-LIMIT,lnc.countHeld(),'start launcher: '+lnc.countHeld());
+			tool.Launcher.delay(WAIT/2,(user)=>{
+				Test.chk_strict(LIMIT,lnc.countActive(),'start launcher: '+lnc.countActive());
+				Test.chk_strict(PROCS-LIMIT,lnc.countHeld(),'start launcher: '+lnc.countHeld());
 			});
 
 			await lnc.toPromise(false);
 
-			test.chk_strict(0,lnc.countActive(),'done launcher');
-			test.chk_strict(0,lnc.countHeld(),'done launcher');
+			Test.chk_strict(0,lnc.countActive(),'done launcher');
+			Test.chk_strict(0,lnc.countHeld(),'done launcher');
 
-			test.chk_strict(PROCS,count_start,'end - start');
-			test.chk_strict(PROCS,count_done,'end - done');
-			test.chk_strict(0,count_abort,'end - abort');
+			Test.chk_strict(PROCS,count_start,'end - start');
+			Test.chk_strict(PROCS,count_done,'end - done');
+			Test.chk_strict(0,count_abort,'end - abort');
 			lnc.abandon();
 
-			await eng.toPromise(false);
-			eng.shutdown();
+			await tool.Launcher.toPromise();
 		},
 	},
 ]
 
-test.run(scenaria);
+Test.run(scenaria);

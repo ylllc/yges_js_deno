@@ -9,7 +9,7 @@ import HappeningManager from './happening.js';
 import Engine from './engine.js';
 import AgentManager from './agent.js';
 import Timing from './timing.js';
-import URLBuild from './urlbuild.js';
+import URLBuilder from './urlbuild.js';
 import File from './file.js';
 
 import http from 'node:http';
@@ -238,7 +238,7 @@ function _request(ctl,req,res){
 			ctl:ctl,
 			req:req,
 			res:res,
-			parsed:URLBuild.parse(req.url),
+			parsed:URLBuilder.parse(req.url),
 		}
 		wlk.layer=wlk.parsed.extractPath();
 		wlk.level=1;

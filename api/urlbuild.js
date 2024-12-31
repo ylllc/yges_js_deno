@@ -64,31 +64,31 @@ function _parse(url,opt={}){
 		},
 
 		extractHost:()=>{
-			return URLBuild.extractHost(pu.host);
+			return URLBuilder.extractHost(pu.host);
 		},
 		bakeHost:(src)=>{
-			pu.host=URLBuild.bakeHost(src);
+			pu.host=URLBuilder.bakeHost(src);
 		},
 
 		extractPath:()=>{
-			return URLBuild.extractPath(pu.path);
+			return URLBuilder.extractPath(pu.path);
 		},
 		bakePath:(src)=>{
-			pu.path=URLBuild.bakePath(src);
+			pu.path=URLBuilder.bakePath(src);
 		},
 
 		extractArgs:()=>{
-			return URLBuild.extractArgs(pu.query);
+			return URLBuilder.extractArgs(pu.query);
 		},
 		bakeArgs:(src)=>{
-			pu.query=URLBuild.bakeArgs(src);
+			pu.query=URLBuilder.bakeArgs(src);
 		},
 
 		extractProp:()=>{
-			return URLBuild.extractProp(pu.query);
+			return URLBuilder.extractProp(pu.query);
 		},
 		bakeProp:(src)=>{
-			pu.query=URLBuild.bakeProp(src);
+			pu.query=URLBuilder.bakeProp(src);
 		},
 	}
 
@@ -143,7 +143,7 @@ function _parse(url,opt={}){
 	return pu;
 }
 
-let URLBuild=YgEs.URLBuild={
+let URLBuilder=YgEs.URLBuilder={
 	name:'YgEs_URLBuilder',
 	User:{},
 
@@ -218,7 +218,7 @@ let URLBuild=YgEs.URLBuild={
 
 		for(let k in src){
 			let v=src[k];
-			let k2=URLBuild.bakeKey(k,base);
+			let k2=URLBuilder.bakeKey(k,base);
 			let k3=Array.isArray(src)?(base+'[]'):k2;
 			if(typeof v!=='object'){
 				pool.push(k3+'='+encodeURIComponent(v));
@@ -228,16 +228,16 @@ let URLBuild=YgEs.URLBuild={
 				pool.push(k3+'=');
 				continue;
 			}
-			URLBuild.bakeInternal(v,pool,k2);
+			URLBuilder.bakeInternal(v,pool,k2);
 		}
 	},
 	bakeProp:(src)=>{
 		if(Object.keys(src).length<1)return '';
 		let pool=[]
-		URLBuild.bakeInternal(src,pool,'');
+		URLBuilder.bakeInternal(src,pool,'');
 		return pool.join('&');
 	},
 }
 
 })();
-export default YgEs.URLBuild;
+export default YgEs.URLBuilder;

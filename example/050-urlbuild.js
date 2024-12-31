@@ -5,37 +5,37 @@
 
 // Example: URL Builder ----------------- //
 
-import URLBuild from '../api/urlbuild.js';
+import URLBuilder from '../api/urlbuild.js';
 import Log from '../api/logger.js';
 
 Log.info('----- Parse nonURL -----');
 let url='a/b%2Fc.txt?a=1&b=2#abc#xyz';
-let a=URLBuild.parse(url);
+let a=URLBuilder.parse(url);
 Log.info(JSON.stringify(a));
 
 Log.info('----- Parse mailto URL -----');
 url='mailto:user@example.com';
-a=URLBuild.parse(url);
+a=URLBuilder.parse(url);
 Log.info(JSON.stringify(a));
 
 Log.info('----- Parse file URL -----');
 url='file:///c:/Program%20Files/Internet%20Explorer/iexplore.exe';
-a=URLBuild.parse(url);
+a=URLBuilder.parse(url);
 Log.info(JSON.stringify(a));
 
 Log.info('----- Parse FTP URL -----');
 url='ftp://user:pwd@ftp.example.com/a/b/c.txt';
-a=URLBuild.parse(url);
+a=URLBuilder.parse(url);
 Log.info(JSON.stringify(a));
 
 Log.info('----- Parse minimum HTTP URL -----');
 url='https://www.example.com';
-a=URLBuild.parse(url);
+a=URLBuilder.parse(url);
 Log.info(JSON.stringify(a));
 
 Log.info('----- Parse Heavy URL -----');
 url='https://us%65r:pw%64@www.example.com:8080/%7Ea/b%2Fc.html?q=ijk+lmn&a=1&b[a][b][]=123&b[a][c]=789&b[a][b][]=de%2Bf#abc#xyz';
-a=URLBuild.parse(url);
+a=URLBuilder.parse(url);
 Log.info(JSON.stringify(a));
 
 // can extract host 

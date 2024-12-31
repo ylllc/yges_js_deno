@@ -3,83 +3,74 @@
 // © 2024 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
+import Test from '../../api/unittest.js';
+import AgentManager from '../../api/agent.js';
+
 // Agent Dependencies Test -------------- //
 
-import test from '../../api/unittest.js';
-import eng from '../../api/engine.js';
-import workmng from '../../api/agent.js';
-import log from '../../api/logger.js';
-import hap_global from '../../api/happening.js';
+let agent=null;
+let handle=null;
 
-eng.start();
-
-var worker=null;
-var handle=null;
-var launcher=eng.createLauncher();
-var hap_local=hap_global.createLocal({
-	happen:(hap)=>{log.fatal(hap.getProp());},
-});
-
-var workset1={
-	launcher:launcher,
-	happen:hap_local,
+let workset1={
 	user:{count:0},
-	cb_open:(worker)=>{
-		test.chk_strict(worker.isBusy(),true);
-		worker.waitFor(()=>{
-			return ++worker.User.count>=10;
+	cb_open:(agent)=>{
+		Test.chk_strict(agent.isBusy(),true);
+		agent.waitFor(()=>{
+			return ++agent.User.count>=10;
 		});
 	},
-	cb_ready:(worker)=>{
-		test.chk_strict(worker.isReady(),true);
+	cb_ready:(agent)=>{
+		Test.chk_strict(agent.isReady(),true);
 	},
-	cb_close:(worker)=>{
-		test.chk_strict(worker.isReady(),false);
-		worker.waitFor(()=>{
-			return ++worker.User.count>=20;
+	cb_close:(agent)=>{
+		Test.chk_strict(agent.isReady(),false);
+		agent.waitFor(()=>{
+			return ++agent.User.count>=20;
 		});
 	},
-	cb_finish:(worker)=>{
-		test.chk_strict(worker.isBusy(),false);
+	cb_finish:(agent)=>{
+		Test.chk_strict(agent.isBusy(),false);
 	},
 }
 
-var workset2={
-	launcher:launcher,
-	happen:hap_local,
+let workset2={
 	user:{count:0},
-	dependencies:{w1:workmng.launch(workset1)},
-	cb_open:(worker)=>{
-		test.chk_strict(worker.isBusy(),true);
+	dependencies:{w1:AgentManager.launch(workset1)},
+	cb_open:(agent)=>{
+		Test.chk_strict(agent.isBusy(),true);
 	},
-	cb_ready:(worker)=>{
-		test.chk_strict(worker.isReady(),true);
-		test.chk_strict(worker.getDependencies().w1.isOpenAgent(),true);
+	cb_ready:(agent)=>{
+		Test.chk_strict(agent.isReady(),true);
+		Test.chk_strict(agent.getDependencies().w1.isOpenAgent(),true);
 
 		handle.close();
-		test.chk_strict(worker.isOpen(),false);
+		Test.chk_strict(agent.isOpen(),false);
 	},
-	cb_close:(worker)=>{
-		test.chk_strict(worker.isReady(),false);
-		test.chk_strict(worker.getDependencies().w1.isOpenAgent(),false);
+	cb_close:(agent)=>{
+		Test.chk_strict(agent.isReady(),false);
+		Test.chk_strict(agent.getDependencies().w1.isOpenAgent(),false);
 	},
-	cb_finish:(worker)=>{
-		test.chk_strict(worker.isBusy(),false);
+	cb_finish:(agent)=>{
+		Test.chk_strict(agent.isBusy(),false);
 	},
 }
 
-var scenaria=[
+const scenaria=[
 	{
 		title:'Agent Dependencies',
-		proc:async ()=>{
-			worker=workmng.standby(workset2);
-			handle=worker.open();
-			test.chk_strict(worker.isOpen(),true);
+		proc:async (tool)=>{
+			workset1.launcher=tool.Launcher;
+			workset2.launcher=tool.Launcher;
+			workset1.happen=tool.Launcher.HappenTo;
+			workset2.happen=tool.Launcher.HappenTo;
 
-			await launcher.toPromise();
-			eng.shutdown();
+			agent=AgentManager.standby(workset2);
+			handle=agent.open();
+			Test.chk_strict(agent.isOpen(),true);
+
+			await tool.Launcher.toPromise();
 		},
 	},
 ]
 
-test.run(scenaria);
+Test.run(scenaria);
