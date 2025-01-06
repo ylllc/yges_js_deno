@@ -1,11 +1,11 @@
 // † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 // Example: URL Builder ----------------- //
 
-import URLBuilder from '../api/urlbuild.js';
+import URLBuilder from '../api/urlbuilder.js';
 import Log from '../api/logger.js';
 
 Log.info('----- Parse nonURL -----');

@@ -1,9 +1,10 @@
 // † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 import Test from '../../api/unittest.js';
+import YgEs from '../../api/common.js';
 import Util from '../../api/util.js';
 
 // Trivia ------------------------------- //
@@ -184,33 +185,33 @@ const scenaria=[
 	{
 		title:'Just String',
 		proc:async (tool)=>{
-			Test.chk_strict(Util.justString(0),'0');
-			Test.chk_strict(Util.justString('0'),'0');
-			Test.chk_strict(Util.justString(false),'false');
-			Test.chk_strict(Util.justString(true),'true');
-			Test.chk_strict(Util.justString(null),'null');
-			Test.chk_strict(Util.justString(undefined),'undefined');
-			Test.chk_strict(Util.justString([undefined]),'[undefined]');
-			Test.chk_strict(Util.justString(Infinity),'Infinity');
-			Test.chk_strict(Util.justString(-Infinity),'-Infinity');
-			Test.chk_strict(Util.justString(NaN),'NaN');
-			Test.chk_strict(Util.justString({a:-1,b:"xyz"}),'{"a":-1,"b":xyz}');
+			Test.chk_strict(YgEs.justString(0),'0');
+			Test.chk_strict(YgEs.justString('0'),'0');
+			Test.chk_strict(YgEs.justString(false),'false');
+			Test.chk_strict(YgEs.justString(true),'true');
+			Test.chk_strict(YgEs.justString(null),'null');
+			Test.chk_strict(YgEs.justString(undefined),'undefined');
+			Test.chk_strict(YgEs.justString([undefined]),'[undefined]');
+			Test.chk_strict(YgEs.justString(Infinity),'Infinity');
+			Test.chk_strict(YgEs.justString(-Infinity),'-Infinity');
+			Test.chk_strict(YgEs.justString(NaN),'NaN');
+			Test.chk_strict(YgEs.justString({a:-1,b:"xyz"}),'{"a":-1,"b":xyz}');
 		},
 	},
 	{
 		title:'Inspectable String',
 		proc:async (tool)=>{
-			Test.chk_strict(Util.inspect(0),'0');
-			Test.chk_strict(Util.inspect('0'),'"0"');
-			Test.chk_strict(Util.inspect(false),'false');
-			Test.chk_strict(Util.inspect(true),'true');
-			Test.chk_strict(Util.inspect(null),'null');
-			Test.chk_strict(Util.inspect(undefined),'undefined');
-			Test.chk_strict(Util.inspect([undefined]),'[undefined]');
-			Test.chk_strict(Util.inspect(Infinity),'Infinity');
-			Test.chk_strict(Util.inspect(-Infinity),'-Infinity');
-			Test.chk_strict(Util.inspect(NaN),'NaN');
-			Test.chk_strict(Util.inspect({a:-1,b:"xyz"}),'{"a":-1,"b":"xyz"}');
+			Test.chk_strict(YgEs.inspect(0),'0');
+			Test.chk_strict(YgEs.inspect('0'),'"0"');
+			Test.chk_strict(YgEs.inspect(false),'false');
+			Test.chk_strict(YgEs.inspect(true),'true');
+			Test.chk_strict(YgEs.inspect(null),'null');
+			Test.chk_strict(YgEs.inspect(undefined),'undefined');
+			Test.chk_strict(YgEs.inspect([undefined]),'[undefined]');
+			Test.chk_strict(YgEs.inspect(Infinity),'Infinity');
+			Test.chk_strict(YgEs.inspect(-Infinity),'-Infinity');
+			Test.chk_strict(YgEs.inspect(NaN),'NaN');
+			Test.chk_strict(YgEs.inspect({a:-1,b:"xyz"}),'{"a":-1,"b":"xyz"}');
 		},
 	},
 ]

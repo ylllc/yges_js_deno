@@ -1,6 +1,6 @@
 // † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 import Engine from '../api/engine.js';
@@ -15,8 +15,8 @@ const PUBLIC_ROOT='../web/public';
 const DOCS_ROOT='../web/docs/html';
 const TEST_ROOT='../web/test';
 
-function hello_world(wlk){
-	wlk.res.end('Hello World!');
+function hello_world(walker){
+	walker.Response.end('Hello World!');
 }
 
 var route1=HTTPServer.present({GET:hello_world});

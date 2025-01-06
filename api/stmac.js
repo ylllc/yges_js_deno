@@ -1,6 +1,6 @@
 ﻿// † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 import YgEs from './common.js';
@@ -76,7 +76,7 @@ function _run(start,states={},opt={}){
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
 				info:getInfo('cb_start'),
-				err:util.fromError(e),
+				err:YgEs.fromError(e),
 			});
 			poll_cur=poll_nop;
 		}
@@ -92,7 +92,7 @@ function _run(start,states={},opt={}){
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
 				info:getInfo('poll_up'),
-				err:util.fromError(e),
+				err:YgEs.fromError(e),
 			});
 			r=false;
 		}
@@ -109,7 +109,7 @@ function _run(start,states={},opt={}){
 					class:'YgEs_Statemachine_Error',
 					cause:'throw from a callback',
 					info:getInfo('cb_ready'),
-					err:util.fromError(e),
+					err:YgEs.fromError(e),
 				});
 				poll_cur=poll_nop;
 			}
@@ -131,7 +131,7 @@ function _run(start,states={},opt={}){
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
 				info:getInfo('poll_keep'),
-				err:util.fromError(e),
+				err:YgEs.fromError(e),
 			});
 			r=false;
 		}
@@ -158,7 +158,7 @@ function _run(start,states={},opt={}){
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
 				info:getInfo('cb_stop'),
-				err:util.fromError(e),
+				err:YgEs.fromError(e),
 			});
 			poll_cur=poll_nop;
 		}
@@ -174,7 +174,7 @@ function _run(start,states={},opt={}){
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
 				info:getInfo('poll_down'),
-				err:util.fromError(e),
+				err:YgEs.fromError(e),
 			});
 			r=false;
 		}
@@ -200,7 +200,7 @@ function _run(start,states={},opt={}){
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
 				info:getInfo('cb_end'),
-				err:util.fromError(e),
+				err:YgEs.fromError(e),
 			});
 			poll_cur=poll_nop;
 		}

@@ -1,6 +1,6 @@
 ﻿// † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 import YgEs from './common.js';
@@ -16,9 +16,7 @@ function _target(dir,prepare,parent){
 
 	var ws={
 		name:'YgEs_DirTarget',
-		happen:Dir.Happen.createLocal(),
-
-		getPath:()=>dir,
+		happen:Dir.HappenTo.createLocal(),
 
 		cb_open:(wk)=>{
 			var done=false;
@@ -38,10 +36,10 @@ function _target(dir,prepare,parent){
 	var wk=AgentManager.standby(ws);
 
 	wk.getPath=()=>dir;
-	wk.subdir=(path,prepare)=>_target(dir+'/'+path,prepare,wk);
-	wk.relative=(path)=>dir+'/'+path;
-
 	wk.exists=()=>FS.exists(dir);
+	wk.relative=(path)=>dir+'/'+path;
+	wk.subdir=(path,prepare)=>_target(dir+'/'+path,prepare,wk);
+	wk.glob=(ptn='*')=>FS.glob(dir,ptn);
 
 	return wk;
 }
@@ -49,7 +47,7 @@ function _target(dir,prepare,parent){
 let Dir=YgEs.Dir={
 	name:'YgEs_DirControl',
 	User:{},
-	Happen:HappeningManager,
+	HappenTo:HappeningManager,
 
 	exists:(path)=>FS.exists(path),
 	isDir:(path)=>FS.isDir(path),

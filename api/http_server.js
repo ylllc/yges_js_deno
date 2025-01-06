@@ -1,6 +1,6 @@
 ﻿// † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 import YgEs from './common.js';
@@ -9,7 +9,7 @@ import HappeningManager from './happening.js';
 import Engine from './engine.js';
 import AgentManager from './agent.js';
 import Timing from './timing.js';
-import URLBuilder from './urlbuild.js';
+import URLBuilder from './urlbuilder.js';
 import File from './file.js';
 
 import http from 'node:http';
@@ -85,24 +85,24 @@ function _serve_new(dir,opt={}){
 		Charset:(path)=>HTTPServer.DefaultCharset,
 		Indices:['index.html','index.htm'],
 
-		walk:(wlk)=>{
+		walk:(walker)=>{
 
-			var step=wlk.layer[wlk.level];
+			var step=walker.Layer[walker.Level];
 			if(opt.route && opt.route[step]){
-				_route_new(opt.route,{user:tt.User}).walk(wlk);
+				_route_new(opt.route,{user:tt.User}).walk(walker);
 				return;
 			}
 
 			// empty subpath requires entering to fix base 
-			if(wlk.level>=wlk.layer.length && wlk.layer[wlk.layer.length-1]!=''){
-				wlk.parsed.path+='/';
-				var url=wlk.parsed.bake();
-				wlk.res.writeHead(301,{Location:url});
-				wlk.res.end();
+			if(walker.Level>=walker.Layer.length && walker.Layer[walker.Layer.length-1]!=''){
+				walker.ParsedURL.path+='/';
+				var url=walker.ParsedURL.bake();
+				walker.Response.writeHead(301,{Location:url});
+				walker.Response.end();
 				return;
 			}
 
-			var subpath=wlk.layer.slice(wlk.level).join('/');
+			var subpath=walker.Layer.slice(walker.Level).join('/');
 			var basepath=tt.Dir+'/';
 			var srcpath=basepath+subpath;
 
@@ -113,17 +113,17 @@ function _serve_new(dir,opt={}){
 				if(srcpath.substring(srcpath.length-1)!='/'){
 					// check file exists 
 					if(!st){
-						wlk.ctl.Error(wlk.res,404,'Not found');
+						walker.Listener.Error(walker.Response,404,'Not found');
 						ok();
 						return;
 					}
 
 					// add extra / when srcpath is directory 
 					if(st.isDir()){
-						wlk.parsed.path+='/';
-						var url=wlk.parsed.bake();
-						wlk.res.writeHead(301,{Location:url});
-						wlk.res.end();
+						walker.ParsedURL.path+='/';
+						var url=walker.ParsedURL.bake();
+						walker.Response.writeHead(301,{Location:url});
+						walker.Response.end();
 						ok();
 						return;
 					}
@@ -134,15 +134,14 @@ function _serve_new(dir,opt={}){
 						// get dirents 
 						var g=await _dirent(basepath,srcpath,opt.deepent,{
 							filter:opt.filter??null,
-							symlink:opt.symlink??false,
 							mtime:opt.mtime??false,
 							ctime:opt.ctime??false,
 							atime:opt.atime??false,
 							btime:opt.btime??false,
 						});
 						var s=JSON.stringify(g);
-						wlk.res.writeHead(200,{'Content-Type':'application/json','Content-Length':s.length});
-						wlk.res.end(s);
+						walker.Response.writeHead(200,{'Content-Type':'application/json','Content-Length':s.length});
+						walker.Response.end(s);
 						ok();
 						return;
 					}
@@ -159,19 +158,19 @@ function _serve_new(dir,opt={}){
 							break;
 						}
 						if(!f){
-							wlk.ctl.Error(wlk.res,403,'Forbidden');
+							walker.Listener.Error(walker.Response,403,'Forbidden');
 							ok();
 							return;
 						}
 					}
 				}
 
-				await _transfer(wlk.res,st,null,tt.Charset);
+				await _transfer(walker.Response,st,null,tt.Charset);
 				ok();
 			},(res)=>{
 				return res;
 			},(err)=>{
-				wlk.ctl.Error(wlk.res,500,err.message);
+				walker.Listener.Error(walker.Response,500,err.message);
 			});
 		},
 	}
@@ -185,13 +184,13 @@ function _present_new(meth,opt={}){
 		User:opt.user??{},
 		Meth:meth,
 
-		walk:(wlk)=>{
-			var m=wlk.req.method;
+		walk:(walker)=>{
+			var m=walker.Request.method;
 			if(!pt.Meth[m]){
-				wlk.ctl.Error(wlk.res,405,'Not allowed');
+				walker.Listener.Error(walker.Response,405,'Not allowed');
 				return;
 			}
-			pt.Meth[m](wlk);
+			pt.Meth[m](walker);
 		},
 	}
 	return pt;
@@ -204,59 +203,47 @@ function _route_new(map,opt={}){
 		User:opt.user??{},
 		Map:map,
 
-		walk:(wlk)=>{
-			var n=wlk.layer[wlk.level];
+		walk:(walker)=>{
+			var n=walker.Layer[walker.Level];
 			if(!rt.Map[n]){
-				wlk.ctl.Error(wlk.res,404,'Not found');
+				walker.Listener.Error(walker.Response,404,'Not found');
 				return;
 			}
-			++wlk.level;
-			rt.Map[n].walk(wlk);
+			++walker.Level;
+			rt.Map[n].walk(walker);
 		},
 	}
 	return rt;
 }
 
-function _walk(wlk){
-
-	var m=req.method;
-	if(wlk.route[n][m]){
-		var q=wlk.route[n][m](wlk);
-		if(q){
-			++wlk.level;
-			_walk(srv,req,res,q.route,purl,q.level);
-		}
-	}
-}
-
-function _request(ctl,req,res){
+function _request(listener,req,res){
 
 	try{
-		var wlk={
+		var walker={
 			name:'YgEs_HTTPWalker',
 			User:{},
-			ctl:ctl,
-			req:req,
-			res:res,
-			parsed:URLBuilder.parse(req.url),
+			Listener:listener,
+			Request:req,
+			Response:res,
+			ParsedURL:URLBuilder.parse(req.url),
 		}
-		wlk.layer=wlk.parsed.extractPath();
-		wlk.level=1;
+		walker.Layer=walker.ParsedURL.extractPath();
+		walker.Level=1;
 
-		ctl.Route.walk(wlk);
+		listener.Route.walk(walker);
 	}
 	catch(e){
-		ctl.getHappeningManager().happenError(e);
-		ctl.Error(res,500,'Internal Server Error');
+		listener.getHappeningManager().happenError(e);
+		listener.Error(res,500,'Internal Server Error');
 	}
 }
 
-function _listener_new(port,route,opt){
+function _listener_new(port,route,opt={}){
 
 	var log=opt.logger??Log;
 
 	var _working=true;
-	var _internal=http.createServer((req,res)=>_request(ctl,req,res));
+	var _internal=http.createServer((req,res)=>_request(listener,req,res));
 
 	var ws={
 		name:'YgEs_HTTPServer',
@@ -280,11 +267,11 @@ function _listener_new(port,route,opt){
 		},
 	}
 
-	var ctl=AgentManager.standby(ws);
-	ctl.getPort=()=>port;
-	ctl.Route=route;
-	ctl.Error=_error_default;
-	return ctl;
+	var listener=AgentManager.standby(ws);
+	listener.getPort=()=>port;
+	listener.Route=route;
+	listener.Error=_error_default;
+	return listener;
 }
 
 let HTTPServer=YgEs.HTTPServer={
@@ -292,11 +279,8 @@ let HTTPServer=YgEs.HTTPServer={
 	User:{},
 	DefaultCharset:'utf-8',
 
-	setup:(port,route,opt={})=>{
-		return _listener_new(port,route,opt);
-	},
+	setup:_listener_new,
 
-	transfer:_transfer,
 	serve:_serve_new,
 	present:_present_new,
 	route:_route_new,

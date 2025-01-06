@@ -1,12 +1,13 @@
 // † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
-// Examples: Value Trivia --------------- //
-
+import YgEs from '../api/common.js';
 import Log from '../api/logger.js';
 import Util from '../api/util.js';
+
+// Examples: Value Trivia --------------- //
 
 function test(func,data){
 
@@ -106,9 +107,9 @@ test({
 
 test({
 	'toString':(val)=>val.toString(),
-	'justString':(val)=>Util.justString(val),
+	'justString':(val)=>YgEs.justString(val),
 	'JSON':(val)=>JSON.stringify(val),
-	'inspect':(val)=>Util.inspect(val),
+	'inspect':(val)=>YgEs.inspect(val),
 },
 {
 	'false':false,

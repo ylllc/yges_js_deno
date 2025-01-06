@@ -1,6 +1,6 @@
 // † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 import YgEs from './common.js';
@@ -164,6 +164,10 @@ function _yges_enginge_create_launcher(prm){
 	let abandoned=false;
 	let aborted=false;
 
+	let sublauncher=[]
+	let launched=[]
+	let active=[]
+
 	let lnc={
 		name:prm.name??CLASS_LAUNCHER,
 		HappenTo:(prm.happen??HappeningManager).createLocal(),
@@ -171,27 +175,23 @@ function _yges_enginge_create_launcher(prm){
 		Cycle:prm.cycle??DEFAULT_LAUNCHER_CYCLE,
 		User:prm.user??{},
 
-		_sub:[],
-		_launch:[],
-		_active:[],
-
 		isEnd:()=>{
-			if(lnc._launch.length>0)return false;
-			if(lnc._active.length>0)return false;
-			for(let sub of lnc._sub){
+			if(launched.length>0)return false;
+			if(active.length>0)return false;
+			for(let sub of sublauncher){
 				if(!sub.isEnd())return false;
 			}
 			return true;
 		},
 		isAbandoned:()=>abandoned,
 		countActive:()=>{
-			let n=lnc._active.length
-			for(let sub of lnc._sub)n+=sub.countActive();
+			let n=active.length
+			for(let sub of sublauncher)n+=sub.countActive();
 			return n;
 		},
 		countHeld:()=>{
-			let n=lnc._launch.length
-			for(let sub of lnc._sub)n+=sub.countHeld();
+			let n=launched.length
+			for(let sub of sublauncher)n+=sub.countHeld();
 			return n;
 		},
 
@@ -202,7 +202,7 @@ function _yges_enginge_create_launcher(prm){
 
 		createLauncher:(prm={})=>{
 			let sub=_yges_enginge_create_launcher(prm);
-			lnc._sub.push(sub);
+			sublauncher.push(sub);
 			return sub;
 		},
 
@@ -227,46 +227,46 @@ function _yges_enginge_create_launcher(prm){
 			}
 
 			let proc=_create_proc(prm);
-			if(lnc.Limit<0 || lnc._active.length<lnc.Limit){
-				lnc._active.push(proc);
+			if(lnc.Limit<0 || active.length<lnc.Limit){
+				active.push(proc);
 				proc._start();
 			}
 			else{
-				lnc._launch.push(proc);
+				launched.push(proc);
 			}
 			return proc;
 		},
 		abort:()=>{
 			if(lnc.isEnd())return;
 			aborted=true;
-			for(let sub of lnc._sub)sub.abort();
-			lnc._sub=[]
-			for(let proc of lnc._launch)proc.abort();
-			lnc._launch=[]
-			for(let proc of lnc._active)proc.abort();
-			lnc._active=[]
+			for(let sub of sublauncher)sub.abort();
+			sublauncher=[]
+			for(let proc of launched)proc.abort();
+			launched=[]
+			for(let proc of active)proc.abort();
+			active=[]
 		},
 		poll:()=>{
-			for(let sub of lnc._sub){
+			for(let sub of sublauncher){
 				sub.poll();
 			}
 
 			let cont=[]
-			for(let proc of lnc._active){
+			for(let proc of active){
 				if(proc.poll())cont.push(proc);
 			}
-			lnc._active=cont;
+			active=cont;
 
-			if(lnc.Limit<0 || lnc._active.length<lnc.Limit){
+			if(lnc.Limit<0 || active.length<lnc.Limit){
 				let hold=[]
-				for(let proc of lnc._launch){
-					if(lnc.Limit>=0 && lnc._active.length>=lnc.Limit)hold.push(proc);
+				for(let proc of launched){
+					if(lnc.Limit>=0 && active.length>=lnc.Limit)hold.push(proc);
 					else{
 						proc._start();
-						lnc._active.push(proc);
+						active.push(proc);
 					}
 				}
-				lnc._launch=hold;
+				launched=hold;
 			}
 		},
 

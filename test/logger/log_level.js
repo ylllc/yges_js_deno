@@ -1,23 +1,24 @@
 // † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 import Test from '../../api/unittest.js';
-import Log from '../../api/logger.js';
 
 // Log Level Test ----------------------- //
-
-// capture a log for test 
-let count=0;
-Log.Way=(src)=>{
-	++count;
-}
 
 const scenaria=[
 	{
 		title:'Log Level',
 		proc:(tool)=>{
+			const Log=tool.Log;
+
+			// capture a log for test 
+			let count=0;
+			Log.Way=(src)=>{
+				++count;
+			}
+
 			// set showable log level 
 			Log.Showable=Log.LEVEL.DEBUG;
 			Test.chk_strict(count,0,'not logged yet');

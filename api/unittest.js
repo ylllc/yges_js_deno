@@ -1,6 +1,6 @@
 // † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 import {
@@ -32,6 +32,7 @@ export default {
 	chk_less_eq:(v1,v2,msg=null)=>{assert(v1<=v2,_cpmsg(msg,v1,'<=',v2))},
 	chk_great:(v1,v2,msg=null)=>{assert(v1>v2,_cpmsg(msg,v1,'>',v2))},
 	chk_great_eq:(v1,v2,msg=null)=>{assert(v1>=v2,_cpmsg(msg,v1,'>=',v2))},
+	chk_approx:(v1,v2,range,msg=null)=>{assert(((v1<v2)?(v2-v1):(v1-v2))<=range,_cpmsg(msg,v1,'>=',v2))},
 
 	run:(scn)=>{
 
@@ -49,18 +50,27 @@ export default {
 			for(let t of scn){
 				if(puf && !t.pickup)continue;
 				if(t.filter!==undefined && !t.filter)continue;
+
+				let err=null;
 				Deno.test({
 					name: t.title,
 					fn: async ()=>{
 						Engine.start();
 						let launcher=Engine.createLauncher();
-						await t.proc({
-							Launcher:launcher,
-							Log:Log.createLocal(t.title,Log.LEVEL.DEBUG),
-						});
+						try{
+							await t.proc({
+								Launcher:launcher,
+								Log:Log.createLocal(t.title,Log.LEVEL.DEBUG),
+							});
+						}
+						catch(e){
+							err=e;
+						}
 						launcher.abort();
 						if(!launcher.HappenTo.isCleaned())throw YgEs.inspect(launcher.HappenTo.getInfo());
 						Engine.stop();
+
+						if(err)throw err;
 					},
 				});
 			}

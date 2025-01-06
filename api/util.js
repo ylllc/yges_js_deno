@@ -1,6 +1,6 @@
 // † Yggdrasil Essense for JavaScript † //
 // ====================================== //
-// © 2024 Yggdrasil Leaves, LLC.          //
+// © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
 import YgEs from './common.js';
@@ -17,11 +17,6 @@ const _rx_undefined=/^undefined$/i;
 let Util=YgEs.Util={
 	name:'YgEs_Utilities',
 	User:{},
-
-	createEnum:YgEs.createEnum,
-	fromError:YgEs.fromError,
-	justString:YgEs.justString,
-	inspect:YgEs.inspect,
 
 	isJustNaN:(val)=>{
 		if(typeof val!=='number')return false;
