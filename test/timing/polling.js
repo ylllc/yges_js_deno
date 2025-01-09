@@ -13,11 +13,11 @@ let count=0;
 
 const scenaria=[
 	{
-		title:'Polling',
-		proc:async (tool)=>{
+		Title:'Polling',
+		Proc:async (tool)=>{
 			let t1=Date.now();
 			await new Promise((ok,ng)=>{
-				let cancel=Timing.poll(interval,()=>{
+				let cancel=Timing.Poll(interval,()=>{
 					if(++count>=10){
 						cancel();
 						ok();
@@ -25,10 +25,10 @@ const scenaria=[
 				});
 			});
 			let dt=Date.now()-t1;
-			Test.chk_great(dt,interval*9);
-			Test.chk_strict(count,10);
+			Test.ChkGreat(dt,interval*9);
+			Test.ChkStrict(count,10);
 		},
 	},
 ]
 
-Test.run(scenaria);
+Test.Run(scenaria);

@@ -3,130 +3,130 @@
 // © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
-// Examples: Basic Timing Features ------ //
-
 import Log from '../api/logger.js';
 import Timing from '../api/timing.js';
 
+// Examples: Basic Timing Features ------ //
+
 // delaying 
-Timing.delay(500,()=>{
-	Log.info('Delayed');
+Timing.Delay(500,()=>{
+	Log.Info('Delayed');
 });
 
 // cancellable delay 
-let cancel1=Timing.delay(10000,()=>{
-	Log.info('Cannot Step It');
+let cancel1=Timing.Delay(10000,()=>{
+	Log.Info('Cannot Step It');
 });
-Timing.delay(800,()=>{
+Timing.Delay(800,()=>{
 	cancel1();
-	Log.info('Delaying Cancelled');
+	Log.Info('Delaying Cancelled');
 });
 
 // polling 
 let count2=0;
-let cancel2=Timing.poll(100,()=>{
-	Log.info('Polling: '+(++count2));
+let cancel2=Timing.Poll(100,()=>{
+	Log.Info('Polling: '+(++count2));
 });
-Timing.delay(1000,()=>{
+Timing.Delay(1000,()=>{
 	cancel2();
-	Log.info('Polling Cancelled');
+	Log.Info('Polling Cancelled');
 });
 
 // synchronization
-Timing.sync(50,()=>{
+Timing.Sync(50,()=>{
 	return count2>4;
 },()=>{
-	Log.info('Sync1 Done');
+	Log.Info('Sync1 Done');
 },()=>{
-	Log.info('Sync1 Cancelled');
+	Log.Info('Sync1 Cancelled');
 });
 
-let cancel3=Timing.sync(50,()=>{
+let cancel3=Timing.Sync(50,()=>{
 	return count2>4;
 },()=>{
-	Log.info('Sync2 Done');
+	Log.Info('Sync2 Done');
 },()=>{
-	Log.info('Sync2 Cancelled');
+	Log.Info('Sync2 Cancelled');
 });
-Timing.delay(300,()=>{
+Timing.Delay(300,()=>{
 	cancel3();
 });
 
 (async ()=>{
 	// cancellable delay on Promise 
-	let dk=Timing.delayKit(500);
-	await dk.promise();
-	Log.info('delayed on Promise');
+	let dk=Timing.DelayKit(500);
+	await dk.ToPromise();
+	Log.Info('delayed on Promise');
 
 	try{
-		dk=Timing.delayKit(500);
-		Timing.delay(350,()=>{dk.cancel();});
-		await dk.promise();
-		Log.info('delayed on Promise');
+		dk=Timing.DelayKit(500);
+		Timing.Delay(350,()=>{dk.Cancel();});
+		await dk.ToPromise();
+		Log.Info('delayed on Promise');
 	}
 	catch(e){
-		Log.warn(e.message);
+		Log.Warn(e.message);
 	}
 
 	// cancellable sync on Promise 
 	let go=false;
-	let sk=Timing.syncKit(50,()=>{return go;});
-	Timing.delay(100,()=>{go=true;});
-	await sk.promise();
-	Log.info('synchronized on Promise');
+	let sk=Timing.SyncKit(50,()=>{return go;});
+	Timing.Delay(100,()=>{go=true;});
+	await sk.ToPromise();
+	Log.Info('synchronized on Promise');
 
 	try{
 		go=false;
-		sk=Timing.syncKit(50,()=>{return go;});
-		Timing.delay(100,()=>{sk.cancel();});
-		await sk.promise();
+		sk=Timing.SyncKit(50,()=>{return go;});
+		Timing.Delay(100,()=>{sk.Cancel();});
+		await sk.ToPromise();
 	}
 	catch(e){
-		Log.warn(e.message);
+		Log.Warn(e.message);
 	}
 
 	// create Promises 
-	Log.info(await Timing.toPromise((ok,ng)=>{
+	Log.Info(await Timing.ToPromise((ok,ng)=>{
 		ok('OK via Promise');
 	}));
 
-	await Timing.toPromise((ok,ng)=>{
+	await Timing.ToPromise((ok,ng)=>{
 		ok('OK via Callback');
 	},(res)=>{
-		Log.info(res);
+		Log.Info(res);
 	});
 
 	try{
-		Log.info(await Timing.toPromise((ok,ng)=>{
+		Log.Info(await Timing.ToPromise((ok,ng)=>{
 			ng('NG via Promise');
 		}));
 	}
 	catch(err){
-		Log.warn(err);
+		Log.Warn(err);
 	}
 
-	await Timing.toPromise((ok,ng)=>{
+	await Timing.ToPromise((ok,ng)=>{
 		ng('NG via Promise');
 	},(res)=>{
-		Log.info('OK via Callback');
+		Log.Info('OK via Callback');
 	},(err)=>{
-		Log.warn('NG via Callback');
+		Log.Warn('NG via Callback');
 	});
 
 	// eazy Promise running
-	Timing.fromPromise(
-		Timing.toPromise((ok,ng)=>{ok();}),
+	Timing.FromPromise(
+		Timing.ToPromise((ok,ng)=>{ok();}),
 		(res)=>{
-			Log.info('OK to Callback');
+			Log.Info('OK to Callback');
 		}
 	);
-	Timing.fromPromise(
-		Timing.toPromise((ok,ng)=>{ng();}),
+	Timing.FromPromise(
+		Timing.ToPromise((ok,ng)=>{ng();}),
 		(res)=>{
-			Log.info('OK to Callback');
+			Log.Info('OK to Callback');
 		},
 		(err)=>{
-			Log.warn('NG to Callback');
+			Log.Warn('NG to Callback');
 		}
 	);
 

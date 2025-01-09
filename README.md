@@ -1,11 +1,11 @@
-# Yggdrasil Essence for Deno
+﻿# Yggdrasil Essence for Deno
 
-Copyright © 2024 [Yggdrasil Leaves, LLC.](https://yggdrasil-leaves.com)
+Copyright © 2024-5 [Yggdrasil Leaves, LLC.](https://yggdrasil-leaves.com)
 
 ## What's it?
 
-These are useful extra features on Deno.
-You can select source files under your wish from this solution and copy freely.
+These are useful extra features on Deno.  
+You can select source files under your wish from this solution and copy freely.  
 
 ## Need a Help?
 

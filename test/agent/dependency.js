@@ -12,65 +12,65 @@ let agent=null;
 let handle=null;
 
 let workset1={
-	user:{count:0},
-	cb_open:(agent)=>{
-		Test.chk_strict(agent.isBusy(),true);
-		agent.waitFor(()=>{
-			return ++agent.User.count>=10;
+	User:{Count:0},
+	OnOpen:(agent)=>{
+		Test.ChkStrict(agent.IsBusy(),true);
+		agent.WaitFor(()=>{
+			return ++agent.User.Count>=10;
 		});
 	},
-	cb_ready:(agent)=>{
-		Test.chk_strict(agent.isReady(),true);
+	OnReady:(agent)=>{
+		Test.ChkStrict(agent.IsReady(),true);
 	},
-	cb_close:(agent)=>{
-		Test.chk_strict(agent.isReady(),false);
-		agent.waitFor(()=>{
-			return ++agent.User.count>=20;
+	OnClose:(agent)=>{
+		Test.ChkStrict(agent.IsReady(),false);
+		agent.WaitFor(()=>{
+			return ++agent.User.Count>=20;
 		});
 	},
-	cb_finish:(agent)=>{
-		Test.chk_strict(agent.isBusy(),false);
+	OnFinish:(agent)=>{
+		Test.ChkStrict(agent.IsBusy(),false);
 	},
 }
 
 let workset2={
-	user:{count:0},
-	dependencies:{w1:AgentManager.launch(workset1)},
-	cb_open:(agent)=>{
-		Test.chk_strict(agent.isBusy(),true);
+	User:{Count:0},
+	Dependencies:{w1:AgentManager.Launch(workset1)},
+	OnOpen:(agent)=>{
+		Test.ChkStrict(agent.IsBusy(),true);
 	},
-	cb_ready:(agent)=>{
-		Test.chk_strict(agent.isReady(),true);
-		Test.chk_strict(agent.getDependencies().w1.isOpenAgent(),true);
+	OnReady:(agent)=>{
+		Test.ChkStrict(agent.IsReady(),true);
+		Test.ChkStrict(agent.GetDependencies().w1.IsOpenAgent(),true);
 
-		handle.close();
-		Test.chk_strict(agent.isOpen(),false);
+		handle.Close();
+		Test.ChkStrict(agent.IsOpen(),false);
 	},
-	cb_close:(agent)=>{
-		Test.chk_strict(agent.isReady(),false);
-		Test.chk_strict(agent.getDependencies().w1.isOpenAgent(),false);
+	OnClose:(agent)=>{
+		Test.ChkStrict(agent.IsReady(),false);
+		Test.ChkStrict(agent.GetDependencies().w1.IsOpenAgent(),false);
 	},
-	cb_finish:(agent)=>{
-		Test.chk_strict(agent.isBusy(),false);
+	OnFinish:(agent)=>{
+		Test.ChkStrict(agent.IsBusy(),false);
 	},
 }
 
 const scenaria=[
 	{
-		title:'Agent Dependencies',
-		proc:async (tool)=>{
-			workset1.launcher=tool.Launcher;
-			workset2.launcher=tool.Launcher;
-			workset1.happen=tool.Launcher.HappenTo;
-			workset2.happen=tool.Launcher.HappenTo;
+		Title:'Agent Dependencies',
+		Proc:async (tool)=>{
+			workset1.Launcher=tool.Launcher;
+			workset2.Launcher=tool.Launcher;
+			workset1.HappenTo=tool.Launcher.HappenTo;
+			workset2.HappenTo=tool.Launcher.HappenTo;
 
-			agent=AgentManager.standby(workset2);
-			handle=agent.open();
-			Test.chk_strict(agent.isOpen(),true);
+			agent=AgentManager.StandBy(workset2);
+			handle=agent.Open();
+			Test.ChkStrict(agent.IsOpen(),true);
 
-			await tool.Launcher.toPromise();
+			await tool.Launcher.ToPromise();
 		},
 	},
 ]
 
-Test.run(scenaria);
+Test.Run(scenaria);

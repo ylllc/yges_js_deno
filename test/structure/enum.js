@@ -10,18 +10,18 @@ import YgEs from '../../api/common.js';
 
 const scenaria=[
 	{
-		title:'Enum',
-		proc:async (tool)=>{
+		Title:'Enum',
+		Proc:async (tool)=>{
 			let src=['ZERO','ONE','TWO','THREE','FOUR',
 				'FIVE','SIX','SEVEN','EIGHT','NINE','TEN']
-			let lut=YgEs.createEnum(src);
+			let lut=YgEs.CreateEnum(src);
 
-			Test.chk_strict(src.length,Object.keys(lut).length,'must same size');
+			Test.ChkStrict(src.length,Object.keys(lut).length,'must same size');
 			for(let i=0;i<src.length;++i){
-				Test.chk_strict(i,lut[src[i]],'reverse lookup compareing');
+				Test.ChkStrict(i,lut[src[i]],'reverse lookup compareing');
 			}
 		},
 	},
 ]
 
-Test.run(scenaria);
+Test.Run(scenaria);

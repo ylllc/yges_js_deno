@@ -14,40 +14,41 @@ Log.Showable=Log.LEVEL.DEBUG;
 Log.Caption='Global';
 
 // put log 
-Log.tick('TICK Log'); // will be suppressed 
-Log.trace('TRACE Log'); // will be suppressed 
-Log.debug('DEBUG Log');
-Log.info('INFO Log');
-Log.notice('NOTICE Log');
-Log.warn('WARN Log');
-Log.fatal('FATAL Log');
-Log.alert('ALERT Log');
-Log.emerg('EMERG Log');
+Log.Tick('TICK Log'); // will be suppressed 
+Log.Trace('TRACE Log'); // will be suppressed 
+Log.Debug('DEBUG Log');
+Log.Info('INFO Log');
+Log.Notice('NOTICE Log');
+Log.Warn('WARN Log');
+Log.Fatal('FATAL Log');
+Log.Crit('CRIT Log');
+Log.Alert('ALERT Log');
+Log.Emerg('EMERG Log');
 
 // put log with variable level
-Log.put(Log.LEVEL.INFO,'INFO Log too');
+Log.Put(Log.LEVEL.INFO,'INFO Log too');
 // overlevel logs are always suppressed 
-Log.put(Log.LEVEL.NEVER,'NEVER Log');
+Log.Put(Log.LEVEL.NEVER,'NEVER Log');
 
 // can output an object directly, without JSON.stringify(), more correct   
 let obj={a:1,b:NaN,c:Infinity,d:[undefined]}
-Log.debug(JSON.stringify(obj));
-Log.debug(obj);
+Log.Debug(JSON.stringify(obj));
+Log.Debug(obj);
 
 // can outputan object as extra properties 
 // useful on frontend, put on console without stringify 
-Log.debug('Log Props',obj);
+Log.Debug('Log Props',obj);
 
 // can postpone creating message to reduce CPU cost
-Log.debug(()=>'deferred message creation: '+Math.log10(1000));
+Log.Debug(()=>'deferred message creation: '+Math.log10(1000));
 
 // create local log instance 
-let ll1=Log.createLocal('Local',Log.LEVEL.TRACE);
+let ll1=Log.CreateLocal('Local',Log.LEVEL.TRACE);
 
 // put local log 
-ll1.tick('Local TICK Log'); // will be suppressed 
-ll1.trace('Local TRACE Log');
-ll1.put(Log.LEVEL.DEBUG,'Local DEBUG Log');
+ll1.Tick('Local TICK Log'); // will be suppressed 
+ll1.Trace('Local TRACE Log');
+ll1.Put(Log.LEVEL.DEBUG,'Local DEBUG Log');
 
 // can override output 
 Log.Format=(src)=>{
@@ -55,16 +56,16 @@ Log.Format=(src)=>{
 Log.Way=(src)=>{
 	console.log(JSON.stringify(src));
 }
-Log.debug('Global override log');
+Log.Debug('Global override log');
 // overridings affect to unoverridden local log 
-ll1.debug('Local override log');
+ll1.Debug('Local override log');
 
 // local overridings are selected first 
-let ll2=ll1.createLocal('Local2');
+let ll2=ll1.CreateLocal('Local2');
 ll2.Format=(src)=>{
-	src.Msg='* '+src.Msg+' *';
+	src.Text='* '+src.Msg+' *';
 }
 ll2.Way=(src)=>{
-	console.log(src.Msg);
+	console.log(src.Text);
 }
-ll2.info('super-overridden local log');
+ll2.Info('super-overridden local log');

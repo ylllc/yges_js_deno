@@ -3,35 +3,35 @@
 // © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
-// Examples: Quick Queue ---------------- //
-
 import QuickQueue from '../api/quickqueue.js';
 import Log from '../api/logger.js';
+
+// Examples: Quick Queue ---------------- //
 
 function test(){
 
 	// create an arguments queue 
-	var q=QuickQueue.create(arguments);
+	var q=QuickQueue.Create(arguments);
 
 	// 1st arg 
-	Log.info(q.next());
+	Log.Info(q.Next());
 
 	// 2nd arg 
-	Log.info(q.next());
+	Log.Info(q.Next());
 
 	// 3rd arg (not step)
-	Log.info(q.peek());
+	Log.Info(q.Peek());
 
 	// 3rd arg again
-	Log.info(q.next());
+	Log.Info(q.Next());
 
 	// 4th arg
-	Log.info(q.next());
+	Log.Info(q.Next());
 
-	q.reset();
+	q.Reset();
 
 	// 1st arg again
-	Log.info(q.next());
+	Log.Info(q.Next());
 }
 
 test(1,'a',2);

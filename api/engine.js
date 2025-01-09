@@ -14,104 +14,104 @@ import Timing from './timing.js';
 const DEFAULT_ROOT_CYCLE=20;
 const DEFAULT_LAUNCHER_CYCLE=20;
 const DEFAULT_SYNC_CYCLE=10;
-const CLASS_PROC='YgEs_Procedure';
-const CLASS_LAUNCHER='YgEs_Launcher';
-const CLASS_LAUNCHERPROC='YgEs_LauncherProc';
-const CLASS_DELAYPROC='YgEs_DelayProc';
-const CLASS_ROOT='YgEs_RootLauncher';
+const CLASS_PROC='YgEs.Procedure';
+const CLASS_LAUNCHER='YgEs.Launcher';
+const CLASS_LAUNCHERPROC='YgEs.LauncherProc';
+const CLASS_DELAYPROC='YgEs.DelayProc';
+const CLASS_ROOT='YgEs.RootLauncher';
 
 function _create_proc(prm){
 
-	let cb_start=prm.cb_start??null;
-	let cb_poll=prm.cb_poll;
-	let cb_done=prm.cb_done??null;
-	let cb_abort=prm.cb_abort??null;
+	let onStart=prm.OnStart??null;
+	let onPoll=prm.OnPoll;
+	let onDone=prm.OnDone??null;
+	let onAbort=prm.OnAbort??null;
 
 	let started=false;
 	let finished=false;
 	let aborted=false;
 
 	let proc={
-		name:prm.name??CLASS_PROC,
-		HappenTo:(prm.happen??HappeningManager).createLocal(),
-		User:prm.user??{},
+		name:prm.Name??CLASS_PROC,
+		HappenTo:(prm.HappenTo??HappeningManager).CreateLocal(),
+		User:prm.User??{},
 
-		isStarted:()=>started,
-		isFinished:()=>finished,
-		isAborted:()=>aborted,
-		isEnd:()=>finished||aborted,
+		IsStarted:()=>started,
+		IsFinished:()=>finished,
+		IsAborted:()=>aborted,
+		IsEnd:()=>finished||aborted,
 
 		_start:()=>{
 			if(started)return;
-			if(proc.isEnd())return;
+			if(proc.IsEnd())return;
 			started=true;
-			if(cb_start){
+			if(onStart){
 				try{
-					cb_start(proc.User);
+					onStart(proc.User);
 				}
 				catch(e){
-					proc.HappenTo.happenProp({
+					proc.HappenTo.HappenProp({
 						class:CLASS_PROC,
 						cause:'throw from start',
 						src:proc,
-						err:YgEs.fromError(e),
+						err:YgEs.FromError(e),
 					});
-					proc.abort();
+					proc.Abort();
 				}
 			}
 		},
-		abort:()=>{
-			if(proc.isEnd())return;
+		Abort:()=>{
+			if(proc.IsEnd())return;
 			aborted=true;
-			if(cb_abort){
+			if(onAbort){
 				try{
-					cb_abort(proc.User);
+					onAbort(proc.User);
 				}
 				catch(e){
-					proc.HappenTo.happenProp({
+					proc.HappenTo.HappenProp({
 						class:CLASS_PROC,
 						cause:'throw from abort',
 						src:proc,
-						err:YgEs.fromError(e),
+						err:YgEs.FromError(e),
 					});
 				}
 			}
 			else{
-				proc.HappenTo.happenProp({
+				proc.HappenTo.HappenProp({
 					class:CLASS_PROC,
 					cause:'abort',
 					src:proc,
 				});
 			}
 		},
-		poll:()=>{
-			if(proc.isEnd())return false;
+		Poll:()=>{
+			if(proc.IsEnd())return false;
 			try{
-				if(cb_poll(proc.User))return true;
+				if(onPoll(proc.User))return true;
 			}
 			catch(e){
-				proc.HappenTo.happenProp({
+				proc.HappenTo.HappenProp({
 					class:CLASS_PROC,
 					cause:'throw from poll',
 					src:proc,
-					err:YgEs.fromError(e),
+					err:YgEs.FromError(e),
 				});
-				proc.abort();
+				proc.Abort();
 				return false;
 			}
-			if(cb_done){
+			if(onDone){
 				try{
-					cb_done(proc.User);
+					onDone(proc.User);
 					finished=true;
 				}
 				catch(e){
-					proc.HappenTo.happenProp({
+					proc.HappenTo.HappenProp({
 						class:CLASS_PROC,
 						cause:'throw from done',
 						src:proc,
-						err:YgEs.fromError(e),
+						err:YgEs.FromError(e),
 					});
-					proc.abort();
+					proc.Abort();
 					return false;
 				}
 			}
@@ -121,35 +121,35 @@ function _create_proc(prm){
 			return false;
 		},
 
-		sync:(cb_sync,interval=null)=>{
+		Sync:(cb_sync,interval=null)=>{
 			if(!cb_sync){
-				proc.HappenTo.happenProp({
+				proc.HappenTo.HappenProp({
 					class:CLASS_LAUNCHER,
 					cause:'empty callback from sync',
 				});
 				return;
 			}
 			if(interval===null)interval=DEFAULT_SYNC_CYCLE;
-			Timing.sync(interval,
-				()=>{return proc.isEnd();},
+			Timing.Sync(interval,
+				()=>{return proc.IsEnd();},
 				()=>{
 					try{
 						cb_sync(proc.User);
 					}
 					catch(e){
-						proc.HappenTo.happenProp({
+						proc.HappenTo.HappenProp({
 							class:CLASS_PROC,
 							cause:'throw from sync',
 							src:proc,
-							err:YgEs.fromError(e),
+							err:YgEs.FromError(e),
 						});
 					}
 				},
 			);
 		},
-		toPromise:(breakable,interval=null)=>{
-			return Timing.toPromise((ok,ng)=>{
-				proc.sync(()=>{
+		ToPromise:(breakable,interval=null)=>{
+			return Timing.ToPromise((ok,ng)=>{
+				proc.Sync(()=>{
 					if(breakable || finished)ok(proc.User);
 					else ng(new Error('abort',{cause:proc.User}));
 				},interval);
@@ -169,57 +169,57 @@ function _yges_enginge_create_launcher(prm){
 	let active=[]
 
 	let lnc={
-		name:prm.name??CLASS_LAUNCHER,
-		HappenTo:(prm.happen??HappeningManager).createLocal(),
-		Limit:prm.limit??-1,
-		Cycle:prm.cycle??DEFAULT_LAUNCHER_CYCLE,
-		User:prm.user??{},
+		name:prm.Name??CLASS_LAUNCHER,
+		HappenTo:(prm.HappenTo??HappeningManager).CreateLocal(),
+		Limit:prm.Limit??-1,
+		Cycle:prm.Cycle??DEFAULT_LAUNCHER_CYCLE,
+		User:prm.User??{},
 
-		isEnd:()=>{
+		IsEnd:()=>{
 			if(launched.length>0)return false;
 			if(active.length>0)return false;
 			for(let sub of sublauncher){
-				if(!sub.isEnd())return false;
+				if(!sub.IsEnd())return false;
 			}
 			return true;
 		},
-		isAbandoned:()=>abandoned,
-		countActive:()=>{
+		IsAbandoned:()=>abandoned,
+		CountActive:()=>{
 			let n=active.length
-			for(let sub of sublauncher)n+=sub.countActive();
+			for(let sub of sublauncher)n+=sub.CountActive();
 			return n;
 		},
-		countHeld:()=>{
+		CountHeld:()=>{
 			let n=launched.length
-			for(let sub of sublauncher)n+=sub.countHeld();
+			for(let sub of sublauncher)n+=sub.CountHeld();
 			return n;
 		},
 
-		abandon:()=>{
+		Abandon:()=>{
 			abandoned=true;
-			lnc.abort();
+			lnc.Abort();
 		},
 
-		createLauncher:(prm={})=>{
+		CreateLauncher:(prm={})=>{
 			let sub=_yges_enginge_create_launcher(prm);
 			sublauncher.push(sub);
 			return sub;
 		},
 
-		launch:(prm={})=>{
-			if(Engine.isAbandoned()){
-				lnc.HappenTo.happenMsg('the Engine was abandoned, no longer launch new procedures.');
+		Launch:(prm={})=>{
+			if(Engine.IsAbandoned()){
+				lnc.HappenTo.HappenMsg('the Engine was abandoned, no longer launch new procedures.');
 				return;
 			}
 			if(!_working){
-				Log.notice('the Engine not startted. call start() to run.');
+				Log.Notice('the Engine not started. call Start() to run.');
 			}
 			if(abandoned){
-				if(prm.cb_abort)prm.cb_abort();
+				if(prm.OnAbort)prm.OnAbort();
 				return;
 			}
-			if(!prm.cb_poll){
-				lnc.HappenTo.happenProp({
+			if(!prm.OnPoll){
+				lnc.HappenTo.HappenProp({
 					class:CLASS_LAUNCHER,
 					cause:'empty pollee',
 				});
@@ -236,24 +236,24 @@ function _yges_enginge_create_launcher(prm){
 			}
 			return proc;
 		},
-		abort:()=>{
-			if(lnc.isEnd())return;
+		Abort:()=>{
+			if(lnc.IsEnd())return;
 			aborted=true;
-			for(let sub of sublauncher)sub.abort();
+			for(let sub of sublauncher)sub.Abort();
 			sublauncher=[]
-			for(let proc of launched)proc.abort();
+			for(let proc of launched)proc.Abort();
 			launched=[]
-			for(let proc of active)proc.abort();
+			for(let proc of active)proc.Abort();
 			active=[]
 		},
-		poll:()=>{
+		Poll:()=>{
 			for(let sub of sublauncher){
-				sub.poll();
+				sub.Poll();
 			}
 
 			let cont=[]
 			for(let proc of active){
-				if(proc.poll())cont.push(proc);
+				if(proc.Poll())cont.push(proc);
 			}
 			active=cont;
 
@@ -270,54 +270,54 @@ function _yges_enginge_create_launcher(prm){
 			}
 		},
 
-		sync:(cb_sync,interval=null)=>{
+		Sync:(cb_sync,interval=null)=>{
 			if(!cb_sync){
-				lnc.HappenTo.happenProp({
+				lnc.HappenTo.HappenProp({
 					class:CLASS_LAUNCHER,
 					cause:'empty callback from sync',
 				});
 				return;
 			}
 			if(interval===null)interval=DEFAULT_SYNC_CYCLE;
-			Timing.sync(interval,
+			Timing.Sync(interval,
 				()=>{
-					lnc.poll();
-					return lnc.isEnd();
+					lnc.Poll();
+					return lnc.IsEnd();
 				},
 				()=>{
 					try{
 						cb_sync(lnc.User);
 					}
 					catch(e){
-						lnc.HappenTo.happenProp({
+						lnc.HappenTo.HappenProp({
 							class:CLASS_PROC,
 							cause:'throw from sync',
 							src:lnc,
-							err:YgEs.fromError(e),
+							err:YgEs.FromError(e),
 						});
 					}
 				}
 			);
 		},
 
-		toPromise:(breakable,interval=null)=>{
-			return Timing.toPromise((ok,ng)=>{
-				lnc.sync(()=>{
+		ToPromise:(breakable,interval=null)=>{
+			return Timing.ToPromise((ok,ng)=>{
+				lnc.Sync(()=>{
 					if(breakable || !aborted)ok(lnc.User);
 					else ng(new Error('abort',{cause:lnc.User}));
 				},interval);
 			});
 		},
 
-		delay:(time,cb_done,cb_abort=null)=>{
+		Delay:(time,cb_done,cb_abort=null)=>{
 			let until=new Date(Date.now()+time);
-			return lnc.launch({
-					name:CLASS_DELAYPROC,
-					cb_poll:(user)=>{
+			return lnc.Launch({
+					Name:CLASS_DELAYPROC,
+					OnPoll:(user)=>{
 						return Date.now()<until;
 					},
-					cb_done:cb_done,
-					cb_abort:cb_abort??cb_done,
+					OnDone:cb_done,
+					OnAbort:cb_abort??cb_done,
 				});
 		},
 	}
@@ -325,8 +325,8 @@ function _yges_enginge_create_launcher(prm){
 }
 
 let Engine=YgEs.Engine=_yges_enginge_create_launcher({
-	name:CLASS_ROOT,
-	cycle:DEFAULT_ROOT_CYCLE,
+	Name:CLASS_ROOT,
+	Cycle:DEFAULT_ROOT_CYCLE,
 });
 
 let _working=false;
@@ -335,11 +335,11 @@ let _cancel=null;
 function _poll_engine(){
 
 	if(!_working)return;
-	if(Engine.isAbandoned())return;
+	if(Engine.IsAbandoned())return;
 
-	Engine.poll();
+	Engine.Poll();
 
-	_cancel=Timing.delay(Engine.Cycle,()=>{
+	_cancel=Timing.Delay(Engine.Cycle,()=>{
 		_cancel=null;
 		_poll_engine();
 	});
@@ -351,23 +351,23 @@ function _stop(){
 	if(_cancel!=null)_cancel();
 }
 
-YgEs.Engine.start=()=>{
+YgEs.Engine.Start=()=>{
 
-	if(Engine.isAbandoned())return;
+	if(Engine.IsAbandoned())return;
 	if(_working)return;
 	_working=true;
 	_poll_engine();
 }
 
-YgEs.Engine.stop=()=>{
+YgEs.Engine.Stop=()=>{
 
 	_stop();
-	if(Engine.isAbandoned())return;
-	Engine.abort();
+	if(Engine.IsAbandoned())return;
+	Engine.Abort();
 }
 
-YgEs.Engine.shutdown=()=>{
-	Engine.abandon();
+YgEs.Engine.ShutDown=()=>{
+	Engine.Abandon();
 	_stop();
 }
 

@@ -12,68 +12,68 @@ let agent=null;
 let handle=null;
 
 let workset={
-	user:{count:1},
-	cb_open:(agent)=>{
-		agent.User.count+=2;
-		Test.chk_strict(agent.User.count,4);
+	User:{Count:1},
+	OnOpen:(agent)=>{
+		agent.User.Count+=2;
+		Test.ChkStrict(agent.User.Count,4);
 	},
-	cb_repair:(agent)=>{
-		agent.User.count+=1;
-		Test.chk_strict(agent.User.count,2);
+	OnRepair:(agent)=>{
+		agent.User.Count+=1;
+		Test.ChkStrict(agent.User.Count,2);
 
-		agent.waitFor(()=>{
+		agent.WaitFor(()=>{
 			// resolve all happenings in target HappeningManager 
-			let hm=agent.getHappeningManager();
-			hm.poll((hap)=>{
-				hap.resolve();
+			let hm=agent.GetHappeningManager();
+			hm.Poll((hap)=>{
+				hap.Resolve();
 			});
 
-			hm.cleanup();
-			return hm.isCleaned();
+			hm.CleanUp();
+			return hm.IsCleaned();
 		});
 	},
-	cb_ready:(agent)=>{
-		agent.User.count+=3;
-		Test.chk_strict(agent.User.count,7);
+	OnReady:(agent)=>{
+		agent.User.Count+=3;
+		Test.ChkStrict(agent.User.Count,7);
 
-		handle.close();
+		handle.Close();
 	},
-	cb_close:(agent)=>{
-		agent.User.count+=4;
-		Test.chk_strict(agent.User.count,11);
+	OnClose:(agent)=>{
+		agent.User.Count+=4;
+		Test.ChkStrict(agent.User.Count,11);
 	},
-	cb_finish:(agent)=>{
-		agent.User.count+=5;
-		Test.chk_strict(agent.User.count,16);
+	OnFinish:(agent)=>{
+		agent.User.Count+=5;
+		Test.ChkStrict(agent.User.Count,16);
 	},
-	cb_abort:(agent)=>{
-		Test.chk_never("don't step");
+	OnAbort:(agent)=>{
+		Test.Never("don't step");
 	},
 }
 
 const scenaria=[
 	{
-		title:'Agent Repairing',
-		proc:async (tool)=>{
-			workset.launcher=tool.Launcher;
-			workset.happen=tool.Launcher.HappenTo.createLocal({
-				happen:(hap)=>{
-//					tool.Log.fatal(hap.toString(),hap.getProp());
+		Title:'Agent Repairing',
+		Proc:async (tool)=>{
+			workset.Launcher=tool.Launcher;
+			workset.HappenTo=tool.Launcher.HappenTo.CreateLocal({
+				OnHappen:(hap)=>{
+//					tool.Log.Fatal(hap.ToString(),hap.GetProp());
 				},
 			});
-			agent=AgentManager.standby(workset);
-			Test.chk_strict(agent.User.count,1);
+			agent=AgentManager.StandBy(workset);
+			Test.ChkStrict(agent.User.Count,1);
 
 			// the agent has a Happening at start 
 			// and must repair it to open.  
-			workset.happen.happenMsg('Test Hap.');
+			workset.HappenTo.HappenMsg('Test Hap.');
 
-			handle=agent.fetch();
-			handle.open();
+			handle=agent.Fetch();
+			handle.Open();
 
-			await tool.Launcher.toPromise();
+			await tool.Launcher.ToPromise();
 		},
 	},
 ]
 
-Test.run(scenaria);
+Test.Run(scenaria);

@@ -13,18 +13,18 @@ function _qq_create(args){
 	let cur=0;
 
 	let q={
-		name:'YgEs_QuickQueue',
+		name:'YgEs.QuickQueue',
 		User:{},
 
-		isEnd:()=>{return cur>=args.length;},
-		count:()=>{return args.length;},
-		pos:()=>{return cur;},
-		reset:()=>{cur=0;},
-		peek:()=>{
+		IsEnd:()=>{return cur>=args.length;},
+		Count:()=>{return args.length;},
+		Pos:()=>{return cur;},
+		Reset:()=>{cur=0;},
+		Peek:()=>{
 			if(cur>=args.length)return undefined;
 			return args[cur];
 		},
-		next:()=>{
+		Next:()=>{
 			if(cur>=args.length)return undefined;
 			return args[cur++];
 		},
@@ -33,10 +33,10 @@ function _qq_create(args){
 }
 
 YgEs.QuickQueue={
-	name:'YgEs_QuickQueueContainer',
+	name:'YgEs.QuickQueueContainer',
 	User:{},
 
-	create:_qq_create,
+	Create:_qq_create,
 }
 
 })();

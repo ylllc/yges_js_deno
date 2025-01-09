@@ -10,21 +10,21 @@ import HappeningManager from '../../api/happening.js';
 
 const scenaria=[
 	{
-		title:'Global Happenning Manager',
-		proc:(tool)=>{
-			Test.chk_strict(true,HappeningManager.isCleaned(),'initialised global manager');
+		Title:'Global Happenning Manager',
+		Proc:(tool)=>{
+			Test.ChkStrict(true,HappeningManager.IsCleaned(),'initialised global manager');
 		},
 	},
 	{
-		title:'Local Happening Manager',
-		proc:(tool)=>{
-			let hap_local1=HappeningManager.createLocal();
-			let hap_local2=hap_local1.createLocal();
+		Title:'Local Happening Manager',
+		Proc:(tool)=>{
+			let hap_local1=HappeningManager.CreateLocal();
+			let hap_local2=hap_local1.CreateLocal();
 
-			Test.chk_strict(true,hap_local1.isCleaned(),'initialised local1 manager');
-			Test.chk_strict(true,hap_local2.isCleaned(),'initialised local2 manager');
+			Test.ChkStrict(true,hap_local1.IsCleaned(),'initialised local1 manager');
+			Test.ChkStrict(true,hap_local2.IsCleaned(),'initialised local2 manager');
 		},
 	},
 ]
 
-Test.run(scenaria);
+Test.Run(scenaria);

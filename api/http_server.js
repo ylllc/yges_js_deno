@@ -28,49 +28,49 @@ async function _transfer(res,stat,type=null,cs=null){
 
 	// content type	
 	if(!type){
-		var ext=path.extname(stat.getPath());
+		var ext=path.extname(stat.GetPath());
 		if(ext)ext=ext.substring(1);
 		type=mime.getType(ext);
 	}
 	if(!type)type='apllication/octet-stream';
 	else if(type=='text/html'){
 		// charset 
-		if(typeof cs=='function')cs=cs(stat.getPath());
+		if(typeof cs=='function')cs=cs(stat.GetPath());
 		if(cs)type+=';charset='+cs;
 	}
 
-	var body=await File.load(stat.getPath());
-	res.writeHead(200,{'Content-Type':type,'Content-Length':stat.getSize()});
+	var body=await File.Load(stat.GetPath());
+	res.writeHead(200,{'Content-Type':type,'Content-Length':stat.GetSize()});
 	res.end(body);
 }
 
 async function _dirent(basedir,srcdir,deep,opt){
 
 	let t={
-		parent:(basedir!=srcdir),
-		dirs:{},
-		files:{}
+		Parent:(basedir!=srcdir),
+		Dirs:{},
+		Files:{}
 	}
 
-	let g=await File.glob(srcdir,'*');
+	let g=await File.Glob(srcdir,'*');
 	for(let f of g){
 		let path=srcdir+f;
-		let st=await File.stat(path);
-		if(opt.filter){
-			if(!opt.filter(srcdir,f,st))continue;
+		let st=await File.Stat(path);
+		if(opt.Filter){
+			if(!opt.Filter(srcdir,f,st))continue;
 		}
 
-		if(st.isFile()){
-			let u={size:st.getSize()}
-			if(opt.mtime)u.mtime=st.getModifyTime()?.toISOString();
-			if(opt.ctime)u.ctime=st.getChangeTime()?.toISOString();
-			if(opt.atime)u.atime=st.getAccessTime()?.toISOString();
-			if(opt.btime)u.btime=st.getBirthTime()?.toISOString();
-			t.files[f]=u;
+		if(st.IsFile()){
+			let u={Size:st.GetSize()}
+			if(opt.MTime)u.MTime=st.GetModifyTime()?.toISOString();
+			if(opt.CTime)u.CTime=st.GetChangeTime()?.toISOString();
+			if(opt.ATime)u.ATime=st.GetAccessTime()?.toISOString();
+			if(opt.BTime)u.BTime=st.GetBirthTime()?.toISOString();
+			t.Files[f]=u;
 		}
-		else if(st.isDir()){
-			if(deep)t.dirs[f]=await _dirent(basedir,srcdir+f+'/',(deep<0)?deep:(deep-1),opt);
-			else t.dirs[f]={};
+		else if(st.IsDir()){
+			if(deep)t.Dirs[f]=await _dirent(basedir,srcdir+f+'/',(deep<0)?deep:(deep-1),opt);
+			else t.Dirs[f]={};
 		}
 	}
 	return t;
@@ -79,24 +79,24 @@ async function _dirent(basedir,srcdir,deep,opt){
 function _serve_new(dir,opt={}){
 
 	var tt={
-		name:'YgEs_HTTPServe',
-		User:opt.user??{},
+		Name:'YgEs.HTTPServe',
+		User:opt.User??{},
 		Dir:dir,
 		Charset:(path)=>HTTPServer.DefaultCharset,
-		Indices:['index.html','index.htm'],
+		Indices:opt.Indices??['index.html','index.htm'],
 
-		walk:(walker)=>{
+		Walk:(walker)=>{
 
 			var step=walker.Layer[walker.Level];
-			if(opt.route && opt.route[step]){
-				_route_new(opt.route,{user:tt.User}).walk(walker);
+			if(opt.Route && opt.Route[step]){
+				_route_new(opt.Route,{User:tt.User}).Walk(walker);
 				return;
 			}
 
 			// empty subpath requires entering to fix base 
 			if(walker.Level>=walker.Layer.length && walker.Layer[walker.Layer.length-1]!=''){
-				walker.ParsedURL.path+='/';
-				var url=walker.ParsedURL.bake();
+				walker.ParsedURL.Path+='/';
+				var url=walker.ParsedURL.Bake();
 				walker.Response.writeHead(301,{Location:url});
 				walker.Response.end();
 				return;
@@ -106,9 +106,9 @@ function _serve_new(dir,opt={}){
 			var basepath=tt.Dir+'/';
 			var srcpath=basepath+subpath;
 
-			Timing.toPromise(async (ok,ng)=>{
+			Timing.ToPromise(async (ok,ng)=>{
 
-				var st=await File.stat(srcpath);
+				var st=await File.Stat(srcpath);
 
 				if(srcpath.substring(srcpath.length-1)!='/'){
 					// check file exists 
@@ -119,9 +119,9 @@ function _serve_new(dir,opt={}){
 					}
 
 					// add extra / when srcpath is directory 
-					if(st.isDir()){
-						walker.ParsedURL.path+='/';
-						var url=walker.ParsedURL.bake();
+					if(st.IsDir()){
+						walker.ParsedURL.Path+='/';
+						var url=walker.ParsedURL.Bake();
 						walker.Response.writeHead(301,{Location:url});
 						walker.Response.end();
 						ok();
@@ -130,14 +130,14 @@ function _serve_new(dir,opt={}){
 				}
 
 				if(srcpath.substring(srcpath.length-1)=='/'){
-					if(opt.dirent){
+					if(opt.DirEnt){
 						// get dirents 
-						var g=await _dirent(basepath,srcpath,opt.deepent,{
-							filter:opt.filter??null,
-							mtime:opt.mtime??false,
-							ctime:opt.ctime??false,
-							atime:opt.atime??false,
-							btime:opt.btime??false,
+						var g=await _dirent(basepath,srcpath,opt.DeepEnt,{
+							Filter:opt.Filter??null,
+							MTime:opt.MTime??false,
+							CTime:opt.CTime??false,
+							ATime:opt.ATime??false,
+							BTime:opt.BTime??false,
 						});
 						var s=JSON.stringify(g);
 						walker.Response.writeHead(200,{'Content-Type':'application/json','Content-Length':s.length});
@@ -149,9 +149,9 @@ function _serve_new(dir,opt={}){
 						// try finding an index file 
 						var f=false;
 						for(var n of tt.Indices){
-							var st2=await File.stat(srcpath+n);
+							var st2=await File.Stat(srcpath+n);
 							if(!st2)continue;
-							if(!st2.isFile())continue;
+							if(!st2.IsFile())continue;
 							f=true;
 							srcpath+=n;
 							st=st2;
@@ -180,17 +180,17 @@ function _serve_new(dir,opt={}){
 function _present_new(meth,opt={}){
 
 	var pt={
-		name:'YgEs_HTTPPresent',
-		User:opt.user??{},
-		Meth:meth,
+		Name:'YgEs.HTTPPresent',
+		User:opt.User??{},
+		Methods:meth,
 
-		walk:(walker)=>{
+		Walk:(walker)=>{
 			var m=walker.Request.method;
-			if(!pt.Meth[m]){
+			if(!pt.Methods[m]){
 				walker.Listener.Error(walker.Response,405,'Not allowed');
 				return;
 			}
-			pt.Meth[m](walker);
+			pt.Methods[m](walker);
 		},
 	}
 	return pt;
@@ -199,18 +199,18 @@ function _present_new(meth,opt={}){
 function _route_new(map,opt={}){
 
 	var rt={
-		name:'YgEs_HTTPRoute',
-		User:opt.user??{},
+		Name:'YgEs.HTTPRoute',
+		User:opt.User??{},
 		Map:map,
 
-		walk:(walker)=>{
+		Walk:(walker)=>{
 			var n=walker.Layer[walker.Level];
 			if(!rt.Map[n]){
 				walker.Listener.Error(walker.Response,404,'Not found');
 				return;
 			}
 			++walker.Level;
-			rt.Map[n].walk(walker);
+			rt.Map[n].Walk(walker);
 		},
 	}
 	return rt;
@@ -220,70 +220,70 @@ function _request(listener,req,res){
 
 	try{
 		var walker={
-			name:'YgEs_HTTPWalker',
+			Name:'YgEs.HTTPWalker',
 			User:{},
 			Listener:listener,
 			Request:req,
 			Response:res,
-			ParsedURL:URLBuilder.parse(req.url),
+			ParsedURL:URLBuilder.Parse(req.url),
 		}
-		walker.Layer=walker.ParsedURL.extractPath();
+		walker.Layer=walker.ParsedURL.ExtractPath();
 		walker.Level=1;
 
-		listener.Route.walk(walker);
+		listener.Route.Walk(walker);
 	}
 	catch(e){
-		listener.getHappeningManager().happenError(e);
+		listener.GetHappeningManager().HappenError(e);
 		listener.Error(res,500,'Internal Server Error');
 	}
 }
 
 function _listener_new(port,route,opt={}){
 
-	var log=opt.logger??Log;
+	var log=opt.Log??Log;
 
 	var _working=true;
 	var _internal=http.createServer((req,res)=>_request(listener,req,res));
 
 	var ws={
-		name:'YgEs_HTTPServer',
-		happen:opt.happen??HappeningManager.createLocal(),
-		launcher:opt.launcher??Engine.createLauncher(),
-		user:opt.user??{},
+		Name:'YgEs.HTTPListener',
+		HappenTo:opt.HappenTo??HappeningManager.CreateLocal(),
+		Launcher:opt.Launcher??Engine.CreateLauncher(),
+		User:opt.User??{},
 
-		cb_open:(wk)=>{
-			log.info('bgn of server port '+port);
+		OnOpen:(wk)=>{
+			log.Info('bgn of server port '+port);
 			_internal.listen(port);
 		},
-		cb_close:(wk)=>{
+		OnClose:(wk)=>{
 			var done=false;
 			_internal.close(()=>{
 				done=true;
 			});
-			wk.waitFor(()=>done);
+			wk.WaitFor(()=>done);
 		},
-		cb_finish:(wk,clean)=>{
-			log.info('end of server port '+port);
+		OnFinish:(wk,clean)=>{
+			log.Info('end of server port '+port);
 		},
 	}
 
-	var listener=AgentManager.standby(ws);
-	listener.getPort=()=>port;
+	var listener=AgentManager.StandBy(ws);
+	listener.GetPort=()=>port;
 	listener.Route=route;
 	listener.Error=_error_default;
 	return listener;
 }
 
 let HTTPServer=YgEs.HTTPServer={
-	name:'YgEs_HTTPServer',
+	name:'YgEs.HTTPServer',
 	User:{},
 	DefaultCharset:'utf-8',
 
-	setup:_listener_new,
+	SetUp:_listener_new,
 
-	serve:_serve_new,
-	present:_present_new,
-	route:_route_new,
+	Serve:_serve_new,
+	Present:_present_new,
+	Route:_route_new,
 }
 
 })();

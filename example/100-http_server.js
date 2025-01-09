@@ -19,39 +19,39 @@ function hello_world(walker){
 	walker.Response.end('Hello World!');
 }
 
-var route1=HTTPServer.present({GET:hello_world});
-var route2=HTTPServer.serve(PUBLIC_ROOT,{
-	route:{
-		'doc':HTTPServer.serve(DOCS_ROOT),
-		'test':HTTPServer.serve(TEST_ROOT,{
-			dirent:true,
-			deepent:-1,
-			mtime:true,
-			filter:(srcdir,name,stat)=>{
+var route1=HTTPServer.Present({GET:hello_world});
+var route2=HTTPServer.Serve(PUBLIC_ROOT,{
+	Route:{
+		'doc':HTTPServer.Serve(DOCS_ROOT),
+		'test':HTTPServer.Serve(TEST_ROOT,{
+			DirEnt:true,
+			DeepEnt:-1,
+			MTime:true,
+			Filter:(srcdir,name,stat)=>{
 				return name.at(0)!='.';
 			},
 		}),
 	},
 });
 
-Engine.start();
+Engine.Start();
 
-var srv1=HTTPServer.setup(8080,route1).fetch();
-var srv2=HTTPServer.setup(8888,route2).fetch();
+var srv1=HTTPServer.SetUp(8080,route1).Fetch();
+var srv2=HTTPServer.SetUp(8888,route2).Fetch();
 
 (async()=>{
-	await File.save(LIFEFILE,'');
+	await File.Save(LIFEFILE,'');
 
-	srv1.open();
-	srv2.open();
+	srv1.Open();
+	srv2.Open();
 
-	await Timing.syncKit(100,()=>{
-		return !File.exists(LIFEFILE);
-	}).promise();
+	await Timing.SyncKit(100,()=>{
+		return !File.Exists(LIFEFILE);
+	}).ToPromise();
 
-	srv1.close();
-	srv2.close();
+	srv1.Close();
+	srv2.Close();
 
-	await Engine.toPromise();
-	Engine.shutdown();
+	await Engine.ToPromise();
+	Engine.ShutDown();
 })();

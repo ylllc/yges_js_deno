@@ -12,12 +12,12 @@ import HappeningManager from './happening.js';
 
 function _run(start,states={},opt={}){
 
-	let launcher=opt.launcher??YgEs.Engine;
+	let launcher=opt.Launcher??YgEs.Engine;
 	let cur=null;
 
-	let name=opt.name??'YgEs_Statemachine';
-	let happen=opt.happen??HappeningManager;
-	let user=opt.user??{};
+	let name=opt.Name??'YgEs.StateMachine';
+	let happen=opt.HappenTo??HappeningManager;
+	let user=opt.User??{};
 
 	let state_prev=null;
 	let state_cur=null;
@@ -25,22 +25,21 @@ function _run(start,states={},opt={}){
 
 	let ctrl={
 		name:name+'_Control',
-		User:{},
-		getHappeningManager:()=>happen,
-		getPrevState:()=>state_prev,
-		getCurState:()=>state_cur,
-		getNextState:()=>state_next,
+		User:user,
+		GetHappeningManager:()=>happen,
+		GetPrevState:()=>state_prev,
+		GetCurState:()=>state_cur,
+		GetNextState:()=>state_next,
 	}
 
-	let getInfo=(phase)=>{
+	let GetInfo=(phase)=>{
 		return {
-			name:name,
-			prev:state_prev,
-			cur:state_cur,
-			next:state_next,
-			phase:phase,
-			ctrl:ctrl.User,
-			user:user,
+			Name:name,
+			Prev:state_prev,
+			Cur:state_cur,
+			Next:state_next,
+			Phase:phase,
+			User:user,
 		}
 	}
 
@@ -56,10 +55,10 @@ function _run(start,states={},opt={}){
 		}
 		cur=states[state_next]??null;
 		if(!cur){
-			stmac.happen.happenProp({
+			stmac.HappenTo.HappenProp({
 				class:'YgEs_Statemachine_Error',
 				cause:'state missing: '+state_next,
-				info:getInfo('selecing'),
+				info:GetInfo('selecing'),
 			});
 			poll_cur=poll_nop;
 			return;
@@ -68,15 +67,15 @@ function _run(start,states={},opt={}){
 		state_cur=state_next;
 		state_next=null;
 		try{
-			if(cur.cb_start)cur.cb_start(ctrl,user);
+			if(cur.OnStart)cur.OnStart(ctrl,user);
 			poll_cur=poll_up;
 		}
 		catch(e){
-			stmac.happen.happenProp({
+			stmac.HappenTo.HappenProp({
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
-				info:getInfo('cb_start'),
-				err:YgEs.fromError(e),
+				info:GetInfo('cb_start'),
+				err:YgEs.FromError(e),
 			});
 			poll_cur=poll_nop;
 		}
@@ -85,31 +84,31 @@ function _run(start,states={},opt={}){
 	}
 	let poll_up=(user)=>{
 		try{
-			var r=cur.poll_up?cur.poll_up(ctrl,user):true;
+			var r=cur.OnPollInUp?cur.OnPollInUp(ctrl,user):true;
 		}
 		catch(e){
-			stmac.happen.happenProp({
+			stmac.HappenTo.HappenProp({
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
-				info:getInfo('poll_up'),
-				err:YgEs.fromError(e),
+				info:GetInfo('poll_up'),
+				err:YgEs.FromError(e),
 			});
 			r=false;
 		}
 		if(r==null)return; // continuing 
-		else if(r===false)proc.abort();
+		else if(r===false)proc.Abort();
 		else if(r===true){
 			try{
 				// normal transition 
-				if(cur.cb_ready)cur.cb_ready(ctrl,user);
+				if(cur.OnReady)cur.OnReady(ctrl,user);
 				poll_cur=poll_keep;
 			}
 			catch(e){
-				stmac.happen.happenProp({
+				stmac.HappenTo.HappenProp({
 					class:'YgEs_Statemachine_Error',
 					cause:'throw from a callback',
-					info:getInfo('cb_ready'),
-					err:YgEs.fromError(e),
+					info:GetInfo('cb_ready'),
+					err:YgEs.FromError(e),
 				});
 				poll_cur=poll_nop;
 			}
@@ -124,19 +123,19 @@ function _run(start,states={},opt={}){
 	}
 	let poll_keep=(user)=>{
 		try{
-			var r=cur.poll_keep?cur.poll_keep(ctrl,user):true;
+			var r=cur.OnPollInKeep?cur.OnPollInKeep(ctrl,user):true;
 		}
 		catch(e){
-			stmac.happen.happenProp({
+			stmac.HappenTo.HappenProp({
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
-				info:getInfo('poll_keep'),
-				err:YgEs.fromError(e),
+				info:GetInfo('poll_keep'),
+				err:YgEs.FromError(e),
 			});
 			r=false;
 		}
 		if(r==null)return; // continuing 
-		else if(r===false)proc.abort();
+		else if(r===false)proc.Abort();
 		else if(r===true){
 			// normal end 
 			state_next=null;
@@ -150,15 +149,15 @@ function _run(start,states={},opt={}){
 	}
 	let call_stop=(user)=>{
 		try{
-			if(cur.cb_stop)cur.cb_stop(ctrl,user);
+			if(cur.OnStop)cur.OnStop(ctrl,user);
 			poll_cur=poll_down;
 		}
 		catch(e){
-			stmac.happen.happenProp({
+			stmac.HappenTo.HappenProp({
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
-				info:getInfo('cb_stop'),
-				err:YgEs.fromError(e),
+				info:GetInfo('cb_stop'),
+				err:YgEs.FromError(e),
 			});
 			poll_cur=poll_nop;
 		}
@@ -167,19 +166,19 @@ function _run(start,states={},opt={}){
 	}
 	let poll_down=(user)=>{
 		try{
-			var r=cur.poll_down?cur.poll_down(ctrl,user):true;
+			var r=cur.OnPollInDown?cur.OnPollInDown(ctrl,user):true;
 		}
 		catch(e){
-			stmac.happen.happenProp({
+			stmac.HappenTo.HappenProp({
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
-				info:getInfo('poll_down'),
-				err:YgEs.fromError(e),
+				info:GetInfo('poll_down'),
+				err:YgEs.FromError(e),
 			});
 			r=false;
 		}
 		if(r==null)return; // continuing 
-		else if(r===false)proc.abort();
+		else if(r===false)proc.Abort();
 		else if(r===true){
 			// normal transition 
 			call_end(user);
@@ -192,44 +191,44 @@ function _run(start,states={},opt={}){
 	}
 	let call_end=(user)=>{
 		try{
-			if(cur.cb_end)cur.cb_end(ctrl,user);
+			if(cur.OnEnd)cur.OnEnd(ctrl,user);
 			call_start(user);
 		}
 		catch(e){
-			stmac.happen.happenProp({
+			stmac.HappenTo.HappenProp({
 				class:'YgEs_Statemachine_Error',
 				cause:'throw from a callback',
-				info:getInfo('cb_end'),
-				err:YgEs.fromError(e),
+				info:GetInfo('cb_end'),
+				err:YgEs.FromError(e),
 			});
 			poll_cur=poll_nop;
 		}
 	}
 
 	let stmac={
-		name:name,
-		happen:happen,
-		user:user,
+		Name:name,
+		HappenTo:happen,
+		User:user,
 
-		cb_start:(user)=>{
+		OnStart:(user)=>{
 			call_start(user);
 		},
-		cb_poll:(user)=>{
+		OnPoll:(user)=>{
 			poll_cur(user);
 			return !!cur;
 		},
-		cb_done:opt.cb_done??'',
-		cb_abort:opt.cb_abort??'',
+		OnDone:opt.OnDone??'',
+		OnAbort:opt.OnAbort??'',
 	}
 
-	let proc=launcher.launch(stmac);
-	ctrl.isStarted=proc.isStarted;
-	ctrl.isFinished=proc.isFinished;
-	ctrl.isAborted=proc.isAborted;
-	ctrl.isEnd=proc.isEnd;
-	ctrl.abort=proc.abort;
-	ctrl.sync=proc.sync;
-	ctrl.toPromise=proc.toPromise;
+	let proc=launcher.Launch(stmac);
+	ctrl.IsStarted=proc.IsStarted;
+	ctrl.IsFinished=proc.IsFinished;
+	ctrl.IsAborted=proc.IsAborted;
+	ctrl.IsEnd=proc.IsEnd;
+	ctrl.Abort=proc.Abort;
+	ctrl.Sync=proc.Sync;
+	ctrl.ToPromise=proc.ToPromise;
 	return ctrl;
 }
 
@@ -237,7 +236,7 @@ YgEs.StateMachine={
 	name:'YgEs_StateMachineContainer',
 	User:{},
 
-	run:_run,
+	Run:_run,
 }
 
 })();

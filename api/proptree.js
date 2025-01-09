@@ -9,111 +9,119 @@ import QuickQueue from './quickqueue.js';
 // Property Tree ------------------------ //
 (()=>{ // local namespace 
 
+// prop type 
+const _type_names=Object.freeze(['EMPTY','MONO','ARRAY','DICT']);
+// make reverse lookup 
+const _type_lookup=Object.freeze(YgEs.CreateEnum(_type_names));
+
 function _prop_internal(){
 
 	let t={
-		name:'YgEs_PropTree',
+		name:'YgEs.PropTree',
+		User:{},
+
 		_yges_proptree_:true, // means this is YgEs_PropTree 
 		_sub:undefined,
 		_ref:(q)=>{return undefined;},
-		getType:()=>PropTree.PROPTYPE.EMPTY,
-		export:()=>{return undefined;},
-		toArray:(...args)=>{
+
+		GetType:()=>PropTree.PROPTYPE.EMPTY,
+		Export:()=>{return undefined;},
+		ToArray:(...args)=>{
 			let loc=args;
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			let u=_prop_dig(t,q);
 			_prop_toarray(u);
 		},
-		toProp:(...args)=>{
+		ToDict:(...args)=>{
 			let loc=args;
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			let u=_prop_dig(t,q);
 			_prop_toprop(u);
 		},
-		exists:(...args)=>{
+		Exists:(...args)=>{
 			let loc=args;
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_exists(t,q);
 		},
-		ref:(...args)=>{
+		Ref:(...args)=>{
 			let loc=args;
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_ref(t,q);
 		},
-		dig:(...args)=>{
+		Dig:(...args)=>{
 			let loc=args;
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_dig(t,q);
 		},
-		count:(...args)=>{
+		Count:(...args)=>{
 			let loc=args;
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_count(t,q);
 		},
-		get:(...args)=>{
+		Get:(...args)=>{
 			let loc=args;
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_get(t,q);
 		},
-		set:(...args)=>{
+		Set:(...args)=>{
 			let loc=args;
 			let v=loc.pop();
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_set(t,q,v);
 		},
-		cut:(...args)=>{
+		Cut:(...args)=>{
 			let loc=args;
 			let k=loc.pop();
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_cut(t,q,k);
 		},
-		merge:(...args)=>{
+		Merge:(...args)=>{
 			let loc=args;
 			let v=loc.pop();
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_merge(t,q,v);
 		},
-		push:(...args)=>{
+		Push:(...args)=>{
 			let loc=args;
 			let v=loc.pop();
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_push(t,q,v);
 		},
-		unshift:(...args)=>{
+		Unshift:(...args)=>{
 			let loc=args;
 			let v=loc.pop();
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_unshift(t,q,v);
 		},
-		pop:(...args)=>{
+		Pop:(...args)=>{
 			let loc=args;
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_pop(t,q);
 		},
-		shift:(...args)=>{
+		Shift:(...args)=>{
 			let loc=args;
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_shift(t,q);
 		},
-		each:(...args)=>{
+		Each:(...args)=>{
 			let loc=args;
 			let cb=loc.pop();
 			if(Array.isArray(loc[0]))loc=loc[0];
-			let q=QuickQueue.create(loc);
+			let q=QuickQueue.Create(loc);
 			return _prop_each(t,q,cb);
 		},
 	}
@@ -125,48 +133,48 @@ function _prop_replace(t,src,deep){
 	if(src?._yges_proptree_){
 		t._sub=src._sub;
 		t._ref=src._ref;
-		t.getType=src.getType;
-		t.export=src.export;
+		t.GetType=src.GetType;
+		t.Export=src.Export;
 	}
 	else if(!deep || src===null || typeof src!=='object'){
 		t._sub=undefined;
 		t._ref=(q)=>{return undefined;}
-		t.getType=()=>PropTree.PROPTYPE.MONO;
-		t.export=()=>{return src;}
+		t.GetType=()=>PropTree.PROPTYPE.MONO;
+		t.Export=()=>{return src;}
 	}
 	else if(Array.isArray(src)){
 		t._sub=[]
-		t.getType=()=>PropTree.PROPTYPE.ARRAY;
+		t.GetType=()=>PropTree.PROPTYPE.ARRAY;
 		for(let v of src)t._sub.push(_prop_create(v,deep));
 		t._ref=(q)=>{
-			let idx=q.next();
+			let idx=q.Next();
 			let u=t._sub[idx];
 			if(!u)return undefined;
 			return _prop_ref(u,q);
 		}
-		t.export=()=>{
+		t.Export=()=>{
 			let u=[]
 			for(let v of t._sub){
-				u.push(v?v.export():undefined);
+				u.push(v?v.Export():undefined);
 			}
 			return u;
 		}
 	}
 	else{
 		t._sub={}
-		t.getType=()=>PropTree.PROPTYPE.PROP;
+		t.GetType=()=>PropTree.PROPTYPE.DICT;
 		for(let k in src)t._sub[k]=_prop_create(src[k],deep);
 		t._ref=(q)=>{
-			let idx=q.next();
+			let idx=q.Next();
 			let u=t._sub[idx];
 			if(!u)return undefined;
 			return _prop_ref(u,q);
 		}
-		t.export=()=>{
+		t.Export=()=>{
 			let u={}
 			for(let k in t._sub){
 				let v=t._sub[k];
-				u[k]=v?v.export():undefined;
+				u[k]=v?v.Export():undefined;
 			}
 			return u;
 		}
@@ -176,16 +184,16 @@ function _prop_replace(t,src,deep){
 
 function _prop_remove(t,k){
 
-	switch(t.getType()){
+	switch(t.GetType()){
 		case PropTree.PROPTYPE.EMPTY:
 		return undefined;
 
 		case PropTree.PROPTYPE.MONO:
 		t._sub=undefined;
 		t._ref=(q)=>{return undefined;}
-		t.getType=()=>PropTree.PROPTYPE.EMPTY;
-		var v=t.export();
-		t.export=()=>{return undefined;}
+		t.GetType=()=>PropTree.PROPTYPE.EMPTY;
+		var v=t.Export();
+		t.Export=()=>{return undefined;}
 		return v;
 
 		case PropTree.PROPTYPE.ARRAY:
@@ -194,7 +202,7 @@ function _prop_remove(t,k){
 		t._sub=t._sub.slice(0,k).concat(t._sub.slice(k+1));
 		return v;
 
-		case PropTree.PROPTYPE.PROP:
+		case PropTree.PROPTYPE.DICT:
 		if(!t._sub[k])return undefined;
 		var v=t._sub[k];
 		delete t._sub[k];
@@ -212,10 +220,10 @@ function _prop_create(init,deep){
 
 function _prop_exists(t,q){
 
-	if(q.isEnd())return true;
+	if(q.IsEnd())return true;
 	if(!t._sub)return false;
 
-	let idx=q.next();
+	let idx=q.Next();
 	let t2=t._sub[idx];
 	if(!t2)return false;
 	return _prop_exists(t2,q);
@@ -223,9 +231,9 @@ function _prop_exists(t,q){
 
 function _prop_dig(t,q){
 
-	if(q.isEnd())return t;
+	if(q.IsEnd())return t;
 
-	let idx=q.next();
+	let idx=q.Next();
 	if(typeof idx==='string')_prop_toprop(t);
 	else _prop_toarray(t);
 
@@ -235,7 +243,7 @@ function _prop_dig(t,q){
 
 function _prop_ref(t,q){
 
-	if(q.isEnd())return t;
+	if(q.IsEnd())return t;
 	return t._ref(q);
 }
 
@@ -244,9 +252,9 @@ function _prop_count(t,q){
 	let u=_prop_ref(t,q);
 	if(!u)return 0;
 
-	switch(u.getType()){
+	switch(u.GetType()){
 		case PropTree.PROPTYPE.MONO: return 1;
-		case PropTree.PROPTYPE.PROP: return Object.keys(u._sub).length;
+		case PropTree.PROPTYPE.DICT: return Object.keys(u._sub).length;
 		case PropTree.PROPTYPE.ARRAY: return u._sub.length;
 		default:  return 0;
 	}
@@ -256,7 +264,7 @@ function _prop_get(t,q){
 
 	let u=_prop_ref(t,q);
 	if(!u)return undefined;
-	return u.export();
+	return u.Export();
 }
 
 function _prop_set(t,q,v){
@@ -279,7 +287,7 @@ function _prop_merge_internal(dst,src){
 	}
 
 	for(let k in src._sub){
-		let t=dst.dig(k);
+		let t=dst.Dig(k);
 		_prop_merge_internal(t,src._sub[k]);
 	}
 	return dst;
@@ -294,11 +302,11 @@ function _prop_merge(t,q,v){
 
 function _prop_toarray(t){
 
-	switch(t.getType()){
+	switch(t.GetType()){
 		case PropTree.PROPTYPE.ARRAY:
 		return;
 
-		case PropTree.PROPTYPE.PROP:
+		case PropTree.PROPTYPE.DICT:
 		let b=Object.values(t._sub)
 		_prop_replace(t,[],true);
 		t._sub=b;
@@ -311,8 +319,8 @@ function _prop_toarray(t){
 
 function _prop_toprop(t){
 
-	switch(t.getType()){
-		case PropTree.PROPTYPE.PROP:
+	switch(t.GetType()){
+		case PropTree.PROPTYPE.DICT:
 		return;
 
 		case PropTree.PROPTYPE.ARRAY:
@@ -351,7 +359,7 @@ function _prop_pop(t,q){
 	_prop_toarray(t);
 	if(!t._sub)return undefined;
 	let u=t._sub.pop();
-	return u?u.export():undefined;
+	return u?u.Export():undefined;
 }
 
 function _prop_shift(t,q){
@@ -361,7 +369,7 @@ function _prop_shift(t,q){
 	_prop_toarray(t);
 	if(t._sub.length<1)return undefined;
 	let u=t._sub.shift();
-	return u?u.export():undefined;
+	return u?u.Export():undefined;
 }
 
 function _prop_each(t,q,cb){
@@ -371,8 +379,8 @@ function _prop_each(t,q,cb){
 
 	if(!cb)return null;
 
-	switch(u.getType()){
-		case PropTree.PROPTYPE.PROP:
+	switch(u.GetType()){
+		case PropTree.PROPTYPE.DICT:
 		case PropTree.PROPTYPE.ARRAY:
 		for(let k in u._sub){
 			let t=u._sub[k];
@@ -385,17 +393,13 @@ function _prop_each(t,q,cb){
 }
 
 let PropTree=YgEs.PropTree={
-	name:'YgEs_PropTreeContainer',
+	name:'YgEs.PropTreeContainer',
 	User:{},
 
-	PROPTYPE:Object.freeze({
-		EMPTY:0,
-		MONO:1,
-		ARRAY:2,
-		PROP:3,
-	}),
+	PROPTYPE_NAMES:_type_names,
+	PROPTYPE:_type_lookup,
 
-	create:(...args/*init=undefined,deep=false*/)=>{
+	Create:(...args/*init=undefined,deep=false*/)=>{
 		let a=args;
 		if(a.length<1)return _prop_internal();
 		return _prop_create((a.length>0)?a[0]:undefined,(a.length>1)?a[1]:false);

@@ -3,62 +3,62 @@
 // © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
+import Engine from '../api/engine.js';
+import Log from '../api/logger.js';
+import Util from '../api/util.js';
+
 // Examples: Async Proceure Engine ------ //
 
-import Engine from '../api/engine.js';
-import log from '../api/logger.js';
-import util from '../api/util.js';
-
 // start the Engine 
-Engine.start();
+Engine.Start();
 
 // local launcher 
-var launcher=Engine.createLauncher({
-	name:'MyLauncher',
-	limit:3, // can limit parallel proc 
+var launcher=Engine.CreateLauncher({
+	Name:'MyLauncher',
+	Limit:3, // can limit parallel proc 
 });
 
-util.safeStepIter(0,10,1,(i)=>{
-	launcher.launch({
-		user:{
+Util.SafeStepIter(0,10,1,(i)=>{
+	launcher.Launch({
+		User:{
 			// initial settings 
 			name:'async '+i,
 		},
-		cb_start:(user)=>{
+		OnStart:(user)=>{
 			// called before running 
 			user.lock=true;
-			Engine.delay(500,(ctx)=>{
+			Engine.Delay(500,(ctx)=>{
 				user.lock=false;
 			});
 		},
-		cb_poll:(user)=>{
+		OnPoll:(user)=>{
 			// polling while returns true
 			return user.lock;
 		},
-		cb_done:(user)=>{
-			log.info(user.name+' done');
+		OnDone:(user)=>{
+			Log.Info(user.name+' done');
 		},
-		cb_abort:(user)=>{
-			log.info(user.name+' abort');
+		OnAbort:(user)=>{
+			Log.Info(user.name+' abort');
 		},
 	});
 });
 
 // sync in a launcher
-launcher.sync((user)=>{
-	log.info('all done');
+launcher.Sync((user)=>{
+	Log.Info('all done');
 });
 
 // count up with 1 sec interval 
 function countup(max,now=0){
 
-	Engine.delay(1000,(user)=>{
+	Engine.Delay(1000,(user)=>{
 		if(now>=max)return;
 		++now;
-		log.info('count: '+now);
+		Log.Info('count: '+now);
 		countup(max,now);
 	},(user)=>{
-		log.info('abort counting');
+		Log.Info('abort counting');
 	});
 }
 
@@ -68,10 +68,10 @@ countup(10);
 // after 5 sec, the Engine is ended. 
 // and all pollings are aborted. 
 // and can exit.
-Engine.delay(5000,(ctx)=>{
-	log.info('end of the engine');
+Engine.Delay(5000,(ctx)=>{
+	Log.Info('end of the engine');
 
-	Engine.stop();
+	Engine.Stop();
 },(ctx)=>{
-	log.info('abort root');
+	Log.Info('abort root');
 });

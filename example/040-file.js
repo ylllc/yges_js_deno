@@ -11,47 +11,47 @@ import Log from '../api/logger.js';
 
 // Examples: File Control --------------- //
 
-Engine.start();
+Engine.Start();
 
 // prepare diretories 
-let basedir=Dir.target('..',false);
-let tmpdir=basedir.subdir('tmp',true);
+let basedir=Dir.Target('..');
+let tmpdir=basedir.SubDir('tmp');
 
 // start async procedure 
 (async()=>{
 	// wait for tmpdir ready 
-	Log.info(tmpdir.getPath()+': '+(tmpdir.exists()?'already':'not'));
-	let h_tmpdir=tmpdir.open();
-	await Timing.syncKit(100,()=>{return h_tmpdir.isReady()}).promise();
-	Log.info(tmpdir.getPath()+': '+(tmpdir.exists()?'ready':'not'));
+	Log.Info(tmpdir.GetPath()+': '+(tmpdir.Exists()?'already':'not'));
+	let h_tmpdir=tmpdir.Open();
+	await Timing.SyncKit(100,()=>{return h_tmpdir.IsReady()}).ToPromise();
+	Log.Info(tmpdir.GetPath()+': '+(tmpdir.Exists()?'ready':'not'));
 
 	// quick accesses 
-	let srcpath=basedir.relative('LICENSE');
-	let dstpath=tmpdir.relative('LICENSE');
-	let st=await File.stat(srcpath);
-	Log.info('isDir: '+st.isDir());
-	Log.info('isFile: '+st.isFile());
-	Log.info('isSymLink: '+st.isSymLink());
-	Log.info('DevID: '+st.getDevID());
-	Log.info('Inode: '+st.getInode());
-	Log.info('mode: '+st.getMode());
-	Log.info('GID: '+st.getGID());
-	Log.info('UID: '+st.getUID());
-	Log.info('size: '+st.getSize());
-	Log.info('aTime: '+st.getAccessTime());
-	Log.info('mTime: '+st.getModifyTime());
-	Log.info('cTime: '+st.getChangeTime());
-	Log.info('bTime: '+st.getBirthTime());
-	let data=await File.load(srcpath);
-	await File.save(dstpath,data);
+	let srcpath=basedir.Relative('LICENSE');
+	let dstpath=tmpdir.Relative('LICENSE');
+	let st=await File.Stat(srcpath);
+	Log.Info('IsDir: '+st.IsDir());
+	Log.Info('IsFile: '+st.IsFile());
+	Log.Info('IsSymLink: '+st.IsSymLink());
+	Log.Info('DevID: '+st.GetDevID());
+	Log.Info('Inode: '+st.GetInode());
+	Log.Info('Mode: '+st.GetMode());
+	Log.Info('GID: '+st.GetGID());
+	Log.Info('UID: '+st.GetUID());
+	Log.Info('Size: '+st.GetSize());
+	Log.Info('ATime: '+st.GetAccessTime());
+	Log.Info('MTime: '+st.GetModifyTime());
+	Log.Info('CTime: '+st.GetChangeTime());
+	Log.Info('BTime: '+st.GetBirthTime());
+	let data=await File.Load(srcpath);
+	await File.Save(dstpath,data);
 
-	let files=await File.glob(basedir.getPath());
-	Log.info(files);
+	let files=await File.Glob(basedir.GetPath());
+	Log.Info(files);
 
 	// close tmpdir (still keep in filesystem) 
-	h_tmpdir.close();
+	h_tmpdir.Close();
 
-	Engine.sync((dmy)=>{
-		Engine.shutdown();
+	Engine.Sync((dmy)=>{
+		Engine.ShutDown();
 	});
 })();

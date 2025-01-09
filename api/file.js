@@ -15,15 +15,15 @@ YgEs.File={
 	User:{},
 	HappenTo:HappeningManager,
 
-	exists:(path)=>FS.exists(path),
-	isFile:(path)=>FS.isFile(path),
+	Exists:(path)=>FS.Exists(path),
+	IsFile:(path)=>FS.IsFile(path),
 
-	stat:(path,opt={})=>FS.stat(path,opt),
-	load:(path,opt={})=>FS.load(path,opt),
-	save:(path,data,opt={})=>FS.save(path,data,opt),
-	remove:(path,opt={})=>FS.remove(path,opt),
+	Stat:(path,opt={})=>FS.Stat(path,opt),
+	Load:(path,opt={})=>FS.Load(path,opt),
+	Save:(path,data,opt={})=>FS.Save(path,data,opt),
+	Remove:(path,opt={})=>FS.Remove(path,opt),
 
-	glob:(dir,ptn)=>FS.glob(dir,ptn='*'),
+	Glob:(dir,ptn)=>FS.Glob(dir,ptn='*'),
 }
 
 })();

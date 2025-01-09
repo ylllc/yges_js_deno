@@ -14,18 +14,18 @@ const _rx_proplayer=/^(.+)\[(.*)\]$/;
 function _set_prop(prop,ks,v){
 
 	if(ks.length<1){
-		prop.set(v);
+		prop.Set(v);
 		return;
 	}
 
 	let k=ks.pop();
 	if(k===''){
-		let sub=PropTree.create({},true);
-		prop.push(sub);
+		let sub=PropTree.Create({},true);
+		prop.Push(sub);
 		_set_prop(sub,ks,v);
 	}
 	else{
-		let sub=prop.dig(k);
+		let sub=prop.Dig(k);
 		_set_prop(sub,ks,v);
 	}
 }
@@ -36,108 +36,108 @@ function _parse(url,opt={}){
 		name:'YgEs_ParsedURL',
 		User:{},
 
-		scheme:'',
-		slashes:'',
-		user:'',
-		pass:'',
-		host:'',
-		port:'',
-		path:'',
-		query:'',
-		fragment:'',
+		Scheme:'',
+		Slashes:'',
+		User:'',
+		Pass:'',
+		Host:'',
+		Port:'',
+		Path:'',
+		Query:'',
+		Fragment:'',
 
-		bake:()=>{
-			let s=pu.path;
-			if(pu.host!=''){
-				s=encodeURIComponent(pu.host)+((pu.port=='')?'':':')+encodeURIComponent(pu.port)+s;
+		Bake:()=>{
+			let s=pu.Path;
+			if(pu.Host!=''){
+				s=encodeURIComponent(pu.Host)+((pu.Port=='')?'':':')+encodeURIComponent(pu.Port)+s;
 
-				if(pu.user!=''){
-					s=encodeURIComponent(pu.user)+((pu.pass=='')?'':':')+encodeURIComponent(pu.pass)+'@'+s;
+				if(pu.User!=''){
+					s=encodeURIComponent(pu.User)+((pu.Pass=='')?'':':')+encodeURIComponent(pu.Pass)+'@'+s;
 				}
 			}
-			if(pu.scheme!=''){
-				s=encodeURIComponent(pu.scheme)+':'+pu.slashes+s;
+			if(pu.Scheme!=''){
+				s=encodeURIComponent(pu.Scheme)+':'+pu.Slashes+s;
 			}
-			if(pu.query!='')s+='?'+pu.query;
-			if(pu.fragment!='')s+='#'+pu.fragment;
+			if(pu.Query!='')s+='?'+pu.Query;
+			if(pu.Fragment!='')s+='#'+pu.Fragment;
 			return s;
 		},
 
-		extractHost:()=>{
-			return URLBuilder.extractHost(pu.host);
+		ExtractHost:()=>{
+			return URLBuilder.ExtractHost(pu.Host);
 		},
-		bakeHost:(src)=>{
-			pu.host=URLBuilder.bakeHost(src);
-		},
-
-		extractPath:()=>{
-			return URLBuilder.extractPath(pu.path);
-		},
-		bakePath:(src)=>{
-			pu.path=URLBuilder.bakePath(src);
+		BakeHost:(src)=>{
+			pu.Host=URLBuilder.BakeHost(src);
 		},
 
-		extractArgs:()=>{
-			return URLBuilder.extractArgs(pu.query);
+		ExtractPath:()=>{
+			return URLBuilder.ExtractPath(pu.Path);
 		},
-		bakeArgs:(src)=>{
-			pu.query=URLBuilder.bakeArgs(src);
+		BakePath:(src)=>{
+			pu.Path=URLBuilder.BakePath(src);
 		},
 
-		extractProp:()=>{
-			return URLBuilder.extractProp(pu.query);
+		ExtractArgs:()=>{
+			return URLBuilder.ExtractArgs(pu.Query);
 		},
-		bakeProp:(src)=>{
-			pu.query=URLBuilder.bakeProp(src);
+		BakeArgs:(src)=>{
+			pu.Query=URLBuilder.BakeArgs(src);
+		},
+
+		ExtractProp:()=>{
+			return URLBuilder.ExtractProp(pu.Query);
+		},
+		BakeProp:(src)=>{
+			pu.Query=URLBuilder.BakeProp(src);
 		},
 	}
 
 	try{
 		let u=new URL(url);
 		let scheme_cp=u.protocol.indexOf(':');
-		pu.scheme=(scheme_cp<0)?'':u.protocol.substring(0,scheme_cp);
-		if(scheme_cp<0)pu.slashes='';
-		else if(u.host)pu.slashes=u.origin.substring(scheme_cp+1,u.origin.length-u.host.length);
-		else pu.slashes=u.href.substring(scheme_cp+1,u.href.length-u.pathname.length);
+		pu.Scheme=(scheme_cp<0)?'':u.protocol.substring(0,scheme_cp);
+		if(scheme_cp<0)pu.Slashes='';
+		else if(u.host)pu.Slashes=u.origin.substring(scheme_cp+1,u.origin.length-u.host.length);
+		else pu.Slashes=u.href.substring(scheme_cp+1,u.href.length-u.pathname.length);
 
-		if(u.username!='')pu.user=decodeURIComponent(u.username);
-		if(u.password!='')pu.pass=decodeURIComponent(u.password);
-		if(u.hostname!='')pu.host=u.hostname;
-		if(u.port!='')pu.port=u.port;
-		if(u.pathname!='')pu.path=u.pathname;
+		if(u.username!='')pu.User=decodeURIComponent(u.username);
+		if(u.password!='')pu.Pass=decodeURIComponent(u.password);
+		if(u.hostname!='')pu.Host=u.hostname;
+		if(u.port!='')pu.Port=u.port;
+		if(u.pathname!='')pu.Path=u.pathname;
 		if(u.search!=''){
 			let query_qp=u.search.indexOf('?');
-			pu.query=(query_qp<0)?'':u.search.substring(query_qp+1);
+			pu.Query=(query_qp<0)?'':u.search.substring(query_qp+1);
 		}
 		if(u.hash!=''){
 			let fragment_hp=u.hash.indexOf('#');
-			pu.fragment=(fragment_hp<0)?'':u.hash.substring(fragment_hp+1);
+			pu.Fragment=(fragment_hp<0)?'':u.hash.substring(fragment_hp+1);
 		}
 
-		switch(pu.scheme){
+		switch(pu.Scheme){
 			case 'mailto':
-			pu.path=decodeURIComponent(pu.path);
-			let ap=pu.path.indexOf('@');
+			pu.Path=decodeURIComponent(pu.Path);
+			let ap=pu.Path.indexOf('@');
 			if(ap>=0){
-				pu.user=pu.path.substring(0,ap);
-				pu.host=pu.path.substring(ap+1);
+				pu.User=pu.Path.substring(0,ap);
+				pu.Host=pu.Path.substring(ap+1);
 			}
-			pu.path='';
+			pu.Path='';
 			break;
 		}
 	}
 	catch(e){
 		let hp=url.indexOf('#');
 		if(hp>=0){
-			pu.fragment=url.substring(hp+1);
+			pu.Fragment=url.substring(hp+1);
 			url=url.substring(0,hp);
 		}
 		let qp=url.indexOf('?');
 		if(qp>=0){
-			pu.query=url.substring(qp+1);
+			pu.Query=url.substring(qp+1);
 			url=url.substring(0,qp);
 		}
-		pu.path=url;
+		pu.Path=url;
 	}
 
 	return pu;
@@ -147,31 +147,31 @@ let URLBuilder=YgEs.URLBuilder={
 	name:'YgEs_URLBuilder',
 	User:{},
 
-	parse:_parse,
+	Parse:_parse,
 
-	extractHost:(src)=>{
+	ExtractHost:(src)=>{
 		if(src=='')return []
 		return src.split('.');
 	},
-	bakeHost:(src)=>{
+	BakeHost:(src)=>{
 		if(src.length<1)return '';
 		return src.join('.');
 	},
 
-	extractPath:(src)=>{
+	ExtractPath:(src)=>{
 		if(src=='')return []
 		let a=[]
 		for(let s of src.split('/'))a.push(decodeURIComponent(s));
 		return a;
 	},
-	bakePath:(src)=>{
+	BakePath:(src)=>{
 		if(src.length<1)return '';
 		let a=[]
 		for(let s of src)a.push(encodeURIComponent(s));
 		return a.join('/');
 	},
 
-	extractArgs:(src)=>{
+	ExtractArgs:(src)=>{
 		if(src=='')return []
 		let a=[]
 		for(let s of src.split('+')){
@@ -179,21 +179,21 @@ let URLBuilder=YgEs.URLBuilder={
 		}
 		return a;
 	},
-	bakeArgs:(src)=>{
+	BakeArgs:(src)=>{
 		if(src.length<1)return '';
 		let a=[]
 		for(let s of src)a.push(encodeURIComponent(s));
 		return a.join('+');
 	},
 
-	extractProp:(src)=>{
+	ExtractProp:(src)=>{
 
 		if(src=='')return {}
 
-		let prop=PropTree.create({},true);
+		let prop=PropTree.Create({},true);
 		for(let s of src.split('&')){
 			let kv=s.split('=',2);
-			if(kv.length<2)prop.push(s);
+			if(kv.length<2)prop.Push(s);
 			else{
 				let ks=[]
 				let k=kv[0];
@@ -207,18 +207,18 @@ let URLBuilder=YgEs.URLBuilder={
 				_set_prop(prop,ks,decodeURIComponent(kv[1]));
 			}
 		}
-		return prop.export();
+		return prop.Export();
 	},
-	bakeKey:(k,base)=>{
+	_bakeKey:(k,base)=>{
 		k=encodeURIComponent(k);
 		if(base=='')return k;
 		return base+'['+k+']';
 	},
-	bakeInternal:(src,pool,base)=>{
+	_bakeInternal:(src,pool,base)=>{
 
 		for(let k in src){
 			let v=src[k];
-			let k2=URLBuilder.bakeKey(k,base);
+			let k2=URLBuilder._bakeKey(k,base);
 			let k3=Array.isArray(src)?(base+'[]'):k2;
 			if(typeof v!=='object'){
 				pool.push(k3+'='+encodeURIComponent(v));
@@ -228,13 +228,13 @@ let URLBuilder=YgEs.URLBuilder={
 				pool.push(k3+'=');
 				continue;
 			}
-			URLBuilder.bakeInternal(v,pool,k2);
+			URLBuilder._bakeInternal(v,pool,k2);
 		}
 	},
-	bakeProp:(src)=>{
+	BakeProp:(src)=>{
 		if(Object.keys(src).length<1)return '';
 		let pool=[]
-		URLBuilder.bakeInternal(src,pool,'');
+		URLBuilder._bakeInternal(src,pool,'');
 		return pool.join('&');
 	},
 }

@@ -11,26 +11,27 @@ let YgEs={
 	User:{},
 }
 
-YgEs.createEnum=(src)=>{
+YgEs.CreateEnum=(src)=>{
 
 	let ll={}
 	for(let i=0;i<src.length;++i)ll[src[i]]=i;
-	return Object.freeze(ll);
+	return ll;
 }
 
-YgEs.fromError=(err)=>{
+YgEs.FromError=(err)=>{
 	return {
-		name:err.name,
-		msg:err.message,
-		file:err.fileName,
-		line:err.lineNumber,
-		col:err.columnNumber,
-		stack:err.stack,
-		src:err,
+		Name:err.name,
+		Msg:err.message,
+		Cause:err.cause,
+		File:err.fileName,
+		Line:err.lineNumber,
+		Col:err.columnNumber,
+		Stack:err.stack,
+		Src:err,
 	}
 }
 
-YgEs.justString=(val)=>{
+YgEs.JustString=(val)=>{
 	switch(typeof val){
 		case 'undefined': return 'undefined';
 		case 'boolean': return val?'true':'false';
@@ -41,12 +42,12 @@ YgEs.justString=(val)=>{
 		if(val===null)return 'null';
 		else if(Array.isArray(val)){
 			let sub=[]
-			for(let v of val)sub.push(YgEs.justString(v));
+			for(let v of val)sub.push(YgEs.JustString(v));
 			return '['+sub.join(',')+']';
 		}
 		else{
 			let sub=[]
-			for(let k in val)sub.push([JSON.stringify(k),YgEs.justString(val[k])]);
+			for(let k in val)sub.push([JSON.stringify(k),YgEs.JustString(val[k])]);
 			let sub2=[]
 			for(let s of sub)sub2.push(s.join(':'));
 			return '{'+sub2.join(',')+'}';
@@ -56,7 +57,7 @@ YgEs.justString=(val)=>{
 	return val.toString();
 }
 
-YgEs.inspect=(val)=>{
+YgEs.Inspect=(val)=>{
 	switch(typeof val){
 		case 'undefined': return 'undefined';
 		case 'number': return val.toString();
@@ -65,12 +66,12 @@ YgEs.inspect=(val)=>{
 		if(val===null)return 'null';
 		else if(Array.isArray(val)){
 			let sub=[]
-			for(let v of val)sub.push(YgEs.inspect(v));
+			for(let v of val)sub.push(YgEs.Inspect(v));
 			return '['+sub.join(',')+']';
 		}
 		else{
 			let sub=[]
-			for(let k in val)sub.push([JSON.stringify(k),YgEs.inspect(val[k])]);
+			for(let k in val)sub.push([JSON.stringify(k),YgEs.Inspect(val[k])]);
 			let sub2=[]
 			for(let s of sub)sub2.push(s.join(':'));
 			return '{'+sub2.join(',')+'}';

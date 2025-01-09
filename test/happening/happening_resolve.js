@@ -10,57 +10,57 @@ import Log from '../../api/logger.js';
 // Happening Manager Test --------------- //
 
 Log.Way=(src)=>{
-//	console.log(src.Msg);
+//	console.log(src.Text);
 }
 
 const scenaria=[
 	{
-		title:'Happening Resolving',
-		proc:(tool)=>{
-			let hap_local1=HappeningManager.createLocal();
-			let hap_local2=hap_local1.createLocal();
-			let hap_local3=hap_local2.createLocal();
+		Title:'Happening Resolving',
+		Proc:(tool)=>{
+			let hap_local1=HappeningManager.CreateLocal();
+			let hap_local2=hap_local1.CreateLocal();
+			let hap_local3=hap_local2.CreateLocal();
 
-			let h1=hap_local1.happenMsg('hap1');
-			let h2=hap_local2.happenMsg('hap2');
-			let h3=hap_local3.happenMsg('hap3');
-			Test.chk_strict(3,HappeningManager.countIssues(),'global manager issue count');
-			Test.chk_strict(3,hap_local1.countIssues(),'local1 manager issue count');
-			Test.chk_strict(2,hap_local2.countIssues(),'local2 manager issue count');
-			Test.chk_strict(1,hap_local3.countIssues(),'local3 manager issue count');
+			let h1=hap_local1.HappenMsg('hap1');
+			let h2=hap_local2.HappenMsg('hap2');
+			let h3=hap_local3.HappenMsg('hap3');
+			Test.ChkStrict(3,HappeningManager.CountIssues(),'global manager issue count');
+			Test.ChkStrict(3,hap_local1.CountIssues(),'local1 manager issue count');
+			Test.ChkStrict(2,hap_local2.CountIssues(),'local2 manager issue count');
+			Test.ChkStrict(1,hap_local3.CountIssues(),'local3 manager issue count');
 
-			h2.resolve();
-			Test.chk_strict(2,hap_local2.countIssues(),'resolved but dirty');
+			h2.Resolve();
+			Test.ChkStrict(2,hap_local2.CountIssues(),'resolved but dirty');
 
-			hap_local1.cleanup();
-			Test.chk_strict(2,HappeningManager.countIssues(),'local1 cleaned up');
-			Test.chk_strict(2,hap_local1.countIssues(),'local1 cleaned up');
-			Test.chk_strict(1,hap_local2.countIssues(),'local1 cleaned up');
-			Test.chk_strict(1,hap_local3.countIssues(),'local1 cleaned up');
+			hap_local1.CleanUp();
+			Test.ChkStrict(2,HappeningManager.CountIssues(),'local1 cleaned up');
+			Test.ChkStrict(2,hap_local1.CountIssues(),'local1 cleaned up');
+			Test.ChkStrict(1,hap_local2.CountIssues(),'local1 cleaned up');
+			Test.ChkStrict(1,hap_local3.CountIssues(),'local1 cleaned up');
 
-			hap_local2.abandon();
-			Test.chk_strict(1,HappeningManager.countIssues(),'local2 abandoned');
-			Test.chk_strict(1,hap_local1.countIssues(),'local2 abandoned');
-			Test.chk_strict(0,hap_local2.countIssues(),'local2 abandoned');
-			Test.chk_strict(0,hap_local3.countIssues(),'local2 abandoned');
+			hap_local2.Abandon();
+			Test.ChkStrict(1,HappeningManager.CountIssues(),'local2 abandoned');
+			Test.ChkStrict(1,hap_local1.CountIssues(),'local2 abandoned');
+			Test.ChkStrict(0,hap_local2.CountIssues(),'local2 abandoned');
+			Test.ChkStrict(0,hap_local3.CountIssues(),'local2 abandoned');
 
-			h3=hap_local3.happenMsg('hap3-2');
-			Test.chk_strict(2,HappeningManager.countIssues(),'local3 happened');
-			Test.chk_strict(2,hap_local1.countIssues(),'local3 happened');
-			Test.chk_strict(1,hap_local2.countIssues(),'local3 happened');
-			Test.chk_strict(1,hap_local3.countIssues(),'local3 happened');
+			h3=hap_local3.HappenMsg('hap3-2');
+			Test.ChkStrict(2,HappeningManager.CountIssues(),'local3 happened');
+			Test.ChkStrict(2,hap_local1.CountIssues(),'local3 happened');
+			Test.ChkStrict(1,hap_local2.CountIssues(),'local3 happened');
+			Test.ChkStrict(1,hap_local3.CountIssues(),'local3 happened');
 
-			HappeningManager.abandon();
-			Test.chk_strict(0,HappeningManager.countIssues(),'global abandoned');
-			Test.chk_strict(0,hap_local1.countIssues(),'global abandoned');
-			Test.chk_strict(0,hap_local2.countIssues(),'global abandoned');
-			Test.chk_strict(0,hap_local3.countIssues(),'global abandoned');
-			Test.chk_strict(true,HappeningManager.isCleaned(),'global cleaned');
-			Test.chk_strict(true,hap_local1.isCleaned(),'global cleaned');
-			Test.chk_strict(true,hap_local2.isCleaned(),'global cleaned');
-			Test.chk_strict(true,hap_local3.isCleaned(),'global cleaned');
+			HappeningManager.Abandon();
+			Test.ChkStrict(0,HappeningManager.CountIssues(),'global abandoned');
+			Test.ChkStrict(0,hap_local1.CountIssues(),'global abandoned');
+			Test.ChkStrict(0,hap_local2.CountIssues(),'global abandoned');
+			Test.ChkStrict(0,hap_local3.CountIssues(),'global abandoned');
+			Test.ChkStrict(true,HappeningManager.IsCleaned(),'global cleaned');
+			Test.ChkStrict(true,hap_local1.IsCleaned(),'global cleaned');
+			Test.ChkStrict(true,hap_local2.IsCleaned(),'global cleaned');
+			Test.ChkStrict(true,hap_local3.IsCleaned(),'global cleaned');
 		},
 	},
 ]
 
-Test.run(scenaria);
+Test.Run(scenaria);

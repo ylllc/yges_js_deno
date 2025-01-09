@@ -14,95 +14,95 @@ let agent2=null;
 let handle2=null;
 
 let workset1={
-	name:'Test Rescuee',
-	user:{count:1},
-	cb_open:(agent)=>{
-		agent.User.count+=1;
-		Test.chk_strict(agent.User.count,2);
+	Name:'Test Rescuee',
+	User:{Count:1},
+	OnOpen:(agent)=>{
+		agent.User.Count+=1;
+		Test.ChkStrict(agent.User.Count,2);
 	},
-	cb_ready:(agent)=>{
-		agent.User.count+=2;
-		Test.chk_strict(agent.User.count,4);
+	OnReady:(agent)=>{
+		agent.User.Count+=2;
+		Test.ChkStrict(agent.User.Count,4);
 
 		// happening after ready 
 		// required resolving it to recover 
-		agent.getHappeningManager().happenMsg('Test Hap.');
+		agent.GetHappeningManager().HappenMsg('Test Hap.');
 	},
-	poll_healthy:(agent)=>{
-		agent.User.count+=4;
-		Test.chk_strict(agent.User.count,11);
+	OnPollInHealthy:(agent)=>{
+		agent.User.Count+=4;
+		Test.ChkStrict(agent.User.Count,11);
 
-		handle1.close();
+		handle1.Close();
 	},
-	poll_trouble:(agent)=>{
-		agent.User.count+=3;
-		Test.chk_strict(agent.User.count,7);
+	OnPollInTrouble:(agent)=>{
+		agent.User.Count+=3;
+		Test.ChkStrict(agent.User.Count,7);
 
 		// more happening in poll_trouble() 
 		// this agent locked down and stop polling until cleaned up 
-		agent.getHappeningManager().happenMsg('More Test Hap.');
+		agent.GetHappeningManager().HappenMsg('More Test Hap.');
 	},
-	cb_close:(agent)=>{
-		agent.User.count+=5;
-		Test.chk_strict(agent.User.count,16);
+	OnClose:(agent)=>{
+		agent.User.Count+=5;
+		Test.ChkStrict(agent.User.Count,16);
 	},
-	cb_finish:(agent)=>{
-		agent.User.count+=6;
-		Test.chk_strict(agent.User.count,22);
+	OnFinish:(agent)=>{
+		agent.User.Count+=6;
+		Test.ChkStrict(agent.User.Count,22);
 	},
-	cb_abort:(agent)=>{
-		Test.chk_never("don't step");
+	OnAbort:(agent)=>{
+		Test.Never("don't step");
 	},
 }
 
 let workset2={
 	name:'Test Rescuer',
 
-	cb_open:(agent)=>{
-		agent.waitFor(()=>{
-			return agent1.isHalt();
+	OnOpen:(agent)=>{
+		agent.WaitFor(()=>{
+			return agent1.IsHalt();
 		});
 	},
-	cb_ready:(agent)=>{
+	OnReady:(agent)=>{
 		// rescue locked agent 
-		let hm=agent1.getHappeningManager();
-		hm.poll((hap)=>{
-			hap.resolve();
+		let hm=agent1.GetHappeningManager();
+		hm.Poll((hap)=>{
+			hap.Resolve();
 		});
-		handle2.close();
+		handle2.Close();
 	},
 }
 
 const scenaria=[
 	{
-		title:'Rescue Locked Agent',
-		proc:async (tool)=>{
-			workset1.launcher=tool.Launcher;
-			workset2.launcher=tool.Launcher;
-			workset1.happen=tool.Launcher.HappenTo.createLocal({
-				happen:(hap)=>{
-//					tool.Log.fatal(hap.toString(),hap.getProp());
+		Title:'Rescue Locked Agent',
+		Proc:async (tool)=>{
+			workset1.Launcher=tool.Launcher;
+			workset2.Launcher=tool.Launcher;
+			workset1.HappenTo=tool.Launcher.HappenTo.CreateLocal({
+				OnHappen:(hap)=>{
+//					tool.Log.Fatal(hap.ToString(),hap.GetProp());
 				},
 			});
-			workset2.happen=tool.Launcher.HappenTo.createLocal({
-				happen:(hap)=>{
-					tool.Log.fatal(hap.toString(),hap.getProp());
+			workset2.HappenTo=tool.Launcher.HappenTo.CreateLocal({
+				OnHappen:(hap)=>{
+					tool.Log.Fatal(hap.ToString(),hap.GetProp());
 				},
 			});
 
-			agent1=AgentManager.standby(workset1);
-			Test.chk_strict(agent1.User.count,1);
+			agent1=AgentManager.StandBy(workset1);
+			Test.ChkStrict(agent1.User.Count,1);
 
-			handle1=agent1.fetch();
-			handle1.open();
+			handle1=agent1.Fetch();
+			handle1.Open();
 
-			agent2=AgentManager.standby(workset2);
-			handle2=agent2.fetch();
-			handle2.open();
+			agent2=AgentManager.StandBy(workset2);
+			handle2=agent2.Fetch();
+			handle2.Open();
 
-			await tool.Launcher.toPromise();
+			await tool.Launcher.ToPromise();
 		},
 	},
 ]
 
-Test.run(scenaria);
+Test.Run(scenaria);

@@ -11,45 +11,45 @@ import Timing from '../api/timing.js';
 const scenaria=[
 	// test 1 
 	{
-		title:'Test Now',
-		proc:(tool)=>{
+		Title:'Test Now',
+		Proc:(tool)=>{
 			// can test by any conditions 
-			Test.chk(true, 'always');
+			Test.Chk(true, 'always');
 			// loose comparing 
-			Test.chk_loose(1, '1', 'loose comparing');
+			Test.ChkLoose(1, '1', 'loose comparing');
 			// strict comparing 
-			Test.chk_strict(1, 1, 'strict comparing');
+			Test.ChkStrict(1, 1, 'strict comparing');
 			// leftside less than rightside 
-			Test.chk_less(1,2);
+			Test.ChkLess(1,2);
 			// leftside equal or less than rightside 
-			Test.chk_less_eq(1,2);
-			Test.chk_less_eq(1,1);
+			Test.ChkLessEq(1,2);
+			Test.ChkLessEq(1,1);
 			// leftside greater than rightside 
-			Test.chk_great(2,1);
+			Test.ChkGreat(2,1);
 			// leftside equal or greater than rightside 
-			Test.chk_great_eq(2,1);
-			Test.chk_great_eq(2,2);
+			Test.ChkGreatEq(2,1);
+			Test.ChkGreatEq(2,2);
 		},
 	},
 	// test 2 
 	{
-		title:'Test With Waiting',
-		proc: async (tool)=>{
+		Title:'Test With Waiting',
+		Proc: async (tool)=>{
 			//  the process is kept until all test were ended 
-			await Timing.delayKit(2000).promise();
-			Test.chk(true, 'delayed test');
+			await Timing.DelayKit(2000).ToPromise();
+			Test.Chk(true, 'delayed test');
 		},
 	},
 	// test 3 
 	{
-		title:'Test Ignored',
-		filter:false,
-		proc: async (tool)=>{
+		Title:'Test Ignored',
+		Filter:false,
+		Proc: async (tool)=>{
 			//  will not step it by filtered out
-			Test.never('deny');
+			Test.Never('deny');
 		},
 	},
 	// more ...
 ]
 
-Test.run(scenaria);
+Test.Run(scenaria);

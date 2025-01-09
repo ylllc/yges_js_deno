@@ -3,67 +3,67 @@
 // © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
-// Examples: Happening Manager ---------- //
-
 import HappeningManager from '../api/happening.js';
 import Log from '../api/logger.js';
 
+// Examples: Happening Manager ---------- //
+
 // can override common happening management procedure 
-HappeningManager.Happened=(h)=>{
-	Log.warn(h.toString(),h.getProp());
+HappeningManager.OnHappen=(h)=>{
+	Log.Warn(h.ToString(),h.GetProp());
 }
 
 // wrapping any error type 
-var h1=HappeningManager.happenMsg('Happened',{
+var h1=HappeningManager.HappenMsg('Happened',{
 	// override resolved callback 
-	Resolved:(h)=>{
-		Log.info('[Resolved] '+h.ToString());
+	OnResolved:(h)=>{
+		Log.Info('[Resolved] '+h.ToString());
 	},
 });
-var h2=HappeningManager.happenProp({type:'Test',msg:'Happened'},{
+var h2=HappeningManager.HappenProp({type:'Test',msg:'Happened'},{
 	// user resolving protocol 
-	user:{
-		retry:()=>{
+	User:{
+		Retry:()=>{
 			// retry procedure from feature 
 			//		:
-			h2.resolve();
-			Log.info('[Resolved] '+h2);
+			h2.Resolve();
+			Log.Info('[Resolved] '+h2);
 		},
 	},
 });
-var h3=HappeningManager.happenError(new Error('Exception'));
+var h3=HappeningManager.HappenError(new Error('Exception'));
 
 // happened count 
-Log.info('happened='+HappeningManager.countIssues());
+Log.Info('happened='+HappeningManager.CountIssues());
 
 // mark resolve (but still dirty)
-h1.resolve();
-Log.info('happened='+HappeningManager.countIssues());
+h1.Resolve();
+Log.Info('happened='+HappeningManager.CountIssues());
 // clean up 
-HappeningManager.cleanup();
-Log.info('happened='+HappeningManager.countIssues());
+HappeningManager.CleanUp();
+Log.Info('happened='+HappeningManager.CountIssues());
 
 // local manager 
-var lhap=HappeningManager.createLocal();
+var lhap=HappeningManager.CreateLocal();
 
 // local happen
-var h4=lhap.happenMsg('Local Happened');
-Log.info('happened='+HappeningManager.countIssues());
+var h4=lhap.HappenMsg('Local Happened');
+Log.Info('happened='+HappeningManager.CountIssues());
 
 // polling 
-HappeningManager.poll((h)=>{
-	Log.info('poll: '+h);
+HappeningManager.Poll((h)=>{
+	Log.Info('poll: '+h);
 });
 
 // local abandon 
-lhap.abandon();
-Log.info('happened='+HappeningManager.countIssues());
+lhap.Abandon();
+Log.Info('happened='+HappeningManager.CountIssues());
 
 // start user resolving protocol  
-h2.User.retry();
-HappeningManager.cleanup();
-Log.info('happened='+HappeningManager.countIssues());
+h2.User.Retry();
+HappeningManager.CleanUp();
+Log.Info('happened='+HappeningManager.CountIssues());
 
 // global abandon 
-HappeningManager.abandon();
-Log.info('happened='+HappeningManager.countIssues());
+HappeningManager.Abandon();
+Log.Info('happened='+HappeningManager.CountIssues());

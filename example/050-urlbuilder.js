@@ -8,74 +8,74 @@
 import URLBuilder from '../api/urlbuilder.js';
 import Log from '../api/logger.js';
 
-Log.info('----- Parse nonURL -----');
+Log.Info('----- Parse nonURL -----');
 let url='a/b%2Fc.txt?a=1&b=2#abc#xyz';
-let a=URLBuilder.parse(url);
-Log.info(JSON.stringify(a));
+let a=URLBuilder.Parse(url);
+Log.Info(JSON.stringify(a));
 
-Log.info('----- Parse mailto URL -----');
+Log.Info('----- Parse mailto URL -----');
 url='mailto:user@example.com';
-a=URLBuilder.parse(url);
-Log.info(JSON.stringify(a));
+a=URLBuilder.Parse(url);
+Log.Info(JSON.stringify(a));
 
-Log.info('----- Parse file URL -----');
+Log.Info('----- Parse file URL -----');
 url='file:///c:/Program%20Files/Internet%20Explorer/iexplore.exe';
-a=URLBuilder.parse(url);
-Log.info(JSON.stringify(a));
+a=URLBuilder.Parse(url);
+Log.Info(JSON.stringify(a));
 
-Log.info('----- Parse FTP URL -----');
+Log.Info('----- Parse FTP URL -----');
 url='ftp://user:pwd@ftp.example.com/a/b/c.txt';
-a=URLBuilder.parse(url);
-Log.info(JSON.stringify(a));
+a=URLBuilder.Parse(url);
+Log.Info(JSON.stringify(a));
 
-Log.info('----- Parse minimum HTTP URL -----');
+Log.Info('----- Parse minimum HTTP URL -----');
 url='https://www.example.com';
-a=URLBuilder.parse(url);
-Log.info(JSON.stringify(a));
+a=URLBuilder.Parse(url);
+Log.Info(JSON.stringify(a));
 
-Log.info('----- Parse Heavy URL -----');
+Log.Info('----- Parse Heavy URL -----');
 url='https://us%65r:pw%64@www.example.com:8080/%7Ea/b%2Fc.html?q=ijk+lmn&a=1&b[a][b][]=123&b[a][c]=789&b[a][b][]=de%2Bf#abc#xyz';
-a=URLBuilder.parse(url);
-Log.info(JSON.stringify(a));
+a=URLBuilder.Parse(url);
+Log.Info(JSON.stringify(a));
 
 // can extract host 
-Log.info('----- Extract & Retouch Host -----');
-let b=a.extractHost();
-Log.info(JSON.stringify(b));
+Log.Info('----- Extract & Retouch Host -----');
+let b=a.ExtractHost();
+Log.Info(JSON.stringify(b));
 
 // can retouch host 
 b[0]+=0;
 b.unshift('test');
-a.bakeHost(b);
-Log.info(a.host);
+a.BakeHost(b);
+Log.Info(a.host);
 
 // can extract path 
-Log.info('----- Extract & Retouch Path -----');
-b=a.extractPath();
-Log.info(JSON.stringify(b));
+Log.Info('----- Extract & Retouch Path -----');
+b=a.ExtractPath();
+Log.Info(JSON.stringify(b));
 
 // can retouch path 
 b[b.length-1]='';
-a.bakePath(b);
-Log.info(a.path);
+a.BakePath(b);
+Log.Info(a.Path);
 
 // can extract args or prop 
-Log.info('----- Extract Args or Prop -----');
-let b1=a.extractArgs();
-Log.info(JSON.stringify(b1));
-let b2=a.extractProp();
-Log.info(JSON.stringify(b2));
+Log.Info('----- Extract Args or Prop -----');
+let b1=a.ExtractArgs();
+Log.Info(JSON.stringify(b1));
+let b2=a.ExtractProp();
+Log.Info(JSON.stringify(b2));
 
 // can retouch args or prop (are exclusive)
-Log.info('----- Retouch Args or Prop -----');
+Log.Info('----- Retouch Args or Prop -----');
 b1.push('xyz');
-a.bakeArgs(b1);
-Log.info(a.query);
+a.BakeArgs(b1);
+Log.Info(a.Query);
 
 b2.b.a.d='xyz';
 b2.b.a.b.push(-3.14);
-a.bakeProp(b2);
-Log.info(a.query);
+a.BakeProp(b2);
+Log.Info(a.Query);
 
-Log.info('----- Bake All -----');
-Log.info(a.bake());
+Log.Info('----- Bake All -----');
+Log.Info(a.Bake());

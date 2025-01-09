@@ -12,50 +12,50 @@ import FS from './fs_ll.js';
 // Directory Control -------------------- //
 (()=>{ // local namespace 
 
-function _target(dir,prepare,parent){
+function _target(dir,parent){
 
 	var ws={
-		name:'YgEs_DirTarget',
-		happen:Dir.HappenTo.createLocal(),
+		Name:'YgEs.DirTarget',
+		HappenTo:(Dir.HappenTo??HappeningManager).CreateLocal(),
 
-		cb_open:(wk)=>{
+		OnOpen:(wk)=>{
 			var done=false;
-			Timing.fromPromise(
-				FS.mkdir(dir,{recursive:prepare}),
+			Timing.FromPromise(
+				FS.MkDir(dir,{recursive:true}),
 				(res)=>{
 					done=true;
 				},
 				(err)=>{
-					ws.happen.happenError(err);
+					ws.HappenTo.HappenError(err);
 				}
 			);
-			wk.waitFor(()=>{return done;});
+			wk.WaitFor(()=>{return done;});
 		},
 	};
-	if(parent)ws.delendencies=[parent.fetch()]
-	var wk=AgentManager.standby(ws);
+	if(parent)ws.Dependencies=[parent.Fetch()]
+	var wk=AgentManager.StandBy(ws);
 
-	wk.getPath=()=>dir;
-	wk.exists=()=>FS.exists(dir);
-	wk.relative=(path)=>dir+'/'+path;
-	wk.subdir=(path,prepare)=>_target(dir+'/'+path,prepare,wk);
-	wk.glob=(ptn='*')=>FS.glob(dir,ptn);
+	wk.GetPath=()=>dir;
+	wk.Exists=()=>FS.Exists(dir);
+	wk.Relative=(path)=>dir+'/'+path;
+	wk.SubDir=(path)=>_target(dir+'/'+path,wk);
+	wk.Glob=(ptn='*')=>FS.Glob(dir,ptn);
 
 	return wk;
 }
 
 let Dir=YgEs.Dir={
-	name:'YgEs_DirControl',
+	name:'YgEs.DirControl',
 	User:{},
 	HappenTo:HappeningManager,
 
-	exists:(path)=>FS.exists(path),
-	isDir:(path)=>FS.isDir(path),
+	Exists:(path)=>FS.Exists(path),
+	IsDir:(path)=>FS.IsDir(path),
 
-	stat:(path,opt={})=>FS.stat(path,opt),
-	mkdir:(path,opt={})=>FS.mkdir(path,opt),
+	Stat:(path,opt={})=>FS.Stat(path,opt),
+	MkDir:(path,opt={})=>FS.MkDir(path,opt),
 
-	target:(dir,prepare)=>_target(dir,prepare,null),
+	Target:(dir)=>_target(dir,null),
 }
 
 })();
