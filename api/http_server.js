@@ -11,12 +11,9 @@ import AgentManager from './agent.js';
 import Timing from './timing.js';
 import URLBuilder from './urlbuilder.js';
 import File from './file.js';
+import HTTPLowLevel from './http_ll.js';
 
-import http from 'node:http';
-import path from 'node:path';
-import mime from 'npm:mime-lite';
-
-// HTTP Server for Deno ----------------- //
+// HTTP Server -------------------------- //
 (()=>{ // local namespace 
 
 function _error_default(res,code,msg){
@@ -27,11 +24,7 @@ function _error_default(res,code,msg){
 async function _transfer(res,stat,type=null,cs=null){
 
 	// content type	
-	if(!type){
-		var ext=path.extname(stat.GetPath());
-		if(ext)ext=ext.substring(1);
-		type=mime.getType(ext);
-	}
+	if(!type)type=HTTPLowLevel.GetMIMEType(stat);
 	if(!type)type='apllication/octet-stream';
 	else if(type=='text/html'){
 		// charset 
@@ -243,7 +236,7 @@ function _listener_new(port,route,opt={}){
 	var log=opt.Log??Log;
 
 	var _working=true;
-	var _internal=http.createServer((req,res)=>_request(listener,req,res));
+	var _internal=HTTPLowLevel.SetUp((req,res)=>_request(listener,req,res));
 
 	var ws={
 		Name:'YgEs.HTTPListener',
