@@ -9,6 +9,21 @@
 let YgEs={
 	name:'YgEs',
 	User:{},
+};
+
+(()=>{ // local namespace 
+
+let _prevID=(1234567890+Date.now())&0x7fffffff;
+let _deltaID=727272727; // 31bit prime number, except 2 
+
+YgEs.InitID=(init,delta=null)=>{
+	_prevID=init;
+	if(delta)_deltaID=delta;
+}
+
+YgEs.NextID=()=>{
+	_prevID=(_prevID+_deltaID)&0x7fffffff;
+	return _prevID;
 }
 
 YgEs.CreateEnum=(src)=>{
@@ -81,4 +96,5 @@ YgEs.Inspect=(val)=>{
 	return JSON.stringify(val);
 }
 
+})();
 export default YgEs;

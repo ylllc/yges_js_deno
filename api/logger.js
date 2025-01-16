@@ -57,6 +57,7 @@ function _create_local(capt=null,showable=null,parent=null){
 		_default_way(src);
 	}
 
+	const iid=YgEs.NextID();
 	let t={
 		name:'YgEs.LocalLog',
 		User:{},
@@ -71,6 +72,7 @@ function _create_local(capt=null,showable=null,parent=null){
 
 		CreateLocal:(capt=null,showable=null)=>_create_local(capt,showable,t),
 
+		GetInstanceID:()=>iid,
 		GetParent:()=>parent,
 		GetCaption:()=>{
 			for(let inst=t;inst;inst=inst.GetParent()){

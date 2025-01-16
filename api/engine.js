@@ -31,11 +31,13 @@ function _create_proc(prm){
 	let finished=false;
 	let aborted=false;
 
+	const iid=YgEs.NextID();
 	let proc={
 		name:prm.Name??CLASS_PROC,
 		HappenTo:(prm.HappenTo??HappeningManager).CreateLocal(),
 		User:prm.User??{},
 
+		GetInstanceID:()=>iid,
 		IsStarted:()=>started,
 		IsFinished:()=>finished,
 		IsAborted:()=>aborted,
@@ -168,12 +170,15 @@ function _yges_enginge_create_launcher(prm){
 	let launched=[]
 	let active=[]
 
+	const iid=YgEs.NextID();
 	let lnc={
 		name:prm.Name??CLASS_LAUNCHER,
 		HappenTo:(prm.HappenTo??HappeningManager).CreateLocal(),
 		Limit:prm.Limit??-1,
 		Cycle:prm.Cycle??DEFAULT_LAUNCHER_CYCLE,
 		User:prm.User??{},
+
+		GetInstanceID:()=>iid,
 
 		IsEnd:()=>{
 			if(launched.length>0)return false;

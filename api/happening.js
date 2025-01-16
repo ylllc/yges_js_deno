@@ -26,10 +26,12 @@ function _create_happening(cbprop,cbstr,cberr,init={}){
 	let onResolved=init.OnResolved??_default_resolved;
 	let onAbandoned=init.OnAbandoned??_default_abandoned;
 
+	const iid=YgEs.NextID();
 	let hap={
 		Name:init.Name??'YgEs.Happening',
 		User:init.User??{},
 
+		GetInstanceID:()=>iid,
 		GetProp:cbprop,
 		ToString:cbstr,
 		toString:cbstr,
@@ -69,6 +71,7 @@ function _create_manager(prm,parent=null){
 		_default_happened(hap);
 	}
 
+	const iid=YgEs.NextID();
 	let mng={
 		name:prm.Name??'YgEs.HappeningManager',
 		OnHappen:prm.OnHappen??null,
@@ -80,6 +83,7 @@ function _create_manager(prm,parent=null){
 			return cm;
 		},
 
+		GetInstanceID:()=>iid,
 		GetParent:()=>parent,
 		GetChildren:()=>children,
 		GetIssues:()=>issues,
