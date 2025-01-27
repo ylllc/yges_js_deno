@@ -55,18 +55,27 @@ export default {
 					name: t.Title,
 					fn: async ()=>{
 						Engine.Start();
-						let launcher=Engine.CreateLauncher();
+
+						let hap2=YgEs.HappeningManager.CreateLocal({
+							Name:'Happened in '+t.Title,
+							OnHappen:(hap)=>{throw hap.ToError()},
+						});
+						let log2=YgEs.Log.CreateLocal(t.Title,YgEs.Log.LEVEL.DEBUG);
+						let lnc2=Engine.CreateLauncher({
+							HappenTo:hap2,
+						});
 						try{
 							await t.Proc({
-								Launcher:launcher,
-								Log:Log.CreateLocal(t.Title,Log.LEVEL.DEBUG),
+								HappenTo:hap2,
+								Launcher:lnc2,
+								Log:log2,
 							});
 						}
 						catch(e){
 							err=e;
 						}
-						launcher.Abort();
-						if(!launcher.HappenTo.IsCleaned())throw new Error('Happen in Test: '+t.Title,{cause:launcher.HappenTo.GetInfo()});
+						lnc2.Abort();
+						if(!lnc2.HappenTo.IsCleaned())throw new Error('Happen in Test: '+t.Title,{cause:lnc2.HappenTo.GetInfo()});
 							Engine.Stop();
 
 						if(err)throw err;
