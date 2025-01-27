@@ -32,7 +32,7 @@ function _standby(prm){
 
 	let name=prm.Name??'YgEs.Agent';
 	let happen=prm.HappenTo??HappeningManager;
-	let launcher=prm.Launcher??Engine.CreateLauncher();
+	let launcher=prm.Launcher??Engine;
 	let user=prm.User??{};
 
 	let GetInfo=(phase)=>{
