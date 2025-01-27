@@ -28,19 +28,20 @@ let workset1={
 		// required resolving it to recover 
 		agent.GetHappeningManager().HappenMsg('Test Hap.');
 	},
-	OnPollInHealthy:(agent)=>{
+	OnTrouble:(agent)=>{
+		agent.User.Count+=3;
+		Test.ChkStrict(agent.User.Count,7);
+	},
+	OnPollInTrouble:(agent)=>{
+		// more happening in poll_trouble() 
+		// this agent locked down and stop polling until cleaned up 
+		agent.GetHappeningManager().HappenMsg('More Test Hap.');
+	},
+	OnRecover:(agent)=>{
 		agent.User.Count+=4;
 		Test.ChkStrict(agent.User.Count,11);
 
 		handle1.Close();
-	},
-	OnPollInTrouble:(agent)=>{
-		agent.User.Count+=3;
-		Test.ChkStrict(agent.User.Count,7);
-
-		// more happening in poll_trouble() 
-		// this agent locked down and stop polling until cleaned up 
-		agent.GetHappeningManager().HappenMsg('More Test Hap.');
 	},
 	OnClose:(agent)=>{
 		agent.User.Count+=5;
@@ -79,12 +80,12 @@ const scenaria=[
 		Proc:async (tool)=>{
 			workset1.Launcher=tool.Launcher;
 			workset2.Launcher=tool.Launcher;
-			workset1.HappenTo=tool.Launcher.HappenTo.CreateLocal({
+			workset1.HappenTo=tool.HappenTo.CreateLocal({
 				OnHappen:(hap)=>{
 //					tool.Log.Fatal(hap.ToString(),hap.GetProp());
 				},
 			});
-			workset2.HappenTo=tool.Launcher.HappenTo.CreateLocal({
+			workset2.HappenTo=tool.HappenTo.CreateLocal({
 				OnHappen:(hap)=>{
 					tool.Log.Fatal(hap.ToString(),hap.GetProp());
 				},

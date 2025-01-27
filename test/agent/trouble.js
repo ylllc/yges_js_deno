@@ -56,7 +56,7 @@ let workset={
 
 const scenaria=[
 	{
-		Title:'Agent Repairing',
+		Title:'Agent Recovering',
 		Proc:async (tool)=>{
 			workset.Launcher=tool.Launcher;
 			workset.HappenTo=tool.Launcher.HappenTo.CreateLocal({

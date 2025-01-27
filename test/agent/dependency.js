@@ -61,8 +61,8 @@ const scenaria=[
 		Proc:async (tool)=>{
 			workset1.Launcher=tool.Launcher;
 			workset2.Launcher=tool.Launcher;
-			workset1.HappenTo=tool.Launcher.HappenTo;
-			workset2.HappenTo=tool.Launcher.HappenTo;
+			workset1.HappenTo=tool.HappenTo;
+			workset2.HappenTo=tool.HappenTo;
 
 			agent=AgentManager.StandBy(workset2);
 			handle=agent.Open();
