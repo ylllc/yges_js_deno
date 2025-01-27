@@ -13,7 +13,7 @@ import Util from './util.js';
 (()=>{ // local namespace 
 
 // state 
-const _state_names=Object.freeze(['IDLE','BROKEN','DOWN','REPAIR','UP','REST','TROUBLE','HEALTHY']);
+const _state_names=Object.freeze(['IDLE','BROKEN','DOWN','REPAIR','UP','HALT','TROUBLE','HEALTHY']);
 
 // make reverse lookup 
 let ll={}
@@ -73,10 +73,10 @@ function _standby(prm){
 				}
 				catch(e){
 					happen.HappenProp({
-						class:'YgEs_Agent_Error',
-						cause:'throw from a callback',
-						src:GetInfo('OnRepair'),
-						err:YgEs.FromError(e),
+						Class:'YgEs.Agent',
+						Cause:'ThrownFromCallback',
+						Src:GetInfo('OnRepair'),
+						Err:YgEs.FromError(e),
 					});
 				}
 			},
@@ -95,10 +95,10 @@ function _standby(prm){
 					}
 					catch(e){
 						happen.HappenProp({
-							class:'YgEs_Agent_Error',
-							cause:'throw from a callback',
-							src:GetInfo('wait for repair'),
-							err:YgEs.FromError(e),
+							Class:'YgEs.Agent',
+							Cause:'ThrownFromCallback',
+							Src:GetInfo('wait for repair'),
+							Err:YgEs.FromError(e),
 						});
 					}
 				}
@@ -133,10 +133,10 @@ function _standby(prm){
 				}
 				catch(e){
 					happen.HappenProp({
-						class:'YgEs_Agent_Error',
-						cause:'throw from a callback',
-						src:GetInfo(back?'OnBack':'OnClose'),
-						err:YgEs.FromError(e),
+						Class:'YgEs.Agent',
+						Cause:'ThrownFromCallback',
+						Src:GetInfo(back?'OnBack':'OnClose'),
+						Err:YgEs.FromError(e),
 					});
 				}
 			},
@@ -151,10 +151,10 @@ function _standby(prm){
 					}
 					catch(e){
 						happen.HappenProp({
-							class:'YgEs_Agent_Error',
-							cause:'throw from a callback',
-							src:GetInfo('wait for down'),
-							err:YgEs.FromError(e),
+							Class:'YgEs.Agent',
+							Cause:'ThrownFromCallback',
+							Src:GetInfo('wait for down'),
+							Err:YgEs.FromError(e),
 						});
 					}
 				}
@@ -180,10 +180,10 @@ function _standby(prm){
 				}
 				catch(e){
 					happen.HappenProp({
-						class:'YgEs_Agent_Error',
-						cause:'throw from a callback',
-						src:GetInfo('OnOpen'),
-						err:YgEs.FromError(e),
+						Class:'YgEs.Agent',
+						Cause:'ThrownFromCallback',
+						Src:GetInfo('OnOpen'),
+						Err:YgEs.FromError(e),
 					});
 				}
 			},
@@ -199,10 +199,10 @@ function _standby(prm){
 					}
 					catch(e){
 						happen.HappenProp({
-							class:'YgEs_Agent_Error',
-							cause:'throw from a callback',
-							src:GetInfo('wait for up'),
-							err:YgEs.FromError(e),
+							Class:'YgEs.Agent',
+							Cause:'ThrownFromCallback',
+							Src:GetInfo('wait for up'),
+							Err:YgEs.FromError(e),
 						});
 					}
 				}
@@ -219,10 +219,10 @@ function _standby(prm){
 					}
 					catch(e){
 						happen.HappenProp({
-							class:'YgEs_Agent_Error',
-							cause:'throw from a callback',
-							src:GetInfo('OnReady'),
-							err:YgEs.FromError(e),
+							Class:'YgEs.AgentError',
+							Cause:'throw from a callback',
+							Src:GetInfo('OnReady'),
+							Err:YgEs.FromError(e),
 						});
 					}
 				}
@@ -241,10 +241,10 @@ function _standby(prm){
 				}
 				catch(e){
 					happen.HappenProp({
-						class:'YgEs_Agent_Error',
-						cause:'throw from a callback',
-						src:GetInfo('OnPollInHealthy'),
-						err:YgEs.FromError(e),
+						Class:'YgEs.AgentError',
+						Cause:'throw from a callback',
+						Src:GetInfo('OnPollInHealthy'),
+						Err:YgEs.FromError(e),
 					});
 					return 'TROUBLE';
 				}
@@ -264,10 +264,10 @@ function _standby(prm){
 				}
 				catch(e){
 					happen.HappenProp({
-						class:'YgEs_Agent_Error',
-						cause:'throw from a callback',
-						src:GetInfo('OnPollInTrouble'),
-						err:YgEs.FromError(e),
+							Class:'YgEs.AgentError',
+							Cause:'throw from a callback',
+							Src:GetInfo('OnRecover'),
+							Err:YgEs.FromError(e),
 					});
 				}
 				if(!happen.IsCleaned())return 'HALT';
@@ -359,7 +359,16 @@ function _standby(prm){
 					in_open=true;
 					++opencount;
 				}
-				if(!ctrl)ctrl=StateMachine.Run('IDLE',states,ctrlopt);
+				if(!ctrl){
+					ctrl=StateMachine.Run('IDLE',states,ctrlopt);
+					let StMacInfo=ctrl.GetInfo;
+					ctrl.GetInfo=()=>{
+						return {
+							'StMac':StMacInfo(),
+							'Agent':GetInfo(''),
+						}
+					}
+				}
 			},
 			Close:()=>{
 				if(!in_open)return;

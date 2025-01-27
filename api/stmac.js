@@ -12,7 +12,7 @@ import HappeningManager from './happening.js';
 
 function _run(start,states={},opt={}){
 
-	let launcher=opt.Launcher??YgEs.Engine;
+	let launcher=opt.Launcher??Engine;
 	let cur=null;
 
 	let name=opt.Name??'YgEs.StateMachine';
@@ -56,9 +56,9 @@ function _run(start,states={},opt={}){
 		cur=states[state_next]??null;
 		if(!cur){
 			stmac.HappenTo.HappenProp({
-				class:'YgEs_Statemachine_Error',
-				cause:'state missing: '+state_next,
-				info:GetInfo('selecing'),
+				Class:'YgEs_Statemachine_Error',
+				Cause:'state missing: '+state_next,
+				Info:GetInfo('selecing'),
 			});
 			poll_cur=poll_nop;
 			return;
@@ -72,10 +72,10 @@ function _run(start,states={},opt={}){
 		}
 		catch(e){
 			stmac.HappenTo.HappenProp({
-				class:'YgEs_Statemachine_Error',
-				cause:'throw from a callback',
-				info:GetInfo('cb_start'),
-				err:YgEs.FromError(e),
+				Class:'YgEs_Statemachine_Error',
+				Cause:'throw from a callback',
+				Info:GetInfo('cb_start'),
+				Err:YgEs.FromError(e),
 			});
 			poll_cur=poll_nop;
 		}
@@ -88,10 +88,10 @@ function _run(start,states={},opt={}){
 		}
 		catch(e){
 			stmac.HappenTo.HappenProp({
-				class:'YgEs_Statemachine_Error',
-				cause:'throw from a callback',
-				info:GetInfo('poll_up'),
-				err:YgEs.FromError(e),
+				Class:'YgEs_Statemachine_Error',
+				Cause:'throw from a callback',
+				Info:GetInfo('poll_up'),
+				Err:YgEs.FromError(e),
 			});
 			r=false;
 		}
@@ -105,10 +105,10 @@ function _run(start,states={},opt={}){
 			}
 			catch(e){
 				stmac.HappenTo.HappenProp({
-					class:'YgEs_Statemachine_Error',
-					cause:'throw from a callback',
-					info:GetInfo('cb_ready'),
-					err:YgEs.FromError(e),
+					Class:'YgEs_Statemachine_Error',
+					Cause:'throw from a callback',
+					Info:GetInfo('cb_ready'),
+					Err:YgEs.FromError(e),
 				});
 				poll_cur=poll_nop;
 			}
@@ -127,10 +127,10 @@ function _run(start,states={},opt={}){
 		}
 		catch(e){
 			stmac.HappenTo.HappenProp({
-				class:'YgEs_Statemachine_Error',
-				cause:'throw from a callback',
-				info:GetInfo('poll_keep'),
-				err:YgEs.FromError(e),
+				Class:'YgEs_Statemachine_Error',
+				Cause:'throw from a callback',
+				Info:GetInfo('poll_keep'),
+				Err:YgEs.FromError(e),
 			});
 			r=false;
 		}
@@ -154,10 +154,10 @@ function _run(start,states={},opt={}){
 		}
 		catch(e){
 			stmac.HappenTo.HappenProp({
-				class:'YgEs_Statemachine_Error',
-				cause:'throw from a callback',
-				info:GetInfo('cb_stop'),
-				err:YgEs.FromError(e),
+				Class:'YgEs_Statemachine_Error',
+				Cause:'throw from a callback',
+				Info:GetInfo('cb_stop'),
+				Err:YgEs.FromError(e),
 			});
 			poll_cur=poll_nop;
 		}
@@ -170,10 +170,10 @@ function _run(start,states={},opt={}){
 		}
 		catch(e){
 			stmac.HappenTo.HappenProp({
-				class:'YgEs_Statemachine_Error',
-				cause:'throw from a callback',
-				info:GetInfo('poll_down'),
-				err:YgEs.FromError(e),
+				Class:'YgEs_Statemachine_Error',
+				Cause:'throw from a callback',
+				Info:GetInfo('poll_down'),
+				Err:YgEs.FromError(e),
 			});
 			r=false;
 		}
@@ -196,10 +196,10 @@ function _run(start,states={},opt={}){
 		}
 		catch(e){
 			stmac.HappenTo.HappenProp({
-				class:'YgEs_Statemachine_Error',
-				cause:'throw from a callback',
-				info:GetInfo('cb_end'),
-				err:YgEs.FromError(e),
+				Class:'YgEs_Statemachine_Error',
+				Cause:'throw from a callback',
+				Info:GetInfo('cb_end'),
+				Err:YgEs.FromError(e),
 			});
 			poll_cur=poll_nop;
 		}
@@ -222,6 +222,7 @@ function _run(start,states={},opt={}){
 	}
 
 	let proc=launcher.Launch(stmac);
+	proc.GetInfo=()=>GetInfo('');
 	ctrl.IsStarted=proc.IsStarted;
 	ctrl.IsFinished=proc.IsFinished;
 	ctrl.IsAborted=proc.IsAborted;

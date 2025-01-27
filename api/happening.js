@@ -163,7 +163,7 @@ function _create_manager(prm,parent=null){
 		},
 		HappenMsg:(msg,init={})=>{
 			return mng.Happen(_create_happening(
-				()=>{return {msg:''+msg}},
+				()=>{return {}},
 				()=>''+msg,
 				()=>new Error(msg),
 				init
@@ -173,8 +173,8 @@ function _create_manager(prm,parent=null){
 		HappenProp:(prop,init={})=>{
 			return mng.Happen(_create_happening(
 				()=>prop,
-				()=>JSON.stringify(prop),
-				()=>new Error(JSON.stringify(prop)),
+				()=>'Happening',
+				()=>new Error('Happening',prop),
 				init
 			));
 		},
@@ -182,7 +182,7 @@ function _create_manager(prm,parent=null){
 		HappenError:(err,init={})=>{
 			return mng.Happen(_create_happening(
 				()=>{return YgEs.FromError(err)},
-				()=>''+err,
+				()=>'{'+err.name+'} '+err.message,
 				()=>err,
 				init
 			));

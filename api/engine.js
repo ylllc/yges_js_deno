@@ -55,10 +55,10 @@ function _create_proc(prm,launcher){
 				}
 				catch(e){
 					proc.HappenTo.HappenProp({
-						class:CLASS_PROC,
-						cause:'throw from start',
-						src:proc,
-						err:YgEs.FromError(e),
+						Class:CLASS_PROC,
+						Cause:'throw from start',
+						Src:proc,
+						Err:YgEs.FromError(e),
 					});
 					proc.Abort();
 				}
@@ -73,18 +73,18 @@ function _create_proc(prm,launcher){
 				}
 				catch(e){
 					proc.HappenTo.HappenProp({
-						class:CLASS_PROC,
-						cause:'throw from abort',
-						src:proc,
-						err:YgEs.FromError(e),
+						Class:CLASS_PROC,
+						Cause:'throw from abort',
+						Src:proc,
+						Err:YgEs.FromError(e),
 					});
 				}
 			}
 			else{
 				proc.HappenTo.HappenProp({
-					class:CLASS_PROC,
-					cause:'abort',
-					src:proc,
+					Class:CLASS_PROC,
+					Cause:'abort',
+					Src:proc,
 				});
 			}
 		},
@@ -95,10 +95,10 @@ function _create_proc(prm,launcher){
 			}
 			catch(e){
 				proc.HappenTo.HappenProp({
-					class:CLASS_PROC,
-					cause:'throw from poll',
-					src:proc,
-					err:YgEs.FromError(e),
+					Class:CLASS_PROC,
+					Cause:'throw from poll',
+					Src:proc,
+					Err:YgEs.FromError(e),
 				});
 				proc.Abort();
 				return false;
@@ -110,10 +110,10 @@ function _create_proc(prm,launcher){
 				}
 				catch(e){
 					proc.HappenTo.HappenProp({
-						class:CLASS_PROC,
-						cause:'throw from done',
-						src:proc,
-						err:YgEs.FromError(e),
+						Class:CLASS_PROC,
+						Cause:'throw from done',
+						Src:proc,
+						Err:YgEs.FromError(e),
 					});
 					proc.Abort();
 					return false;
@@ -128,8 +128,8 @@ function _create_proc(prm,launcher){
 		Sync:(cb_sync,interval=null)=>{
 			if(!cb_sync){
 				proc.HappenTo.HappenProp({
-					class:CLASS_LAUNCHER,
-					cause:'empty callback from sync',
+					Class:CLASS_LAUNCHER,
+					Cause:'empty callback from sync',
 				});
 				return;
 			}
@@ -142,10 +142,10 @@ function _create_proc(prm,launcher){
 					}
 					catch(e){
 						proc.HappenTo.HappenProp({
-							class:CLASS_PROC,
-							cause:'throw from sync',
-							src:proc,
-							err:YgEs.FromError(e),
+							Class:CLASS_PROC,
+							Cause:'throw from sync',
+							Src:proc,
+							Err:YgEs.FromError(e),
 						});
 					}
 				},
@@ -230,8 +230,8 @@ function _yges_enginge_create_launcher(prm){
 			}
 			if(!prm.OnPoll){
 				lnc.HappenTo.HappenProp({
-					class:CLASS_LAUNCHER,
-					cause:'empty pollee',
+					Class:CLASS_LAUNCHER,
+					Cause:'empty pollee',
 				});
 				return;
 			}
@@ -283,8 +283,8 @@ function _yges_enginge_create_launcher(prm){
 		Sync:(cb_sync,interval=null)=>{
 			if(!cb_sync){
 				lnc.HappenTo.HappenProp({
-					class:CLASS_LAUNCHER,
-					cause:'empty callback from sync',
+					Class:CLASS_LAUNCHER,
+					Cause:'empty callback from sync',
 				});
 				return;
 			}
@@ -300,10 +300,10 @@ function _yges_enginge_create_launcher(prm){
 					}
 					catch(e){
 						lnc.HappenTo.HappenProp({
-							class:CLASS_PROC,
-							cause:'throw from sync',
-							src:lnc,
-							err:YgEs.FromError(e),
+							Class:CLASS_PROC,
+							Cause:'throw from sync',
+							Src:lnc,
+							Err:YgEs.FromError(e),
 						});
 					}
 				}
