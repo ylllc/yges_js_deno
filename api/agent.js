@@ -31,7 +31,7 @@ function _standby(prm){
 	let wait=[]
 
 	let name=prm.Name??'YgEs.Agent';
-	let happen=prm.HappenTo??HappeningManager.CreateLocal();
+	let happen=prm.HappenTo??HappeningManager;
 	let launcher=prm.Launcher??Engine.CreateLauncher();
 	let user=prm.User??{};
 
