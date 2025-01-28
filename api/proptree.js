@@ -20,7 +20,7 @@ function _prop_internal(){
 		name:'YgEs.PropTree',
 		User:{},
 
-		_yges_proptree_:true, // means this is YgEs_PropTree 
+		_yges_proptree_:true, // means this is YgEs.PropTree 
 		_sub:undefined,
 		_ref:(q)=>{return undefined;},
 

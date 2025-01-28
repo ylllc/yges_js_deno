@@ -7,7 +7,7 @@ import YgEs from './common.js';
 import Engine from './engine.js';
 import HappeningManager from './happening.js';
 
-// Statemachine ------------------------- //
+// StateMachine ------------------------- //
 (()=>{ // local namespace 
 
 function _run(start,states={},opt={}){
@@ -55,10 +55,11 @@ function _run(start,states={},opt={}){
 		}
 		cur=states[state_next]??null;
 		if(!cur){
-			happen.HappenProp({
-				Class:'YgEs_Statemachine_Error',
-				Cause:'state missing: '+state_next,
-				Info:GetInfo('selecing'),
+			happen.Happen(
+				'Missing State: '+state_next,{
+				Class:'YgEs.StateMachine',
+				Cause:'MissingState',
+				Info:GetInfo('selecting'),
 			});
 			poll_cur=poll_nop;
 			return;
@@ -71,11 +72,10 @@ function _run(start,states={},opt={}){
 			poll_cur=poll_up;
 		}
 		catch(e){
-			happen.HappenProp({
-				Class:'YgEs_Statemachine_Error',
-				Cause:'throw from a callback',
-				Info:GetInfo('cb_start'),
-				Err:YgEs.FromError(e),
+			happen.Happen(e,{
+				Class:'YgEs.StateMachine',
+				Cause:'ThrownFromCallback',
+				Info:GetInfo('OnStart'),
 			});
 			poll_cur=poll_nop;
 			return;
@@ -88,11 +88,10 @@ function _run(start,states={},opt={}){
 			var r=cur.OnPollInUp?cur.OnPollInUp(ctrl,user):true;
 		}
 		catch(e){
-			happen.HappenProp({
-				Class:'YgEs_Statemachine_Error',
-				Cause:'throw from a callback',
-				Info:GetInfo('poll_up'),
-				Err:YgEs.FromError(e),
+			happen.Happen(e,{
+				Class:'YgEs.StateMachine',
+				Cause:'ThrownFromCallback',
+				Info:GetInfo('OnPollInUp'),
 			});
 			poll_cur=poll_nop;
 			return;
@@ -106,11 +105,10 @@ function _run(start,states={},opt={}){
 				poll_cur=poll_keep;
 			}
 			catch(e){
-				happen.HappenProp({
-					Class:'YgEs_Statemachine_Error',
-					Cause:'throw from a callback',
-					Info:GetInfo('cb_ready'),
-					Err:YgEs.FromError(e),
+				happen.Happen(e,{
+					Class:'YgEs.StateMachine',
+					Cause:'ThrownFromCallback',
+					Info:GetInfo('OnReady'),
 				});
 				poll_cur=poll_nop;
 				return;
@@ -129,11 +127,10 @@ function _run(start,states={},opt={}){
 			var r=cur.OnPollInKeep?cur.OnPollInKeep(ctrl,user):true;
 		}
 		catch(e){
-			happen.HappenProp({
-				Class:'YgEs_Statemachine_Error',
-				Cause:'throw from a callback',
-				Info:GetInfo('poll_keep'),
-				Err:YgEs.FromError(e),
+			happen.Happen(e,{
+				Class:'YgEs.StateMachine',
+				Cause:'ThrownFromCallback',
+				Info:GetInfo('OnPollInKeep'),
 			});
 			poll_cur=poll_nop;
 			return;
@@ -157,11 +154,10 @@ function _run(start,states={},opt={}){
 			poll_cur=poll_down;
 		}
 		catch(e){
-			happen.HappenProp({
-				Class:'YgEs_Statemachine_Error',
-				Cause:'throw from a callback',
-				Info:GetInfo('cb_stop'),
-				Err:YgEs.FromError(e),
+			happen.Happen(e,{
+				Class:'YgEs.StateMachine',
+				Cause:'ThrownFromCallback',
+				Info:GetInfo('OnStop'),
 			});
 			poll_cur=poll_nop;
 			return;
@@ -174,11 +170,10 @@ function _run(start,states={},opt={}){
 			var r=cur.OnPollInDown?cur.OnPollInDown(ctrl,user):true;
 		}
 		catch(e){
-			happenHappenProp({
-				Class:'YgEs_Statemachine_Error',
-				Cause:'throw from a callback',
-				Info:GetInfo('poll_down'),
-				Err:YgEs.FromError(e),
+			happen.Happen(e,{
+				Class:'YgEs.StateMachine',
+				Cause:'ThrownFromCallback',
+				Info:GetInfo('OnPollInDown'),
 			});
 			poll_cur=poll_nop;
 			return;
@@ -201,11 +196,10 @@ function _run(start,states={},opt={}){
 			call_start(user);
 		}
 		catch(e){
-			happen.HappenProp({
-				Class:'YgEs_Statemachine_Error',
-				Cause:'throw from a callback',
-				Info:GetInfo('cb_end'),
-				Err:YgEs.FromError(e),
+			happen.Happen(e,{
+				Class:'YgEs.StateMachine',
+				Cause:'ThrownFromCallback',
+				Info:GetInfo('OnEnd'),
 			});
 			poll_cur=poll_nop;
 			return;

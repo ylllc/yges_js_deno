@@ -23,7 +23,7 @@ let workset={
 
 		// happening after ready 
 		// required resolving it to recover 
-		agent.GetHappeningManager().HappenMsg('Test Hap.');
+		agent.GetHappeningManager().Happen('Test Hap.');
 	},
 	OnPollInHealthy:(agent)=>{
 		agent.User.Count+=4;

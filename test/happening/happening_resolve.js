@@ -25,9 +25,9 @@ const scenaria=[
 			let hap_local2=hap_local1.CreateLocal();
 			let hap_local3=hap_local2.CreateLocal();
 
-			let h1=hap_local1.HappenMsg('hap1');
-			let h2=hap_local2.HappenMsg('hap2');
-			let h3=hap_local3.HappenMsg('hap3');
+			let h1=hap_local1.Happen('hap1');
+			let h2=hap_local2.Happen('hap2');
+			let h3=hap_local3.Happen('hap3');
 			Test.ChkStrict(3,tool.HappenTo.CountIssues(),'global manager issue count');
 			Test.ChkStrict(3,hap_local1.CountIssues(),'local1 manager issue count');
 			Test.ChkStrict(2,hap_local2.CountIssues(),'local2 manager issue count');
@@ -48,7 +48,7 @@ const scenaria=[
 			Test.ChkStrict(0,hap_local2.CountIssues(),'local2 abandoned');
 			Test.ChkStrict(0,hap_local3.CountIssues(),'local2 abandoned');
 
-			h3=hap_local3.HappenMsg('hap3-2');
+			h3=hap_local3.Happen('hap3-2');
 			Test.ChkStrict(2,tool.HappenTo.CountIssues(),'local3 happened');
 			Test.ChkStrict(2,hap_local1.CountIssues(),'local3 happened');
 			Test.ChkStrict(1,hap_local2.CountIssues(),'local3 happened');

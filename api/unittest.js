@@ -3,9 +3,8 @@
 // © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
-import {
-	assert,
-} from "https://deno.land/std@0.65.0/testing/asserts.ts";
+import assert from 'node:assert';
+import test from 'node:test';
 
 import YgEs from './common.js';
 import Timing from './timing.js';
@@ -13,7 +12,7 @@ import HappeningManager from './happening.js';
 import Engine from './engine.js';
 import Log from './logger.js';
 
-// Unit Test Utility for Deno ----------- //
+// Unit Test Utility for Node.JS -------- //
 
 function _cpmsg(msg,v1,op,v2){
 	if(!msg)msg='Test Mismatch:';
@@ -51,35 +50,32 @@ export default {
 				if(t.Filter!==undefined && !t.Filter)continue;
 
 				let err=null;
-				Deno.test({
-					name: t.Title,
-					fn: async ()=>{
-						Engine.Start();
+				test(t.Title,async ()=>{
+					Engine.Start();
 
-						let hap2=YgEs.HappeningManager.CreateLocal({
-							Name:'Happened in '+t.Title,
-							OnHappen:(hap)=>{throw hap.ToError()},
-						});
-						let log2=YgEs.Log.CreateLocal(t.Title,YgEs.Log.LEVEL.DEBUG);
-						let lnc2=Engine.CreateLauncher({
+					let hap2=YgEs.HappeningManager.CreateLocal({
+						Name:'Happened in '+t.Title,
+						OnHappen:(hap)=>{throw hap.ToError()},
+					});
+					let log2=YgEs.Log.CreateLocal(t.Title,YgEs.Log.LEVEL.DEBUG);
+					let lnc2=Engine.CreateLauncher({
+						HappenTo:hap2,
+					});
+					try{
+						await t.Proc({
 							HappenTo:hap2,
+							Launcher:lnc2,
+							Log:log2,
 						});
-						try{
-							await t.Proc({
-								HappenTo:hap2,
-								Launcher:lnc2,
-								Log:log2,
-							});
-						}
-						catch(e){
-							err=e;
-						}
-						lnc2.Abort();
-						if(!lnc2.HappenTo.IsCleaned())throw new Error('Happen in Test: '+t.Title,{cause:lnc2.HappenTo.GetInfo()});
-							Engine.Stop();
-
-						if(err)throw err;
 					}
+					catch(e){
+						err=e;
+					}
+					lnc2.Abort();
+					if(!lnc2.HappenTo.IsCleaned())throw new Error('Happen in Test: '+t.Title,{cause:lnc2.HappenTo.GetInfo()});
+					Engine.Stop();
+
+					if(err)throw err;
 				});
 			}
 		});

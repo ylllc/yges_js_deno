@@ -30,6 +30,7 @@ function _create_happening(cbprop,cbstr,cberr,init={}){
 	let hap={
 		name:init.Name??'YgEs.Happening',
 		User:init.User??{},
+		_yges_happening_:true, // means this is YgEs.Happening 
 
 		GetInstanceID:()=>iid,
 		GetProp:cbprop,
@@ -156,36 +157,45 @@ function _create_manager(prm,parent=null){
 			}
 		},
 
-		Happen:(hap)=>{
+		Happen:(src,prop={},init={})=>{
+
+			let hap=null;
+			if(typeof src!='object'){
+				hap=_create_happening(
+					()=>prop,
+					()=>''+src,
+					()=>new Error(''+src,prop),
+					init
+				);
+			}
+			else if(src._yges_happening_){
+				hap=_create_happening(
+					()=>src.GetProp(),
+					()=>''+src,
+					()=>new Error(''+src,src.GetProp()),
+					init
+				);
+			}
+			else if(src instanceof Error){
+				hap=_create_happening(
+					()=>YgEs.FromError(src),
+					()=>'{'+src.name+'} '+src.message,
+					()=>src,
+					init
+				);
+			}
+			else{
+				hap=_create_happening(
+					()=>Object.assign(src,prop),
+					()=>'Happening',
+					()=>new Error('Happening',Object.assign(src,prop)),
+					init
+				);
+			}
+
 			issues.push(hap);
 			onHappen(hap);
 			return hap;
-		},
-		HappenMsg:(msg,init={})=>{
-			return mng.Happen(_create_happening(
-				()=>{return {}},
-				()=>''+msg,
-				()=>new Error(msg),
-				init
-			));
-		},
-
-		HappenProp:(prop,init={})=>{
-			return mng.Happen(_create_happening(
-				()=>prop,
-				()=>'Happening',
-				()=>new Error('Happening',prop),
-				init
-			));
-		},
-
-		HappenError:(err,init={})=>{
-			return mng.Happen(_create_happening(
-				()=>{return YgEs.FromError(err)},
-				()=>'{'+err.name+'} '+err.message,
-				()=>err,
-				init
-			));
 		},
 	}
 	return mng;

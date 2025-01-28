@@ -5,11 +5,11 @@
 
 import YgEs from './common.js';
 
-import http from 'node:http';
-import path from 'node:path';
-import mime from 'npm:mime-lite';
+import http from 'http';
+import path from 'path';
+import mime from 'mime-lite';
 
-// HTTP Server Low Level for Deno-------- //
+// HTTP Server Low Level for Node.js ---- //
 (()=>{ // local namespace 
 
 function _setup(cb_req){

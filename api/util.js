@@ -106,7 +106,7 @@ let Util=YgEs.Util={
 		if(bgn==end)return cnt;
 
 		if(step<0 != end-bgn<0){
-			HappeningManager.HappenProp({msg:'backward',bgn:bgn,end:end,step:step});
+			HappeningManager.Happen('backward',{bgn:bgn,end:end,step:step});
 			return cnt;
 		}
 

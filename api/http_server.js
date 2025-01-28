@@ -226,7 +226,7 @@ function _request(listener,req,res){
 		listener.Route.Walk(walker);
 	}
 	catch(e){
-		listener.GetHappeningManager().HappenError(e);
+		listener.GetHappeningManager().Happen(e);
 		listener.Error(res,500,'Internal Server Error');
 	}
 }

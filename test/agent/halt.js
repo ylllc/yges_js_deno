@@ -26,7 +26,7 @@ let workset1={
 
 		// happening after ready 
 		// required resolving it to recover 
-		agent.GetHappeningManager().HappenMsg('Test Hap.');
+		agent.GetHappeningManager().Happen('Test Hap.');
 	},
 	OnTrouble:(agent)=>{
 		agent.User.Count+=3;
@@ -35,7 +35,7 @@ let workset1={
 	OnPollInTrouble:(agent)=>{
 		// more happening in poll_trouble() 
 		// this agent locked down and stop polling until cleaned up 
-		agent.GetHappeningManager().HappenMsg('More Test Hap.');
+		agent.GetHappeningManager().Happen('More Test Hap.');
 	},
 	OnRecover:(agent)=>{
 		agent.User.Count+=4;

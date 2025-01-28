@@ -5,10 +5,10 @@
 
 import YgEs from './common.js';
 import Timing from './timing.js';
-import fs from 'node:fs';
-import { globToRegExp } from "jsr:@std/path";
+import fs from 'fs';
+import {glob} from 'node:fs';
 
-// Low Level File Control for Deno ------ //
+// Low Level File Control for Node.js --- //
 (()=>{ // local namespace 
 
 function _initStat(path,stat){
@@ -123,13 +123,10 @@ const FS=YgEs.FS={
 
 	Glob:(dir,ptn='*')=>{
 		return Timing.ToPromise(async (ok,ng)=>{
-			const rx=globToRegExp(ptn);
-			let r=[]
-			for await (let ent of Deno.readDir(dir)) {
-				if(!ent.name.match(rx))continue;
-				r.push(ent.name);
-			}
-			ok(r);
+			glob(ptn,{cwd:dir},(e,r)=>{
+				if(e)ng(e);
+				else ok(r);
+			});
 		});
 	},
 }

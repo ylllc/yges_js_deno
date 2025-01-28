@@ -14,13 +14,13 @@ HappeningManager.OnHappen=(h)=>{
 }
 
 // wrapping any error type 
-var h1=HappeningManager.HappenMsg('Happened',{
+var h1=HappeningManager.Happen('Happened',{},{
 	// override resolved callback 
 	OnResolved:(h)=>{
 		Log.Info('[Resolved] '+h.ToString());
 	},
 });
-var h2=HappeningManager.HappenProp({type:'Test',msg:'Happened'},{
+var h2=HappeningManager.Happen('HappenedWithProp',{type:'Test',msg:'Happened'},{
 	// user resolving protocol 
 	User:{
 		Retry:()=>{
@@ -31,7 +31,7 @@ var h2=HappeningManager.HappenProp({type:'Test',msg:'Happened'},{
 		},
 	},
 });
-var h3=HappeningManager.HappenError(new Error('Exception'));
+var h3=HappeningManager.Happen(new Error('Exception'));
 
 // happened count 
 Log.Info('happened='+HappeningManager.CountIssues());
@@ -47,7 +47,7 @@ Log.Info('happened='+HappeningManager.CountIssues());
 var lhap=HappeningManager.CreateLocal();
 
 // local happen
-var h4=lhap.HappenMsg('Local Happened');
+var h4=lhap.Happen('Local Happened');
 Log.Info('happened='+HappeningManager.CountIssues());
 
 // polling 

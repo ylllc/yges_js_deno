@@ -66,7 +66,7 @@ const scenaria=[
 
 			// the agent has a Happening at start 
 			// and must repair it to open.  
-			workset.HappenTo.HappenMsg('Test Hap.');
+			workset.HappenTo.Happen('Test Hap.');
 
 			handle=agent.Fetch();
 			handle.Open();

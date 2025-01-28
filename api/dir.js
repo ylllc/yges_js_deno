@@ -26,7 +26,7 @@ function _target(dir,parent){
 					done=true;
 				},
 				(err)=>{
-					ws.HappenTo.HappenError(err);
+					ws.HappenTo.Happen(err);
 				}
 			);
 			wk.WaitFor(()=>{return done;});
