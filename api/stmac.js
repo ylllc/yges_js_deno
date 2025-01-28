@@ -50,6 +50,8 @@ function _run(start,states={},opt={}){
 		if(state_next==null){
 			// normal end 
 			cur=null;
+			state_prev=state_cur;
+			state_cur=null;
 			poll_cur=poll_nop;
 			return;
 		}
