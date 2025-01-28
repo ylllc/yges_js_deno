@@ -51,9 +51,21 @@ const scenaria=[
 
 			// run with undefined state 
 			// abort soon 
-			StateMachine.Run('Test1',states,opt);
+			let smc=StateMachine.Run('Test1',states,opt);
+
+			let info=smc.GetInfo();
+			Test.ChkStrict(null,info.Prev);
+			Test.ChkStrict('Test1',info.Cur);
+			Test.ChkStrict(null,info.Next);
+			Test.ChkStrict(2,info.User.Count);
 
 			await tool.Launcher.ToPromise();
+
+			info=smc.GetInfo();
+			Test.ChkStrict('Test2',info.Prev);
+			Test.ChkStrict(null,info.Cur);
+			Test.ChkStrict(null,info.Next);
+			Test.ChkStrict(22,info.User.Count);
 		},
 	},
 ]

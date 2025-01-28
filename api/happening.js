@@ -36,10 +36,25 @@ function _create_happening(cbprop,cbstr,cberr,init={}){
 		GetProp:cbprop,
 		ToString:cbstr,
 		toString:cbstr,
-		ToJSON:()=>JSON.stringify(hap.GetProp()),
 		ToError:cberr,
 
 		IsResolved:()=>resolved,
+		IsAbandoned:()=>abandoned && !resolved,
+
+		GetStatus:()=>{
+			if(resolved)return 'Resolved';
+			if(abandoned)return 'Abandoned';
+			return 'Posed';
+		},
+		GetInfo:()=>{return {
+			InstanceID:iid,
+			Name:hap.name,
+			Status:hap.GetStatus(),
+			Msg:cbstr(),
+			Prop:cbprop(),
+			User:hap.User,
+		}},
+
 		Resolve:()=>{
 			if(resolved)return;
 			resolved=true;
@@ -47,7 +62,6 @@ function _create_happening(cbprop,cbstr,cberr,init={}){
 			if(onResolved)onResolved(hap);
 		},
 
-		IsAbandoned:()=>abandoned && !resolved,
 		Abandon:()=>{
 			if(resolved)return;
 			if(abandoned)return;
@@ -91,6 +105,24 @@ function _create_manager(prm,parent=null){
 		GetIssues:()=>issues,
 		IsAbandoned:()=>abandoned,
 
+		GetStatus:()=>{
+			if(abandoned)return 'Abandoned';
+			return 'Available';
+		},
+		GetInfo:()=>{
+			let r={
+				InstanceID:iid,
+				Name:mng.name,
+				Status:mng.GetStatus(),
+				User:mng.User,
+				Issues:[],
+				Sub:[],
+			}
+			for(let hap of issues)r.Issues.push(hap.GetInfo());
+			for(let sub of children)r.Sub.push(sub.GetInfo());
+			return r;
+		},
+
 		Abandon:()=>{
 			for(let sub of children){
 				sub.Abandon();
@@ -132,19 +164,6 @@ function _create_manager(prm,parent=null){
 			children=tmp;
 		},
 
-		GetInfo:()=>{
-			let info={Name:mng.name,Abandoned:abandoned,Issues:[],Children:[]}
-			for(let hap of issues){
-				if(hap.IsResolved())continue;
-				info.Issues.push({Name:hap.name,Prop:hap.GetProp()});
-			}
-			for(let sub of children){
-				let si=sub.GetInfo();
-				if(si.Issues.length>0 || si.Children.length>0)info.Children.push(si);
-			}
-			return info;
-		},
-
 		Poll:(cb)=>{
 			if(!cb)return;
 			for(let hap of issues){
@@ -164,7 +183,7 @@ function _create_manager(prm,parent=null){
 				hap=_create_happening(
 					()=>prop,
 					()=>''+src,
-					()=>new Error(''+src,prop),
+					()=>new Error(''+src,{cause:prop}),
 					init
 				);
 			}
@@ -172,7 +191,7 @@ function _create_manager(prm,parent=null){
 				hap=_create_happening(
 					()=>src.GetProp(),
 					()=>''+src,
-					()=>new Error(''+src,src.GetProp()),
+					()=>new Error(''+src,{cause:src.GetProp()}),
 					init
 				);
 			}
@@ -188,7 +207,7 @@ function _create_manager(prm,parent=null){
 				hap=_create_happening(
 					()=>Object.assign(src,prop),
 					()=>'Happening',
-					()=>new Error('Happening',Object.assign(src,prop)),
+					()=>new Error('Happening',{cause:Object.assign(src,prop)}),
 					init
 				);
 			}

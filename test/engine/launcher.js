@@ -27,6 +27,12 @@ const scenaria=[
 			Test.ChkStrict(0,lnc.CountActive(),'empty launcher');
 			Test.ChkStrict(0,lnc.CountHeld(),'empty launcher');
 
+			let info=lnc.GetInfo();
+			Test.ChkStrict('test launcher',info.Name);
+			Test.ChkStrict('Ready',info.Status);
+			Test.ChkStrict(0,info.Active.length);
+			Test.ChkStrict(0,info.Held.length);
+
 			for(let i=0;i<PROCS;++i){
 				lnc.Launch({
 					OnStart:(user)=>{
@@ -48,6 +54,11 @@ const scenaria=[
 			Test.ChkStrict(0,count_done,'bgn - done');
 			Test.ChkStrict(0,count_abort,'bgn - abort');
 
+			info=lnc.GetInfo();
+			Test.ChkStrict(0,info.Active.length);
+			Test.ChkStrict(PROCS,info.Held.length);
+			Test.ChkStrict('StandBy',info.Held[0].Status);
+
 			Test.ChkStrict(0,lnc.CountActive(),'held launcher');
 			Test.ChkStrict(PROCS,lnc.CountHeld(),'held launcher');
 			lnc.Limit=LIMIT;
@@ -65,7 +76,15 @@ const scenaria=[
 			Test.ChkStrict(PROCS,count_start,'end - start');
 			Test.ChkStrict(PROCS,count_done,'end - done');
 			Test.ChkStrict(0,count_abort,'end - abort');
+
+			info=lnc.GetInfo();
+			Test.ChkStrict(LIMIT,info.Limit);
+			Test.ChkStrict(0,info.Active.length);
+			Test.ChkStrict(0,info.Held.length);
+
 			lnc.Abandon();
+
+			Test.ChkStrict('Abandoned',lnc.GetInfo().Status);
 
 			await tool.Launcher.ToPromise();
 		},

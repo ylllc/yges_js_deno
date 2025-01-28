@@ -43,8 +43,18 @@ function _create_proc(prm,launcher){
 		IsAborted:()=>aborted,
 		IsEnd:()=>finished||aborted,
 
-		GetInfo:(phase='')=>{return {
-			Phase:phase,
+		GetStatus:()=>{
+			if(finished)return 'Finished';
+			if(aborted)return 'Aborted';
+			if(started)return 'Running';
+			return 'StandBy';
+		},
+		GetInfo:(site='')=>{return {
+			InstanceID:iid,
+			Name:proc.name,
+			CrashSite:site,
+			Status:proc.GetStatus(),
+			User:proc.User,
 		}},
 
 		_start:()=>{
@@ -59,7 +69,7 @@ function _create_proc(prm,launcher){
 					proc.HappenTo.Happen(e,{
 						Class:CLASS_PROC,
 						Cause:'ThrownFromCallback',
-						Info:GetInfo('OnStart'),
+						Info:proc.GetInfo('OnStart'),
 					});
 					proc.Abort();
 				}
@@ -76,7 +86,7 @@ function _create_proc(prm,launcher){
 					proc.HappenTo.Happen(e,{
 						Class:CLASS_PROC,
 						Cause:'ThrownFromCallback',
-						Info:GetInfo('OnAbort'),
+						Info:proc.GetInfo('OnAbort'),
 					});
 				}
 			}
@@ -85,7 +95,7 @@ function _create_proc(prm,launcher){
 					'Aborted',{
 					Class:CLASS_PROC,
 					Cause:'Aborted',
-					Info:GetInfo('Aborted'),
+					Info:proc.GetInfo('Aborted'),
 				});
 			}
 		},
@@ -98,7 +108,7 @@ function _create_proc(prm,launcher){
 				proc.HappenTo.Happen(e,{
 					Class:CLASS_PROC,
 					Cause:'ThrownFromCallback',
-					Info:GetInfo('OnPoll'),
+					Info:proc.GetInfo('OnPoll'),
 				});
 				proc.Abort();
 				return false;
@@ -112,7 +122,7 @@ function _create_proc(prm,launcher){
 					proc.HappenTo.Happen(e,{
 						Class:CLASS_PROC,
 						Cause:'ThrownFromCallback',
-						Info:GetInfo('OnDone'),
+						Info:proc.GetInfo('OnDone'),
 					});
 					proc.Abort();
 					return false;
@@ -130,7 +140,7 @@ function _create_proc(prm,launcher){
 					'Empty callback for sync',{
 					Class:CLASS_PROC,
 					Cause:'EmptySyncCallback',
-					Info:GetInfo('CannotSync'),
+					Info:proc.GetInfo('CannotSync'),
 				});
 				return;
 			}
@@ -145,7 +155,7 @@ function _create_proc(prm,launcher){
 						proc.HappenTo.Happen(e,{
 							Class:CLASS_PROC,
 							Cause:'ThrownFromCallback',
-							Info:GetInfo('OnSync'),
+							Info:proc.GetInfo('OnSync'),
 						});
 					}
 				},
@@ -184,6 +194,30 @@ function _yges_enginge_create_launcher(prm){
 		GetActive:()=>active,
 		GetHeld:()=>launched,
 		GetSub:()=>sublauncher,
+
+		GetStatus:()=>{
+			if(abandoned)return 'Abandoned';
+			if(aborted)return 'Aborted';
+			return 'Ready';
+		},
+		GetInfo:(site='')=>{
+			let r={
+				InstanceID:iid,
+				Name:lnc.name,
+				CrashSite:site,
+				Status:lnc.GetStatus(),
+				Limit:lnc.Limit,
+				Cycle:lnc.Cycle,
+				User:lnc.User,
+				Active:[],
+				Held:[],
+				Sub:[],
+			}	
+			for(let proc of active)r.Active.push(proc.GetInfo());
+			for(let proc of launched)r.Held.push(proc.GetInfo());
+			for(let sub of sublauncher)r.Sub.push(sub.GetInfo());
+			return r;
+		},
 
 		IsEnd:()=>{
 			if(launched.length>0)return false;
@@ -304,6 +338,7 @@ function _yges_enginge_create_launcher(prm){
 						lnc.HappenTo.Happen(e,{
 							Class:CLASS_PROC,
 							Cause:'ThrownFromCallback',
+							Info:lnc.GetInfo('OnSync'),
 						});
 					}
 				}
@@ -314,7 +349,7 @@ function _yges_enginge_create_launcher(prm){
 			return Timing.ToPromise((ok,ng)=>{
 				lnc.Sync(()=>{
 					if(breakable || !aborted)ok(lnc.User);
-					else ng(new Error('abort',{cause:lnc.User}));
+					else ng(new Error('abort',{cause:lnc.GetInfo('abort')}));
 				},interval);
 			});
 		},

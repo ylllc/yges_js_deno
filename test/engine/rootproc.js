@@ -39,6 +39,10 @@ const scenaria=[
 			Test.ChkStrict(false,proc.IsAborted(),'bgn - aborted');
 			Test.ChkStrict(false,proc.IsEnd(),'bgn - end');
 
+			let info=proc.GetInfo();
+			Test.ChkStrict('Running',info.Status);
+			Test.ChkStrict(true,info.User.lock);
+
 			proc.User.lock=false;
 			await proc.ToPromise(false);
 
@@ -49,6 +53,10 @@ const scenaria=[
 			Test.ChkStrict(true,proc.IsFinished(),'end - finished');
 			Test.ChkStrict(false,proc.IsAborted(),'end - aborted');
 			Test.ChkStrict(true,proc.IsEnd(),'end - end');
+
+			info=proc.GetInfo();
+			Test.ChkStrict('Finished',info.Status);
+			Test.ChkStrict(false,info.User.lock);
 
 			await tool.Launcher.ToPromise();
 		},

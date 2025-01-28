@@ -35,13 +35,21 @@ function _standby(prm){
 	let launcher=prm.Launcher??Engine;
 	let user=prm.User??{};
 
-	let GetInfo=(phase)=>{
+	let GetInfo=(site='')=>{
 		return {
 			Name:name,
-			Phase:phase,
+			CrashSite:site,
 			State:ctrl?ctrl.GetCurState():'NONE',
-			Wait:wait,
+			Busy:!!ctrl,
+			Ready:ready,
+			Halt:halt,
+			Aborted:aborted,
+			Restarting:restart,
+			Handles:opencount,
+			Waiting:wait.length,
 			User:user,
+			Happening:happen.GetInfo(),
+			Launcher:launcher.GetInfo(),
 		}
 	}
 
@@ -343,6 +351,7 @@ function _standby(prm){
 		IsReady:()=>ready && opencount>0,
 		IsHalt:()=>halt,
 		GetState:()=>ctrl?ctrl.GetCurState():'NONE',
+		GetInfo:()=>GetInfo(''),
 
 		GetLauncher:()=>{return launcher;},
 		GetHappeningManager:()=>{return happen;},
@@ -405,12 +414,7 @@ function _standby(prm){
 				if(!ctrl){
 					ctrl=StateMachine.Run('IDLE',states,ctrlopt);
 					let StMacInfo=ctrl.GetInfo;
-					ctrl.GetInfo=()=>{
-						return {
-							'StMac':StMacInfo(),
-							'Agent':GetInfo(''),
-						}
-					}
+					ctrl.GetInfo=()=>Object.assign(StMacInfo(),{Agent:GetInfo('')});
 				}
 			},
 			Close:()=>{
