@@ -44,22 +44,29 @@ export default {
 			break;
 		}
 
-		Timing.ToPromise((ok,ng)=>{
+//		Timing.ToPromise((ok,ng)=>{
 			for(let t of scn){
 				if(puf && !t.PickUp)continue;
 				if(t.Filter!==undefined && !t.Filter)continue;
 
-				let err=null;
 				test(t.Title,async ()=>{
 					Engine.Start();
 
+					let abend=false;
 					let hap2=YgEs.HappeningManager.CreateLocal({
 						Name:'Happened in '+t.Title,
-						OnHappen:(hap)=>{throw hap.ToError()},
+						OnHappen:(hap)=>{
+							abend=true;
+							console.error(hap.ToString());
+							console.dir(hap.GetProp());
+						},
 					});
 					let log2=YgEs.Log.CreateLocal(t.Title,YgEs.Log.LEVEL.DEBUG);
 					let lnc2=Engine.CreateLauncher({
 						HappenTo:hap2,
+					});
+					let end=YgEs.Timing.Poll(10,()=>{
+						if(abend)Engine.Abort();
 					});
 					try{
 						await t.Proc({
@@ -67,17 +74,22 @@ export default {
 							Launcher:lnc2,
 							Log:log2,
 						});
+						end();
+						Engine.Stop();
+						await Timing.SyncKit(10,()=>lnc2.IsEnd()).ToPromise();
 					}
 					catch(e){
-						err=e;
+						end();
+						Engine.Stop();
+						hap2.Happen(e);
 					}
-					lnc2.Abort();
-					if(!lnc2.HappenTo.IsCleaned())throw new Error('Happen in Test: '+t.Title,{cause:lnc2.HappenTo.GetInfo()});
-					Engine.Stop();
-
+					hap2.CleanUp();
+					let err=lnc2.HappenTo.IsCleaned()?null:new Error('Happen in Test: '+t.Title,{cause:lnc2.HappenTo.GetInfo()});
+					lnc2.Abandon();
+					hap2.Abandon();
 					if(err)throw err;
 				});
 			}
-		});
+//		});
 	},
 };
