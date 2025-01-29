@@ -54,9 +54,3 @@ Access by your web browser.
 ```
 $ rm server_running
 ```
-
-
-## Known Problem
-
-- in version 2.1.4, File.stat() not work.
-	- 2.0.6 can work.
