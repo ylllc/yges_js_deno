@@ -36,7 +36,7 @@ function _standby(prm){
 	let user=prm.User??{};
 
 	let GetInfo=(site='')=>{
-		return {
+		let r={
 			Name:name,
 			CrashSite:site,
 			State:ctrl?ctrl.GetCurState():'NONE',
@@ -46,11 +46,13 @@ function _standby(prm){
 			Aborted:aborted,
 			Restarting:restart,
 			Handles:opencount,
-			Waiting:wait.length,
 			User:user,
+			Waiting:[],
 			Happening:happen.GetInfo(),
 			Launcher:launcher.GetInfo(),
 		}
+		for(let w of wait)r.Waiting.push({Label:w.Label,Prop:w.Prop});
+		return r;
 	}
 
 	let states={
@@ -97,7 +99,7 @@ function _standby(prm){
 				let cont=[]
 				for(let d of wait){
 					try{
-						if(d())continue;
+						if(d.Chk(d.Prop))continue;
 						cont.push(d);
 					}
 					catch(e){
@@ -151,7 +153,7 @@ function _standby(prm){
 				let cont=[]
 				for(let d of wait){
 					try{
-						if(d())continue;
+						if(d.Chk(d.Prop))continue;
 						cont.push(d);
 					}
 					catch(e){
@@ -178,7 +180,10 @@ function _standby(prm){
 					if(prm.Dependencies){
 						Util.SafeDictIter(prm.Dependencies,(k,h)=>{
 							h.Open();
-							wait.push(()=>h.IsReady());
+							wait.push({
+								Label:'Depends '+h.GetAgent().name,
+								Chk:()=>h.IsReady(),
+							});
 						});
 					}
 				}
@@ -197,7 +202,7 @@ function _standby(prm){
 				let cont=[]
 				for(let d of wait){
 					try{
-						if(d())continue;
+						if(d.Chk(d.Prop))continue;
 						cont.push(d);
 					}
 					catch(e){
@@ -357,7 +362,9 @@ function _standby(prm){
 		GetHappeningManager:()=>{return happen;},
 		GetDependencies:()=>{return prm.Dependencies;},
 
-		WaitFor:(cb)=>{wait.push(cb)},
+		WaitFor:(label,cb_chk,prop={})=>{
+			wait.push({Label:label,Chk:cb_chk,Prop:prop});
+		},
 		Restart:()=>{restart=true;},
 
 		Fetch:()=>{

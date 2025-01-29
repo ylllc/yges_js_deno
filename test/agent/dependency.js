@@ -15,7 +15,7 @@ let workset1={
 	User:{Count:0},
 	OnOpen:(agent)=>{
 		Test.ChkStrict(agent.IsBusy(),true);
-		agent.WaitFor(()=>{
+		agent.WaitFor('Counting up to 10',()=>{
 			return ++agent.User.Count>=10;
 		});
 	},
@@ -24,7 +24,7 @@ let workset1={
 	},
 	OnClose:(agent)=>{
 		Test.ChkStrict(agent.IsReady(),false);
-		agent.WaitFor(()=>{
+		agent.WaitFor('Counting up to 20',()=>{
 			return ++agent.User.Count>=20;
 		});
 	},

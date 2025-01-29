@@ -21,7 +21,7 @@ let workset={
 		agent.User.Count+=1;
 		Test.ChkStrict(agent.User.Count,2);
 
-		agent.WaitFor(()=>{
+		agent.WaitFor('HappeningManager cleaned up',()=>{
 			// resolve all happenings in target HappeningManager 
 			let hm=agent.GetHappeningManager();
 			hm.Poll((hap)=>{

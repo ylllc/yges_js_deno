@@ -60,7 +60,7 @@ let workset2={
 	name:'Test Rescuer',
 
 	OnOpen:(agent)=>{
-		agent.WaitFor(()=>{
+		agent.WaitFor('Is Agent1 halt',()=>{
 			return agent1.IsHalt();
 		});
 	},

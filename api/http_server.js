@@ -253,7 +253,7 @@ function _listener_new(port,route,opt={}){
 			_internal.close(()=>{
 				done=true;
 			});
-			wk.WaitFor(()=>done);
+			wk.WaitFor('HTTP listener closed',()=>done);
 		},
 		OnFinish:(wk,clean)=>{
 			log.Info('end of server port '+port);

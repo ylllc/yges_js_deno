@@ -23,7 +23,7 @@ const scenaria=[
 			Test.ChkStrict(false,info.Aborted);
 			Test.ChkStrict(false,info.Restarting);
 			Test.ChkStrict(0,info.Handles);
-			Test.ChkStrict(0,info.Waiting);
+			Test.ChkStrict(0,info.Waiting.length);
 
 			let h=w.Open();
 			Test.ChkStrict(w.IsOpen(),true);

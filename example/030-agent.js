@@ -27,13 +27,13 @@ let workset1={
 	User:{Count:0},
 	OnOpen:(worker)=>{
 		Log.Info('Worker1 open');
-		worker.WaitFor(()=>{
+		worker.WaitFor('Counting up to 10',()=>{
 			return ++worker.User.Count>=10;
 		});
 	},
 	OnBack:(worker)=>{
 		Log.Info('Worker1 back');
-		worker.WaitFor(()=>{
+		worker.WaitFor('Counting down to 0',()=>{
 			return --worker.User.Count<=0;
 		});
 	},
@@ -42,7 +42,7 @@ let workset1={
 	},
 	OnClose:(worker)=>{
 		Log.Info('Worker1 close');
-		worker.WaitFor(()=>{
+		worker.WaitFor('Counting down to 0',()=>{
 			return --worker.User.Count<=0;
 		});
 	},

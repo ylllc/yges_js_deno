@@ -29,7 +29,7 @@ function _target(dir,parent){
 					ws.HappenTo.Happen(err);
 				}
 			);
-			wk.WaitFor(()=>{return done;});
+			wk.WaitFor('MkDir done',()=>{return done;});
 		},
 	};
 	if(parent)ws.Dependencies=[parent.Fetch()]
