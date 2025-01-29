@@ -5,9 +5,9 @@
 
 import YgEs from './common.js';
 
-import http from 'http';
-import path from 'path';
-import mime from 'mime-lite';
+import http from 'node:http';
+import path from 'node:path';
+import mime from 'npm:mime-lite';
 
 // HTTP Server Low Level for Node.js ---- //
 (()=>{ // local namespace 
