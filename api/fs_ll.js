@@ -5,8 +5,9 @@
 
 import YgEs from './common.js';
 import Timing from './timing.js';
-import fs from 'fs';
-import {glob} from 'node:fs';
+import fs from 'node:fs';
+import {walk} from 'jsr:@std/fs/walk';
+import {globToRegExp} from 'jsr:@std/path';
 
 // Low Level File Control for Node.js --- //
 (()=>{ // local namespace 
@@ -123,10 +124,19 @@ const FS=YgEs.FS={
 
 	Glob:(dir,ptn='*')=>{
 		return Timing.ToPromise(async (ok,ng)=>{
-			glob(ptn,{cwd:dir},(e,r)=>{
-				if(e)ng(e);
-				else ok(r);
-			});
+
+			try{
+				let bp=dir+'/';
+				let r=[]
+				for await (let ent of walk(dir,{maxDepth:1,match:[globToRegExp(bp+ptn)]})){
+					if(ent.path.length<=bp.length)continue; // avoid dirself 
+					r.push(ent.name);
+				}
+				ok(r);
+			}
+			catch(e){
+				ng(e);
+			}
 		});
 	},
 }
