@@ -43,6 +43,12 @@ let Util=YgEs.Util={
 		return true;
 	},
 
+	IsPoly:(val)=>{
+		if(val===null)return false;
+		if(typeof val==='object')return true;
+		return false;
+	},
+
 	Booleanize:(val,stringable=false)=>{
 		if(val===null)return false;
 		if(val===undefined)return false;
