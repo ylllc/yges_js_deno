@@ -10,7 +10,7 @@ import File from '../api/file.js';
 
 // Examples: HTTP Server ---------------- //
 
-const LIFEFILE='../server_running';
+const LIFEFILE='../!http_server_running';
 const PUBLIC_ROOT='../web/public';
 const DOCS_ROOT='../web/docs/html';
 const TEST_ROOT='../web/test';
