@@ -1,2 +1,2 @@
 cd /d %~dp0
-if exist server_running del server_running
+if exist !http_server_running del !http_server_running
