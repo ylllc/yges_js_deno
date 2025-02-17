@@ -29,7 +29,6 @@ function _server_new(port,opt={}){
 		HappenTo:opt.HappenTo??HappeningManager.CreateLocal(),
 		Launcher:opt.Launcher??Engine.CreateLauncher(),
 		User:opt.User??{},
-
 		_private_:{
 			ll:null,
 		},
@@ -83,6 +82,7 @@ function _server_new(port,opt={}){
 let WebSockServer=YgEs.WebSockServer={
 	name:'YgEs.WebSockServer.Container',
 	User:{},
+	_private_:{},
 
 	SetUp:_server_new,
 }

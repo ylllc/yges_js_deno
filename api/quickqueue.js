@@ -15,6 +15,7 @@ function _qq_create(args){
 	let q={
 		name:'YgEs.QuickQueue',
 		User:{},
+		_private_:{},
 
 		IsEnd:()=>{return cur>=args.length;},
 		Count:()=>{return args.length;},
@@ -35,6 +36,7 @@ function _qq_create(args){
 YgEs.QuickQueue={
 	name:'YgEs.QuickQueueContainer',
 	User:{},
+	_private_:{},
 
 	Create:_qq_create,
 }

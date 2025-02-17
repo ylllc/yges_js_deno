@@ -47,6 +47,8 @@ function _target(dir,parent){
 let Dir=YgEs.Dir={
 	name:'YgEs.DirControl',
 	User:{},
+	_private_:{},
+
 	HappenTo:HappeningManager,
 
 	Exists:(path)=>FS.Exists(path),

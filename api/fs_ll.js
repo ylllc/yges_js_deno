@@ -78,6 +78,7 @@ function _initStat(path,stat){
 const FS=YgEs.FS={
 	name:'YgEs_FileLowLevel',
 	User:{},
+	_private_:{},
 
 	Exists:(path)=>{
 		return fs.existsSync(path);

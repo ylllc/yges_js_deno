@@ -9,6 +9,7 @@
 let YgEs={
 	name:'YgEs',
 	User:{},
+	_private_:{},
 };
 
 (()=>{ // local namespace 

@@ -74,6 +74,8 @@ function _serve_new(dir,opt={}){
 	var tt={
 		Name:'YgEs.HTTPServe',
 		User:opt.User??{},
+		_private_:{},
+
 		Dir:dir,
 		Charset:(path)=>HTTPServer.DefaultCharset,
 		Indices:opt.Indices??['index.html','index.htm'],
@@ -175,6 +177,8 @@ function _present_new(meth,opt={}){
 	var pt={
 		Name:'YgEs.HTTPPresent',
 		User:opt.User??{},
+		_private_:{},
+
 		Methods:meth,
 
 		Walk:(walker)=>{
@@ -194,6 +198,8 @@ function _route_new(map,opt={}){
 	var rt={
 		Name:'YgEs.HTTPRoute',
 		User:opt.User??{},
+		_private_:{},
+
 		Map:map,
 
 		Walk:(walker)=>{
@@ -215,6 +221,8 @@ function _request(listener,req,res){
 		var walker={
 			Name:'YgEs.HTTPWalker',
 			User:{},
+			_private_:{},
+
 			Listener:listener,
 			Request:req,
 			Response:res,
@@ -270,6 +278,8 @@ function _listener_new(port,route,opt={}){
 let HTTPServer=YgEs.HTTPServer={
 	name:'YgEs.HTTPServer',
 	User:{},
+	_private_:{},
+
 	DefaultCharset:'utf-8',
 
 	SetUp:_listener_new,

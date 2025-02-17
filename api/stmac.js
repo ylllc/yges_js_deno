@@ -37,6 +37,8 @@ function _run(start,states={},opt={}){
 	let ctrl={
 		name:name+'_Control',
 		User:user,
+		_private_:{},
+
 		GetHappeningManager:()=>happen,
 		GetPrevState:()=>state_prev,
 		GetCurState:()=>state_cur,
@@ -213,7 +215,6 @@ function _run(start,states={},opt={}){
 		Name:name,
 		HappenTo:happen,
 		User:user,
-
 		OnStart:(user)=>{
 			call_start(user);
 		},
@@ -241,6 +242,7 @@ function _run(start,states={},opt={}){
 YgEs.StateMachine={
 	name:'YgEs_StateMachineContainer',
 	User:{},
+	_private_:{},
 
 	Run:_run,
 }

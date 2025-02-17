@@ -11,6 +11,7 @@ import YgEs from './common.js';
 let Timing=YgEs.Timing={
 	name:'YgEs_Timing',
 	User:{},
+	_private_:{},
 
 	FromPromise:(promise,cb_ok=null,cb_ng=null)=>{
 		new Promise(async (ok,ng)=>{

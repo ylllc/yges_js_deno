@@ -17,6 +17,7 @@ const _rx_undefined=/^undefined$/i;
 let Util=YgEs.Util={
 	name:'YgEs.Util',
 	User:{},
+	_private_:{},
 
 	IsJustNaN:(val)=>{
 		if(typeof val!=='number')return false;

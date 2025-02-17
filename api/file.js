@@ -13,6 +13,8 @@ import FS from './fs_ll.js';
 YgEs.File={
 	name:'YgEs_FileControl',
 	User:{},
+	_private_:{},
+
 	HappenTo:HappeningManager,
 
 	Exists:(path)=>FS.Exists(path),

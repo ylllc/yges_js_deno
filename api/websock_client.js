@@ -52,9 +52,11 @@ function _client_new(url,opt={}){
 
 	let ws={
 		Name:'YgEs.WebSockClient.Agent',
+		User:opt.User??{},
+		_private_:{},
+
 		HappenTo:opt.HappenTo??HappeningManager.CreateLocal(),
 		Launcher:opt.Launcher??Engine.CreateLauncher(),
-		User:opt.User??{},
 
 		OnOpen:(wk)=>{
 			log.Info('bgn of WebSock client: '+url);
@@ -107,6 +109,7 @@ function _client_new(url,opt={}){
 let WebSockClient=YgEs.WebSockClient={
 	name:'YgEs.WebSockClient.Container',
 	User:{},
+	_private_:{},
 
 	SetUp:_client_new,
 }

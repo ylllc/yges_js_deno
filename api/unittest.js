@@ -22,6 +22,7 @@ function _cpmsg(msg,v1,op,v2){
 export default {
 	name:'YgEs_UnitTest',
 	User:{},
+	_private_:{},
 
 	Never:(msg=null)=>{assert(false,msg)},
 	Chk:(cond,msg=null)=>{assert(cond,msg)},

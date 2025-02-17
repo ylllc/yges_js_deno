@@ -34,8 +34,10 @@ function _create_proc(prm,launcher){
 	const iid=YgEs.NextID();
 	let proc={
 		name:prm.Name??CLASS_PROC,
-		HappenTo:prm.HappenTo??launcher.HappenTo??HappeningManager,
 		User:prm.User??{},
+		_private_:{},
+
+		HappenTo:prm.HappenTo??launcher.HappenTo??HappeningManager,
 
 		GetInstanceID:()=>iid,
 		IsStarted:()=>started,
@@ -185,10 +187,12 @@ function _yges_enginge_create_launcher(prm){
 	const iid=YgEs.NextID();
 	let lnc={
 		name:prm.Name??CLASS_LAUNCHER,
+		User:prm.User??{},
+		_private_:{},
+
 		HappenTo:prm.HappenTo??HappeningManager,
 		Limit:prm.Limit??-1,
 		Cycle:prm.Cycle??DEFAULT_LAUNCHER_CYCLE,
-		User:prm.User??{},
 
 		GetInstanceID:()=>iid,
 		GetActive:()=>active,
@@ -212,7 +216,7 @@ function _yges_enginge_create_launcher(prm){
 				Active:[],
 				Held:[],
 				Sub:[],
-			}	
+			}
 			for(let proc of active)r.Active.push(proc.GetInfo());
 			for(let proc of launched)r.Held.push(proc.GetInfo());
 			for(let sub of sublauncher)r.Sub.push(sub.GetInfo());

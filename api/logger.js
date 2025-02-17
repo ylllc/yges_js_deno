@@ -61,6 +61,7 @@ function _create_local(capt=null,showable=null,parent=null){
 	let t={
 		name:'YgEs.LocalLog',
 		User:{},
+		_private_:{},
 
 		Showable:showable,
 		Caption:capt,
