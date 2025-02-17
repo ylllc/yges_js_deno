@@ -33,7 +33,7 @@ function _set_prop(prop,ks,v){
 function _parse(url,opt={}){
 
 	let pu={
-		name:'YgEs_ParsedURL',
+		Name:'YgEs.ParsedURL',
 		User:{},
 		_private_:{},
 
@@ -145,7 +145,7 @@ function _parse(url,opt={}){
 }
 
 let URLBuilder=YgEs.URLBuilder={
-	name:'YgEs_URLBuilder',
+	Name:'YgEs.URLBuilder',
 	User:{},
 	_private_:{},
 

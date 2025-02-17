@@ -72,7 +72,7 @@ async function _dirent(basedir,srcdir,deep,opt){
 function _serve_new(dir,opt={}){
 
 	var tt={
-		Name:'YgEs.HTTPServe',
+		Name:'YgEs.HTTPServer.Serve',
 		User:opt.User??{},
 		_private_:{},
 
@@ -175,7 +175,7 @@ function _serve_new(dir,opt={}){
 function _present_new(meth,opt={}){
 
 	var pt={
-		Name:'YgEs.HTTPPresent',
+		Name:'YgEs.HTTPServer.Present',
 		User:opt.User??{},
 		_private_:{},
 
@@ -196,7 +196,7 @@ function _present_new(meth,opt={}){
 function _route_new(map,opt={}){
 
 	var rt={
-		Name:'YgEs.HTTPRoute',
+		Name:'YgEs.HTTPServer.Route',
 		User:opt.User??{},
 		_private_:{},
 
@@ -219,7 +219,7 @@ function _request(listener,req,res){
 
 	try{
 		var walker={
-			Name:'YgEs.HTTPWalker',
+			Name:'YgEs.HTTPServer.Walker',
 			User:{},
 			_private_:{},
 
@@ -247,7 +247,7 @@ function _listener_new(port,route,opt={}){
 	var _internal=HTTPLowLevel.SetUp((req,res)=>_request(listener,req,res));
 
 	var ws={
-		Name:'YgEs.HTTPListener',
+		Name:'YgEs.HTTPServer.Listener',
 		HappenTo:opt.HappenTo??HappeningManager.CreateLocal(),
 		Launcher:opt.Launcher??Engine.CreateLauncher(),
 		User:opt.User??{},
@@ -276,7 +276,7 @@ function _listener_new(port,route,opt={}){
 }
 
 let HTTPServer=YgEs.HTTPServer={
-	name:'YgEs.HTTPServer',
+	Name:'YgEs.HTTPServer.Container',
 	User:{},
 	_private_:{},
 

@@ -7,7 +7,7 @@
 
 // export target 
 let YgEs={
-	name:'YgEs',
+	Name:'YgEs',
 	User:{},
 	_private_:{},
 };

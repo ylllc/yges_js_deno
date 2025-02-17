@@ -35,7 +35,7 @@ function _run(start,states={},opt={}){
 	}
 
 	let ctrl={
-		name:name+'_Control',
+		Name:name+'.Control',
 		User:user,
 		_private_:{},
 
@@ -212,7 +212,7 @@ function _run(start,states={},opt={}){
 	}
 
 	let stmac={
-		Name:name,
+		Name:name+'.Proc',
 		HappenTo:happen,
 		User:user,
 		OnStart:(user)=>{
@@ -240,7 +240,7 @@ function _run(start,states={},opt={}){
 }
 
 YgEs.StateMachine={
-	name:'YgEs_StateMachineContainer',
+	Name:'YgEs.StateMachine.Container',
 	User:{},
 	_private_:{},
 

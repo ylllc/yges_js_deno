@@ -11,7 +11,7 @@ import FS from './fs_ll.js';
 (()=>{ // local namespace 
 
 YgEs.File={
-	name:'YgEs_FileControl',
+	Name:'YgEs.File.Control',
 	User:{},
 	_private_:{},
 

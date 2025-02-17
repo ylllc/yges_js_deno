@@ -13,7 +13,7 @@ function _qq_create(args){
 	let cur=0;
 
 	let q={
-		name:'YgEs.QuickQueue',
+		Name:'YgEs.QuickQueue.Unit',
 		User:{},
 		_private_:{},
 
@@ -34,7 +34,7 @@ function _qq_create(args){
 }
 
 YgEs.QuickQueue={
-	name:'YgEs.QuickQueueContainer',
+	Name:'YgEs.QuickQueue.Container',
 	User:{},
 	_private_:{},
 

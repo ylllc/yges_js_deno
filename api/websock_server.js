@@ -80,7 +80,7 @@ function _server_new(port,opt={}){
 }
 
 let WebSockServer=YgEs.WebSockServer={
-	name:'YgEs.WebSockServer.Container',
+	Name:'YgEs.WebSockServer.Container',
 	User:{},
 	_private_:{},
 

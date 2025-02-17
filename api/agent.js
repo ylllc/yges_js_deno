@@ -181,7 +181,7 @@ function _standby(prm){
 						Util.SafeDictIter(prm.Dependencies,(k,h)=>{
 							h.Open();
 							wait.push({
-								Label:'Depends '+h.GetAgent().name,
+								Label:'Depends '+h.GetAgent().Name,
 								Chk:()=>h.IsReady(),
 							});
 						});
@@ -348,7 +348,7 @@ function _standby(prm){
 	}
 
 	let agent={
-		name:name,
+		Name:name+'.Worker',
 		User:user,
 		_private_:{},
 
@@ -379,7 +379,7 @@ function _standby(prm){
 	}
 
 	let ctrlopt={
-		Name:name+'_Control',
+		Name:name+'.StateMachine',
 		HappenTo:happen,
 		Launcher:launcher,
 		User:user,
@@ -398,7 +398,7 @@ function _standby(prm){
 	let handle=(w)=>{
 		let in_open=false;
 		let h={
-			name:name+'_Handle',
+			Name:name+'.Handle',
 
 			GetAgent:()=>{return agent;},
 			GetLauncher:()=>agent.GetLauncher(),
@@ -438,7 +438,7 @@ function _standby(prm){
 }
 
 YgEs.AgentManager={
-	name:'YgEs.AgentManager',
+	Name:'YgEs.AgentManager',
 	User:{},
 	_private_:{},
 

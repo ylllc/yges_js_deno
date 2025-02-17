@@ -15,7 +15,7 @@ import FS from './fs_ll.js';
 function _target(dir,parent){
 
 	var ws={
-		Name:'YgEs.DirTarget',
+		Name:'YgEs.Dir.Target',
 		HappenTo:(Dir.HappenTo??HappeningManager).CreateLocal(),
 
 		OnOpen:(wk)=>{
@@ -45,7 +45,7 @@ function _target(dir,parent){
 }
 
 let Dir=YgEs.Dir={
-	name:'YgEs.DirControl',
+	Name:'YgEs.Dir.Control',
 	User:{},
 	_private_:{},
 

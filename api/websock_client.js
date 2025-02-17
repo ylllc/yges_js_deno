@@ -107,7 +107,7 @@ function _client_new(url,opt={}){
 }
 
 let WebSockClient=YgEs.WebSockClient={
-	name:'YgEs.WebSockClient.Container',
+	Name:'YgEs.WebSockClient.Container',
 	User:{},
 	_private_:{},
 

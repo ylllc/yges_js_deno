@@ -20,7 +20,7 @@ function _cpmsg(msg,v1,op,v2){
 }
 
 export default {
-	name:'YgEs_UnitTest',
+	Name:'YgEs.Test',
 	User:{},
 	_private_:{},
 

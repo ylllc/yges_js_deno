@@ -33,7 +33,7 @@ function _create_proc(prm,launcher){
 
 	const iid=YgEs.NextID();
 	let proc={
-		name:prm.Name??CLASS_PROC,
+		Name:prm.Name??CLASS_PROC,
 		User:prm.User??{},
 		_private_:{},
 
@@ -53,7 +53,7 @@ function _create_proc(prm,launcher){
 		},
 		GetInfo:(site='')=>{return {
 			InstanceID:iid,
-			Name:proc.name,
+			Name:proc.Name,
 			CrashSite:site,
 			Status:proc.GetStatus(),
 			User:proc.User,
@@ -186,7 +186,7 @@ function _yges_enginge_create_launcher(prm){
 
 	const iid=YgEs.NextID();
 	let lnc={
-		name:prm.Name??CLASS_LAUNCHER,
+		Name:prm.Name??CLASS_LAUNCHER,
 		User:prm.User??{},
 		_private_:{},
 
@@ -207,7 +207,7 @@ function _yges_enginge_create_launcher(prm){
 		GetInfo:(site='')=>{
 			let r={
 				InstanceID:iid,
-				Name:lnc.name,
+				Name:lnc.Name,
 				CrashSite:site,
 				Status:lnc.GetStatus(),
 				Limit:lnc.Limit,

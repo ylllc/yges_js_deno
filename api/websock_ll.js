@@ -32,7 +32,7 @@ function _server_new(port,opt={}){
 		}
 
 		let cnx={
-			name:'YgEs.WebSockServer.Connection',
+			Name:'YgEs.WebSockServer.Connection',
 			User:{},
 			_private_:{
 				ready:false,
@@ -74,7 +74,7 @@ function _server_new(port,opt={}){
 	});
 
 	let server={
-		name:'YgEs.WebSockLowLevel.Server',
+		Name:'YgEs.WebSockLowLevel.Server',
 		_private_:{
 			ll:ll,
 		},
@@ -97,7 +97,7 @@ function _server_new(port,opt={}){
 }
 
 let WebSockLowLevel=YgEs.WebSockLowLevel={
-	name:'YgEs.WebSockLowLevel',
+	Name:'YgEs.WebSockLowLevel',
 	User:{},
 	_private_:{},
 

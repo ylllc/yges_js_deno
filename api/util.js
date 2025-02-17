@@ -15,7 +15,7 @@ const _rx_false=/^false$/i;
 const _rx_undefined=/^undefined$/i;
 
 let Util=YgEs.Util={
-	name:'YgEs.Util',
+	Name:'YgEs.Util',
 	User:{},
 	_private_:{},
 

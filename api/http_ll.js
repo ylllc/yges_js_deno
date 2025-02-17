@@ -25,7 +25,7 @@ function _getMIMEType(stat){
 }
 
 let HTTPLowLevel=YgEs.HTTPLowLevel={
-	name:'YgEs.HTTPLowLevel',
+	Name:'YgEs.HTTPLowLevel',
 	User:{},
 	_private_:{},
 
