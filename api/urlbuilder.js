@@ -38,7 +38,7 @@ function _parse(url,opt={}){
 
 		Scheme:'',
 		Slashes:'',
-		User:'',
+		UID:'',
 		Pass:'',
 		Host:'',
 		Port:'',
@@ -51,8 +51,8 @@ function _parse(url,opt={}){
 			if(pu.Host!=''){
 				s=encodeURIComponent(pu.Host)+((pu.Port=='')?'':':')+encodeURIComponent(pu.Port)+s;
 
-				if(pu.User!=''){
-					s=encodeURIComponent(pu.User)+((pu.Pass=='')?'':':')+encodeURIComponent(pu.Pass)+'@'+s;
+				if(pu.UID!=''){
+					s=encodeURIComponent(pu.UID)+((pu.Pass=='')?'':':')+encodeURIComponent(pu.Pass)+'@'+s;
 				}
 			}
 			if(pu.Scheme!=''){
@@ -100,7 +100,7 @@ function _parse(url,opt={}){
 		else if(u.host)pu.Slashes=u.origin.substring(scheme_cp+1,u.origin.length-u.host.length);
 		else pu.Slashes=u.href.substring(scheme_cp+1,u.href.length-u.pathname.length);
 
-		if(u.username!='')pu.User=decodeURIComponent(u.username);
+		if(u.username!='')pu.UID=decodeURIComponent(u.username);
 		if(u.password!='')pu.Pass=decodeURIComponent(u.password);
 		if(u.hostname!='')pu.Host=u.hostname;
 		if(u.port!='')pu.Port=u.port;
@@ -119,7 +119,7 @@ function _parse(url,opt={}){
 			pu.Path=decodeURIComponent(pu.Path);
 			let ap=pu.Path.indexOf('@');
 			if(ap>=0){
-				pu.User=pu.Path.substring(0,ap);
+				pu.UID=pu.Path.substring(0,ap);
 				pu.Host=pu.Path.substring(ap+1);
 			}
 			pu.Path='';

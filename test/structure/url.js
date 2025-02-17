@@ -52,7 +52,7 @@ const scenaria=[
 			var pu=URLBuilder.Parse(url);
 			Test.ChkStrict(pu.Scheme,'mailto');
 			Test.ChkStrict(pu.Slashes,'');
-			Test.ChkStrict(pu.User,'user');
+			Test.ChkStrict(pu.UID,'user');
 			Test.ChkStrict(pu.Host,'example.com');
 			Test.ChkStrict(pu.Bake(),'mailto:user@example.com');
 		},
