@@ -5,6 +5,7 @@
 
 import YgEs from './common.js';
 import HappeningManager from './happening.js';
+import Log from './logger.js';
 import Engine from './engine.js';
 import StateMachine from './stmac.js';
 import Util from './util.js';
@@ -31,6 +32,7 @@ function _standby(prm){
 	let wait=[]
 
 	let name=prm.Name??'YgEs.Agent';
+	let log=prm.Log??Log;
 	let happen=prm.HappenTo??HappeningManager;
 	let launcher=prm.Launcher??Engine;
 	let user=prm.User??{};
@@ -359,6 +361,7 @@ function _standby(prm){
 		GetState:()=>ctrl?ctrl.GetCurState():'NONE',
 		GetInfo:()=>GetInfo(''),
 
+		GetLogger:()=>log,
 		GetLauncher:()=>{return launcher;},
 		GetHappeningManager:()=>{return happen;},
 		GetDependencies:()=>{return prm.Dependencies;},
@@ -380,6 +383,7 @@ function _standby(prm){
 
 	let ctrlopt={
 		Name:name+'.StateMachine',
+		Log:log,
 		HappenTo:happen,
 		Launcher:launcher,
 		User:user,
@@ -401,6 +405,7 @@ function _standby(prm){
 			Name:name+'.Handle',
 
 			GetAgent:()=>{return agent;},
+			GetLogger:()=>agent.GetLogger(),
 			GetLauncher:()=>agent.GetLauncher(),
 			GetHappeningManager:()=>agent.GetHappeningManager(),
 			GetDependencies:()=>agent.GetDependencies(),
