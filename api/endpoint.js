@@ -9,6 +9,36 @@ import Agent from './agent.js';
 // EndPoint ----------------------------- //
 (()=>{ // local namespace 
 
+function _qset_new(){
+
+	let qt={tp:null,ep:{}}
+	qt.Ref=(k)=>{
+		if(k==null){
+			let t=qt.tp;
+			if(!t)t=qt.tp=[]
+			return t;
+		}
+		else{
+			let t=qt.ep[k];
+			if(!t)t=qt.ep[k]=[]
+			return t;
+		}
+	}
+	qt.Flush=(k)=>{
+		if(k==null){
+			let t=qt.tp;
+			if(t)qt.tp=null
+			return t;
+		}
+		else{
+			let t=qt.ep[k];
+			if(t)delete qt.ep[k];
+			return t;
+		}
+	}
+	return qt;
+}
+
 function _endpoint_new(tdrv,opt={}){
 
 	const epid=opt.EPID??YgEs.NextID();
@@ -33,8 +63,8 @@ function _endpoint_new(tdrv,opt={}){
 
 	let ep=Agent.StandBy(prm);
 	ep._private_.epid=epid;
-	ep._private_.sendq={}
-	ep._private_.delaying={}; // for delay test 
+	ep._private_.sendq=_qset_new();
+	ep._private_.delaying=_qset_new(); // for delay test 
 
 	const checkReady=()=>{
 		if(!ep.IsReady()){
@@ -55,27 +85,17 @@ function _endpoint_new(tdrv,opt={}){
 	ep.GetInstanceID=()=>epid;
 	ep.Launch=(epid_to,data)=>{
 		if(!checkReady())return;
-		if(!ep._private_.sendq[epid_to])ep._private_.sendq[epid_to]=[]
+		let sq=ep._private_.sendq.Ref(epid_to);
 
 		ep.GetLogger().Tick(()=>'EndPoint '+epid+' ('+ep.Name+') launch to '+epid_to,data);
 
-		ep._private_.sendq[epid_to].push(data);
+		sq.push(data);
 	}
 	ep.Kick=(epid_to=null)=>{
 		if(!checkReady())return;
-		if(epid_to){
-			if(!ep._private_.sendq[epid_to])return;
-			if(ep._private_.sendq[epid_to].length<1)return;
-			tdrv._private_.send(ep,epid_to,ep._private_.sendq[epid_to]);
-			epid,epid_to,ep._private_.sendq[epid_to]=[];
-		}
-		else{
-			for(let epid_to in ep._private_.sendq){
-				if(ep._private_.sendq[epid_to].length<1)continue;
-				tdrv._private_.send(ep,epid_to,ep._private_.sendq[epid_to]);
-				epid,epid_to,ep._private_.sendq[epid_to]=[];
-			}
-		}
+		let sq=ep._private_.sendq.Flush(epid_to);
+		if(!sq)return;
+		tdrv.Send(ep,epid_to,sq);
 	}
 	ep.Send=(epid_to,data)=>{
 		ep.Launch(epid_to,data);

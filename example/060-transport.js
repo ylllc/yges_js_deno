@@ -50,26 +50,36 @@ const eopt={
 let lb_tp=Transport.CreateLoopback(topt).Open();
 let lb_ep1=EndPoint.Create(lb_tp.GetAgent(),eopt).Open();
 let lb_ep2=EndPoint.Create(lb_tp.GetAgent(),eopt).Open();
-// send each other 
-// (when onorderable delay test, maybe receive B to A) 
-lb_ep1.Send(lb_ep2.GetInstanceID(),'Loopback Test1A');
-lb_ep2.Send(lb_ep1.GetInstanceID(),'Loopback Test2A');
-lb_ep1.Send(lb_ep2.GetInstanceID(),'Loopback Test1B');
-lb_ep2.Send(lb_ep1.GetInstanceID(),'Loopback Test2B');
-// send to me 
-// always received in random order from another senders 
-lb_ep1.Send(lb_ep1.GetInstanceID(),'Loopback Myself Test1');
-lb_ep2.Send(lb_ep2.GetInstanceID(),'Loopback Myself Test2');
 
 // terminate endpoints 
 let tm_tp=Transport.CreateTerminator(topt).Open();
 let tm_ep1=EndPoint.Create(tm_tp.GetAgent(),eopt).Open();
 let tm_ep2=EndPoint.Create(tm_tp.GetAgent(),eopt).Open();
-// sendings will ignored 
-tm_ep1.Send(tm_ep2.GetInstanceID(),'Terminate Test1');
-tm_ep2.Send(tm_ep1.GetInstanceID(),'Terminate Test2');
 
 (async ()=>{
+
+	// wait for endpoints ready 
+	await Timing.SyncKit(1000,()=>lb_ep1.IsReady()).ToPromise();
+	await Timing.SyncKit(1000,()=>lb_ep2.IsReady()).ToPromise();
+
+	// send each other 
+	// (when onorderable delay test, maybe receive B to A) 
+	lb_ep1.Send(lb_ep2.GetInstanceID(),'Loopback Test1A');
+	lb_ep2.Send(lb_ep1.GetInstanceID(),'Loopback Test2A');
+	lb_ep1.Send(lb_ep2.GetInstanceID(),'Loopback Test1B');
+	lb_ep2.Send(lb_ep1.GetInstanceID(),'Loopback Test2B');
+	// send to me 
+	// always received in random order from another senders 
+	lb_ep1.Send(lb_ep1.GetInstanceID(),'Loopback Myself Test1');
+	lb_ep2.Send(lb_ep2.GetInstanceID(),'Loopback Myself Test2');
+
+	// wait for endpoints ready 
+	await Timing.SyncKit(1000,()=>tm_ep1.IsReady()).ToPromise();
+	await Timing.SyncKit(1000,()=>tm_ep2.IsReady()).ToPromise();
+
+	// sendings will ignored 
+	tm_ep1.Send(tm_ep2.GetInstanceID(),'Terminate Test1');
+	tm_ep2.Send(tm_ep1.GetInstanceID(),'Terminate Test2');
 
 	await Timing.DelayKit(1000).ToPromise();
 

@@ -11,21 +11,34 @@ import Agent from './agent.js';
 
 function _transport_new(opt={}){
 
+	const payload=opt.Payload??null;
 	const hurting=opt.Hurting??0.0;
 	const unorderable=opt.Unorderable??false;
 	const delay_min=opt.DelayMin??0;
 	const delay_max=opt.DelayMax??0;
 
-	const onPack=opt.OnPack??((data)=>{
-		return JSON.stringify(data);
+	const onPack=opt.OnPack??((ep,epid_to,payload)=>{
+		return JSON.stringify({ClientFrom:ep.GetInstanceID(),ClientTo:epid_to,Payload:payload});
 	});
 	const onUnpack=opt.OnUnpack??((pack)=>{
 		return JSON.parse(pack);
 	});
+	const onExtractEPIDFrom=opt.OnExtractEPIDFrom??((data)=>{
+		return data.ClientFrom;
+	});
+	const onExtractEPIDTo=opt.OnExtractEPIDTo??((data)=>{
+		return data.ClientTo;
+	});
+	const onExtractPayload=opt.OnExtractPayload??((data)=>{
+		return data.Payload;
+	});
+	const onExtractPayloadType=opt.OnExtractPayloadType??((payload)=>null);
 	const onSend=opt.OnSend??((ep,epid_to,pack)=>{
 		let epid_from=ep.GetInstanceID();
-		tp.GetLogger().Tick(()=>'terminated transport '+epid_from+'=>'+epid_to+': '+pack);
+		tp.GetLogger().Info(()=>'terminated transport: '+pack);
 	});
+	const onReceived=opt.OnReceived;
+	const plrs=opt.PayloadReceivers??{}
 
 	let prm=Object.assign({},opt,{
 	});
@@ -62,13 +75,13 @@ function _transport_new(opt={}){
 		delete tp._private_.endpoint[epid];
 	}
 
-	tp._private_.send=(ep,epid_to,data)=>{
+	tp.Send=(ep,epid_to,payload)=>{
 		if(!checkReady())return;
 		try{
 			let epid_from=ep.GetInstanceID();
-			tp.GetLogger().Tick(()=>'Transport sending '+epid_from+'=>'+epid_to,data);
+			tp.GetLogger().Tick(()=>'Transport sending '+epid_from+'=>'+epid_to,payload);
 
-			let pack=onPack(data);
+			let pack=onPack(ep,epid_to,payload);
 			if(hurting>0){
 				if(Math.random()<hurting){
 					// packet short test 
@@ -76,28 +89,47 @@ function _transport_new(opt={}){
 				}
 			}
 
-			if(delay_max>0){
+			if(delay_max<1){
+				// send now 
+				onSend(ep,epid_to,pack);
+			}
+			else{
 				// delay test 
-				let delay=delay_min+Math.random()*(delay_max-delay_min);
-				if(ep._private_.delaying[epid_to] && !unorderable){
-					// keep ordering from previous delay 
-					ep._private_.delaying[epid_to].Sync(()=>{
-						ep._private_.delaying[epid_to]=tp.GetLauncher().Delay(delay,()=>{
-							delete ep._private_.delaying[epid_to];
-							onSend(ep,epid_to,pack);
-						},()=>{});
-					});
-				}
-				else{
-					ep._private_.delaying[epid_to]=tp.GetLauncher().Delay(delay,()=>{
-						delete ep._private_.delaying[epid_to];
+				if(unorderable){
+					// simple delaying 
+					// may swap ordered packets by this delay 
+					let delay=delay_min+Math.random()*(delay_max-delay_min);
+					tp.GetLauncher().Delay(delay,()=>{
 						onSend(ep,epid_to,pack);
 					},()=>{});
 				}
-			}
-			else{
-				// send now 
-				onSend(ep,epid_to,pack);
+				else{
+					// keep packets ordering 
+					let dq=ep._private_.delaying.Ref(epid_to);
+					dq.push(pack);
+					const launch=()=>{
+						let delay=delay_min+Math.random()*(delay_max-delay_min);
+						tp.GetLauncher().Delay(delay,()=>{
+							fire();
+						},()=>{});
+					}
+					const fire=()=>{
+						if(dq.length<1)return;
+						// send first packet 
+						let p=dq.shift();
+						onSend(ep,epid_to,p);
+						if(dq.length<1)return;
+						// delay again 
+						launch();
+					}
+					if(dq.length>1){
+						// delaying already started 
+					}
+					else{
+						// start delaying now 
+						launch();
+					}
+				}
 			}
 		}
 		catch(e){
@@ -105,10 +137,28 @@ function _transport_new(opt={}){
 		}
 	}
 
-	tp.Receive=(epid_from,epid_to,pack)=>{
+	tp.Receive=(from,pack)=>{
 		if(!checkReady())return;
 
-		tp.GetLogger().Tick(()=>'Transport received '+epid_from+'=>'+epid_to+': '+pack);
+		tp.GetLogger().Tick(()=>'Transport received via '+YgEs.Inspect(from)+': '+pack);
+
+		let data=onUnpack(pack);
+		let epid_to=onExtractEPIDTo(data);
+		if(epid_to==null){
+			let pls=onExtractPayload(data);
+			if(!Array.isArray(pls)){
+				tp.GetLogger().Notice(()=>'No payloads: ',data);
+			}
+			else for(let pl of pls){
+				let plt=onExtractPayloadType(pl);
+				let plr=(plt==null)?null:plrs[plt];
+				if(plr)plr(data);
+				else{
+					tp.GetLogger().Notice(()=>'Receiver not defined: '+plt);
+				}
+			}
+			return;
+		}
 
 		let ep=tp._private_.endpoint[epid_to];
 		if(!ep){
@@ -116,11 +166,15 @@ function _transport_new(opt={}){
 			return;
 		}
 
+		let epid_from=onExtractEPIDFrom(data);
 		try{
 			// receive to destination endpoint 
-			let data=onUnpack(pack);
-			for(let d of data){
-				ep._private_.receive(epid_from,d);
+			for(let d of data.Payload){
+				if(ep)ep._private_.receive(epid_from,d);
+				else if(onReceived)onReceived();
+				else{
+					tp.GetLogger().Tick(()=>'received',d);
+				}
 			}
 		}
 		catch(e){
@@ -137,7 +191,7 @@ function _loopback_new(opt={}){
 		Name:'YgEs.Transport.Loopback',
 		OnSend:(ep,epid_to,pack)=>{
 			let epid_from=ep.GetInstanceID();
-			tp.Receive(epid_from,epid_to,pack);
+			tp.Receive({Type:'loopback',Instance:null},pack);
 		},
 	});
 	if(opt.Log)prm.Log=opt.Log;
