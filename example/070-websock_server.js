@@ -44,6 +44,9 @@ function _server_new(name,port,interval){
 	let tasks={}
 
 	let opt={
+		// max clients 
+		ConnectionLimit:5,
+
 		OnConnect:(ctx,req)=>{
 			ctx.ClientID=YgEs.NextID();
 			Log.Info('client came: '+ctx.ClientID);
@@ -56,7 +59,7 @@ function _server_new(name,port,interval){
 			tasks[ctx.ClientID]=_task_new(name,ctx,interval);
 			return true;
 		},
-		OnClosed:(ctx)=>{
+		OnDisconnect:(ctx)=>{
 			Log.Info('client gone: '+ctx.ClientID);
 
 			// must close for terminate 
@@ -65,7 +68,7 @@ function _server_new(name,port,interval){
 			task.Close();
 			delete tasks[ctx.ClientID];
 		},
-		OnReceived:(ctx,msg)=>{
+		OnReceived:(ctx,msg,isbin)=>{
 			Log.Info('msg from '+ctx.ClientID+': '+msg);
 		},
 		OnError:(ctx,err)=>{
