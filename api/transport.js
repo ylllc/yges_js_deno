@@ -37,6 +37,7 @@ function _transport_new(opt={}){
 		let epid_from=ep_from.GetInstanceID();
 		tp.GetLogger().Tick(()=>'terminated transport: '+pack);
 	});
+	const plss=opt.PayloadSpecs??{}
 	const plrs=opt.PayloadReceivers??{}
 
 	let prm=Object.assign({},opt,{
@@ -145,12 +146,13 @@ function _transport_new(opt={}){
 		let epid_from=onExtractEPIDFrom(data);
 		let epid_to=onExtractEPIDTo(data);
 		if(epid_to==null){
-			let pls=onExtractPayloadArray(data);
-			if(!Array.isArray(pls)){
+			let pla=onExtractPayloadArray(data);
+			if(!Array.isArray(pla)){
 				tp.GetLogger().Notice(()=>'No payloads: ',data);
 			}
-			else for(let pl of pls){
+			else for(let pl of pla){
 				let plt=onExtractPayloadType(pl);
+				let pls=(plt==null)?null:plss[plt];
 				let plr=(plt==null)?null:plrs[plt];
 				if(plr)plr(epid_from,pl);
 				else{
