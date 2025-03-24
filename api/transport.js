@@ -81,7 +81,7 @@ function _transport_new(opt={}){
 		delete tp._private_.endpoint[epid];
 	}
 
-	tp.Send=(ep_from,epid_to,payload)=>{
+	tp._private_.send=(ep_from,epid_to,payload)=>{
 		if(!checkReady())return;
 		try{
 			let epid_from=ep_from.GetInstanceID();
