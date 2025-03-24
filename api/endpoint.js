@@ -95,7 +95,47 @@ function _endpoint_new(tdrv,opt={}){
 		if(!checkReady())return;
 		let sq=ep._private_.sendq.Flush(epid_to);
 		if(!sq)return;
-		tdrv.Send(ep,epid_to,sq);
+
+		let delay=tdrv.MakeDelay();
+		if(delay<1){
+			tdrv.Send(ep,epid_to,sq);
+			return;
+		}
+
+		if(tdrv.IsUnorderable()){
+			// simple delay test  
+			// may swap ordered packets by this delay 
+			tdrv.GetLauncher().Delay(delay,()=>{
+				tdrv.Send(ep,epid_to,sq);
+			},()=>{});
+			return;
+		}
+
+		// keep packets ordering 
+		let dq=ep._private_.delaying.Ref(epid_to);
+		dq.push(sq);
+		const launch=()=>{
+			tdrv.GetLauncher().Delay(delay,()=>{
+				fire();
+			},()=>{});
+		}
+		const fire=()=>{
+			if(dq.length<1)return;
+			// send first packet 
+			sq=dq.shift();
+			tdrv.Send(ep,epid_to,sq);
+			if(dq.length<1)return;
+			// delay again 
+			delay=tdrv.MakeDelay();
+			launch();
+		}
+		if(dq.length>1){
+			// delaying already started 
+		}
+		else{
+			// start delaying now 
+			launch();
+		}
 	}
 	ep.Send=(epid_to,data)=>{
 		ep.Launch(epid_to,data);

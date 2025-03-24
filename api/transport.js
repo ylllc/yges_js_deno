@@ -47,6 +47,12 @@ function _transport_new(opt={}){
 	let tp=Agent.StandBy(prm);
 	tp._private_.endpoint={}
 
+	tp.IsUnorderable=()=>unorderable;
+	tp.MakeDelay=()=>{
+		if(delay_max<1)return 0;
+		return delay_min+Math.random()*(delay_max-delay_min);
+	}
+
 	const checkReady=()=>{
 		if(!tp.IsReady()){
 			tp.GetLogger().Fatal('Transport '+tp.Name+' is not ready');
@@ -89,48 +95,8 @@ function _transport_new(opt={}){
 				}
 			}
 
-			if(delay_max<1){
-				// send now 
-				onSend(ep_from,epid_to,pack);
-			}
-			else{
-				// delay test 
-				if(unorderable){
-					// simple delaying 
-					// may swap ordered packets by this delay 
-					let delay=delay_min+Math.random()*(delay_max-delay_min);
-					tp.GetLauncher().Delay(delay,()=>{
-						onSend(ep_from,epid_to,pack);
-					},()=>{});
-				}
-				else{
-					// keep packets ordering 
-					let dq=ep_from._private_.delaying.Ref(epid_to);
-					dq.push(pack);
-					const launch=()=>{
-						let delay=delay_min+Math.random()*(delay_max-delay_min);
-						tp.GetLauncher().Delay(delay,()=>{
-							fire();
-						},()=>{});
-					}
-					const fire=()=>{
-						if(dq.length<1)return;
-						// send first packet 
-						let p=dq.shift();
-						onSend(ep_from,epid_to,p);
-						if(dq.length<1)return;
-						// delay again 
-						launch();
-					}
-					if(dq.length>1){
-						// delaying already started 
-					}
-					else{
-						// start delaying now 
-						launch();
-					}
-				}
-			}
+			// send now 
+			onSend(ep_from,epid_to,pack);
 		}
 		catch(e){
 			tp.GetLogger().Fatal('Transport error at send: '+e.toString(),YgEs.FromError(e));
