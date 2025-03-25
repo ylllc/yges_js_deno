@@ -36,6 +36,8 @@ function _standby(prm){
 	let happen=prm.HappenTo??HappeningManager;
 	let launcher=prm.Launcher??Engine;
 	let user=prm.User??{};
+	let abps=prm.AgentBypasses??[];
+	let ubps=prm.UserBypasses??[];
 
 	let GetInfo=(site='')=>{
 		let r={
@@ -403,6 +405,7 @@ function _standby(prm){
 		let in_open=false;
 		let h={
 			Name:name+'.Handle',
+			User:{},
 
 			GetAgent:()=>{return agent;},
 			GetLogger:()=>agent.GetLogger(),
@@ -436,6 +439,25 @@ function _standby(prm){
 				--opencount;
 			},
 		}
+		for(let n of abps){
+			h[n]=(...args)=>{
+				if(!h.IsReady()){
+					h.GetLogger().Notice('not ready');
+					return null;
+				}
+				return agent[n].call(null,...args);
+			}
+		}
+		for(let n of ubps){
+			h[n]=(...args)=>{
+				if(!h.IsReady()){
+					h.GetLogger().Notice('not ready');
+					return null;
+				}
+				return agent.User[n].call(null,...args);
+			}
+		}
+
 		return h;
 	}
 
