@@ -5,6 +5,7 @@
 
 import YgEs from './common.js';
 import Agent from './agent.js';
+import EndPoint from './endpoint.js';
 
 // Transport Driver --------------------- //
 (()=>{ // local namespace 
@@ -17,6 +18,9 @@ function _transport_new(opt={}){
 	const delay_min=opt.DelayMin??0;
 	const delay_max=opt.DelayMax??0;
 
+	const onOpen=opt.OnOpen??((agent)=>{});
+	const onClose=opt.OnClose??((agent)=>{});
+	const onReady=opt.OnReady??((agent)=>{});
 	const onPack=opt.OnPack??((ep_from,epid_to,payload)=>{
 		return JSON.stringify({ClientFrom:ep_from.GetInstanceID(),ClientTo:epid_to,Payload:payload});
 	});
@@ -38,9 +42,21 @@ function _transport_new(opt={}){
 		tp.GetLogger().Tick(()=>'terminated transport: '+pack);
 	});
 	const plss=opt.PayloadSpecs??{}
-	const plrs=opt.PayloadReceivers??{}
+	const plrs=opt.PayloadReceivers??null
 
 	let prm=Object.assign({},opt,{
+		AgentBypasses:['Send','Receive'],
+		OnOpen:(agent)=>{
+			onOpen(agent);
+		},
+		OnClose:(agent)=>{
+			onClose(agent);
+			if(tp._private_.host)tp._private_.host.Close();
+		},
+		OnReady:(agent)=>{
+			onReady(agent);
+			if(tp._private_.host)tp._private_.host.Open();
+		},
 	});
 	if(!prm.Name)prm.Name='YgEs.Transport.Driver';
 
@@ -81,13 +97,13 @@ function _transport_new(opt={}){
 		delete tp._private_.endpoint[epid];
 	}
 
-	tp._private_.send=(ep_from,epid_to,payload)=>{
+	tp._private_.send=(ep_from,epid_to,data)=>{
 		if(!checkReady())return;
 		try{
 			let epid_from=ep_from.GetInstanceID();
-			tp.GetLogger().Tick(()=>'Transport sending '+epid_from+'=>'+epid_to,payload);
+			tp.GetLogger().Tick(()=>'Transport sending '+epid_from+'=>'+epid_to,data);
 
-			let pack=onPack(ep_from,epid_to,payload);
+			let pack=onPack(ep_from,epid_to,data);
 			if(hurting>0){
 				if(Math.random()<hurting){
 					// packet short test 
@@ -103,6 +119,30 @@ function _transport_new(opt={}){
 		}
 	}
 
+	tp.Launch=(epid_to,data)=>{
+		if(!tp._private_.host){
+			tp.GetLogger().Fatal('Host not attached for send');
+			return;
+		}
+		return tp._private_.host.Launch(epid_to,data);
+	}
+
+	tp.Kick=(epid_to=null)=>{
+		if(!tp._private_.host){
+			tp.GetLogger().Fatal('Host not attached for send');
+			return;
+		}
+		return tp._private_.host.Kick(epid_to);
+	}
+
+	tp.Send=(epid_to,data)=>{
+		if(!tp._private_.host){
+			tp.GetLogger().Fatal('Host not attached for send');
+			return;
+		}
+		return tp._private_.host.Send(epid_to,data);
+	}
+
 	tp.Receive=(from,pack)=>{
 		if(!checkReady())return;
 
@@ -111,35 +151,35 @@ function _transport_new(opt={}){
 		let data=onUnpack(pack);
 		let epid_from=onExtractEPIDFrom(data);
 		let epid_to=onExtractEPIDTo(data);
-		if(epid_to==null){
+
+		let ep_to=(epid_to==null)?
+			(tp._private_.host?tp._private_.host.GetAgent():null):
+			tp._private_.endpoint[epid_to];
+
+		if(!ep_to){
+			tp.GetLogger().Notice(()=>((epid_to==null)?'Host':('EndPoint '+epid_to))+' not found in Transport '+tp.Name);
+			return;
+		}
+
+		try{
 			let pla=onExtractPayloadArray(data);
 			if(!Array.isArray(pla)){
 				tp.GetLogger().Notice(()=>'No payloads: ',data);
 			}
 			else for(let pl of pla){
-				let plt=onExtractPayloadType(pl);
-				let pls=(plt==null)?null:plss[plt];
-				let plr=(plt==null)?null:plrs[plt];
-				if(plr)plr(epid_from,pl);
-				else{
-					tp.GetLogger().Notice(()=>'Receiver not defined: '+plt);
+				if(!plrs){
+					// receive plain payload 
+					ep_to._private_.receive(epid_from,pl);
 				}
-			}
-			return;
-		}
-
-		let ep_to=tp._private_.endpoint[epid_to];
-		if(!ep_to){
-			tp.GetLogger().Notice(()=>'EndPoint '+epid_to+' not found in Transport '+tp.Name);
-			return;
-		}
-
-		try{
-			// receive to destination endpoint 
-			for(let d of data.Payload){
-				if(ep_to)ep_to._private_.receive(epid_from,d);
 				else{
-					tp.GetLogger().Tick(()=>'received',d);
+					// receive by payload type 	
+					let plt=onExtractPayloadType(pl);
+					let pls=(plt==null)?null:plss[plt];
+					let plr=(plt==null)?null:plrs[plt];
+					if(plr)plr(ep_to,epid_from,pl);
+					else{
+						tp.GetLogger().Notice(()=>'Receiver not defined: '+plt);
+					}
 				}
 			}
 		}
@@ -147,6 +187,13 @@ function _transport_new(opt={}){
 			tp.GetLogger().Fatal('Transport error at unpack: '+e.toString(),YgEs.FromError(e));
 		}
 	}
+
+	tp._private_.host=opt.HasHost?EndPoint.Create(tp,{
+		Log:tp.GetLogger(),
+		Launcher:tp.GetLauncher(),
+		HappenTo:tp.GetHappeningManager(),
+		OnReceived:opt.OnReceived,
+	}).Fetch():null;
 
 	return tp;
 }

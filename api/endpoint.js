@@ -48,6 +48,7 @@ function _endpoint_new(tdrv,opt={}){
 	const onReceived=opt.OnReceived;
 
 	let prm=Object.assign({},opt,{
+		AgentBypasses:['GetInstanceID','Launch','Kick','Send'],
 		OnClose:(ep)=>{
 			ep.GetLogger().Trace(()=>'EndPoint '+epid+' ('+ep.Name+') is closing');
 			if(onClose)onClose(ep);
