@@ -24,17 +24,18 @@ let hap_local=HappeningManager.CreateLocal({
 });
 
 // payload definition (shared between server and client) 
-const pld_defs={
-	// the server listening from newcomer 
-	'JOIN':{
-		// [todo] API attributes 
-	},
-	'WELCOME':{
-		// [todo] API attributes 
-	},
-}
-const PAYLOAD_NAMES=Object.keys(pld_defs);
+const PAYLOAD_NAMES=['JOIN','WELCOME']
 const PAYLOAD=YgEs.CreateEnum(PAYLOAD_NAMES);
+const pld_specs={}
+pld_specs[PAYLOAD.JOIN]={
+//	QuickCall:true, // call on just received 
+}
+pld_specs[PAYLOAD.WELCOME]={
+//	QuickCall:true, // call on just received 
+}
+
+// extract a payload type from received structure 
+const pld_extract_type=(payload)=>payload.Type;
 
 // server simulation Transport
 let server_tp_opt={
@@ -42,11 +43,9 @@ let server_tp_opt={
 	Launcher:launcher,
 	HappenTo:hap_local,
 	HasHost:true, // clients can send to unknown server EndPoint 
-	PayloadSpecs:pld_defs,
+	PayloadSpecs:pld_specs,
 	PayloadReceivers:{}, // server's receive functions by available payload type 
-	OnExtractPayloadType:(payload)=>{
-		return payload.Type;
-	},
+	OnExtractPayloadType:pld_extract_type,
 	OnSend:(ep_from,epid_to,pack)=>{
 		// send to the client Transport 
 		client_tp.Receive(epid_to,pack);
@@ -70,11 +69,9 @@ let client_tp_opt={
 	Log:log_local,
 	Launcher:launcher,
 	HappenTo:hap_local,
-	PayloadSpecs:pld_defs,
+	PayloadSpecs:pld_specs,
 	PayloadReceivers:{}, // client's receive functions by available payload type 
-	OnExtractPayloadType:(payload)=>{
-		return payload.Type;
-	},
+	OnExtractPayloadType:pld_extract_type,
 	OnSend:(ep,epid_to,pack)=>{
 		// send to the server Transport 
 		server_tp.Receive(null,pack);

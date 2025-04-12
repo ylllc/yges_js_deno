@@ -59,11 +59,21 @@ function _endpoint_new(tdrv,opt={}){
 			tdrv._private_.connect(ep);
 			if(onReady)onReady(ep);
 		},
+		OnPollInHealthy:(agent)=>{
+
+			let rq=ep._private_.recvq;
+			ep._private_.recvq=[]
+			for(let recv of rq){
+				ep.GetLogger().Trace(()=>'EndPoint '+epid+' call with received from '+recv.From,recv.Payload);
+				recv.Call(ep,recv.From,recv.Payload);
+			}
+		},
 	});
 	if(!prm.Name)prm.Name='YgEs.EndPoint.Control';
 
 	let ep=Agent.StandBy(prm);
 	ep._private_.epid=epid;
+	ep._private_.recvq=[]
 	ep._private_.sendq=_qset_new();
 	ep._private_.delaying=_qset_new(); // for delay test 
 

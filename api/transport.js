@@ -176,7 +176,20 @@ function _transport_new(opt={}){
 					let plt=onExtractPayloadType(pl);
 					let pls=(plt==null)?null:plss[plt];
 					let plr=(plt==null)?null:plrs[plt];
-					if(plr)plr(ep_to,epid_from,pl);
+					if(!pls?.QuickCall){
+						// call queue 
+						tp.GetLogger().Tick(()=>'Payload queued '+epid_from+' => '+epid_to,data);
+						ep_to._private_.recvq.push({
+							From:epid_from,
+							Payload:pl,
+							Spec:pls,
+							Call:plr,
+						});
+					}
+					else if(plr){
+						// call now 
+						plr(ep_to,epid_from,pl);
+					}
 					else{
 						tp.GetLogger().Notice(()=>'Receiver not defined: '+plt);
 					}
