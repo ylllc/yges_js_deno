@@ -10,6 +10,15 @@ import EndPoint from './endpoint.js';
 // Transport Driver --------------------- //
 (()=>{ // local namespace 
 
+const _default_spec={
+	QuickCall:false,
+	CallOnce:{
+		Limit:false,
+		Reply:null,
+		Timeout:null,
+	},
+}
+
 function _transport_new(opt={}){
 
 	const payload=opt.Payload??null;
@@ -44,8 +53,15 @@ function _transport_new(opt={}){
 	const plss=opt.PayloadSpecs??{}
 	const plrs=opt.PayloadReceivers??null
 
+	for(let plt in plss){
+		plss[plt]=YgEs.SetDefault(plss[plt],_default_spec);
+		plss[plt]._private_={
+			UnlockTarget:[],
+		}
+	}
+
 	let prm=Object.assign({},opt,{
-		AgentBypasses:['Send','Receive'],
+		AgentBypasses:['GetPayloadSpec','GetEndPoint','ExtractPayloadType','Send','Receive'],
 		OnOpen:(agent)=>{
 			onOpen(agent);
 		},
@@ -63,6 +79,36 @@ function _transport_new(opt={}){
 	let tp=Agent.StandBy(prm);
 	tp._private_.endpoint={}
 
+	for(let plt in plss){
+		let pls_s=plss[plt];
+		if(pls_s.CallOnce.Limit && pls_s.CallOnce.Reply!=null){
+			let pls_d=plss[pls_s.CallOnce.Reply];
+			if(!pls_d){
+				tp.GetLogger().Warn('PayloadType '+pls_s.CallOnce.Reply+' not defined for unlock PayloadType '+plt);
+			}
+			else{
+				pls_d._private_.UnlockTarget.push(plt);
+			}
+		}
+
+		pls_s._private_.OnReceived=(ep,ep_from)=>{
+			for(let plt2 of pls_s._private_.UnlockTarget){
+				ep.UnlockOnce(ep_from,plt2);
+			}
+		}
+	}
+
+	tp.GetPayloadSpec=(plt)=>{
+		return plss[plt]??null;
+	}
+	tp.GetEndPoint=(epid)=>{
+		if(epid!=null)return tp._private_.endpoint[epid]??null;
+		if(!tp._private_.host)return null;
+		return tp._private_.host.GetAgent();
+	}
+	tp.ExtractPayloadType=(payload)=>{
+		return onExtractPayloadType(payload);
+	}
 	tp.IsUnorderable=()=>unorderable;
 	tp.MakeDelay=()=>{
 		if(delay_max<1)return 0;
@@ -151,10 +197,7 @@ function _transport_new(opt={}){
 		let data=onUnpack(pack);
 		let epid_from=onExtractEPIDFrom(data);
 		let epid_to=onExtractEPIDTo(data);
-
-		let ep_to=(epid_to==null)?
-			(tp._private_.host?tp._private_.host.GetAgent():null):
-			tp._private_.endpoint[epid_to];
+		let ep_to=tp.GetEndPoint(epid_to);
 
 		if(!ep_to){
 			tp.GetLogger().Notice(()=>((epid_to==null)?'Host':('EndPoint '+epid_to))+' not found in Transport '+tp.Name);
@@ -176,22 +219,25 @@ function _transport_new(opt={}){
 					let plt=onExtractPayloadType(pl);
 					let pls=(plt==null)?null:plss[plt];
 					let plr=(plt==null)?null:plrs[plt];
-					if(!pls?.QuickCall){
+					if(!plr){
+						tp.GetLogger().Notice(()=>'Receiver not defined: '+plt);
+					}
+					else if(!pls?.QuickCall){
 						// call queue 
-						tp.GetLogger().Tick(()=>'Payload queued '+epid_from+' => '+epid_to,data);
+						tp.GetLogger().Tick(()=>'Payload queued '+epid_from+' => '+epid_to,pl);
 						ep_to._private_.recvq.push({
 							From:epid_from,
 							Payload:pl,
 							Spec:pls,
-							Call:plr,
+							Call:()=>{
+								pls._private_.OnReceived(ep_to,epid_from);
+								plr(ep_to,epid_from,pl);
+							},
 						});
 					}
-					else if(plr){
+					else{
 						// call now 
 						plr(ep_to,epid_from,pl);
-					}
-					else{
-						tp.GetLogger().Notice(()=>'Receiver not defined: '+plt);
 					}
 				}
 			}

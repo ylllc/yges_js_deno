@@ -9,34 +9,40 @@ import Agent from './agent.js';
 // EndPoint ----------------------------- //
 (()=>{ // local namespace 
 
-function _qset_new(){
+function _epctrl_new(){
 
-	let qt={tp:null,ep:{}}
-	qt.Ref=(k)=>{
+	let ct={
+		SendQ:[],
+		DelayQ:[],
+		Calling:{},
+	}
+	return ct;
+}
+
+function _epctrlset_new(){
+
+	let ctset={tp:null,ep:{}}
+	ctset.Get=(k)=>{
 		if(k==null){
-			let t=qt.tp;
-			if(!t)t=qt.tp=[]
+			return ctset.tp;
+		}
+		else{
+			return ctset.ep[k]??null;
+		}
+	}
+	ctset.Ref=(k)=>{
+		if(k==null){
+			let t=ctset.tp;
+			if(!t)t=ctset.tp=_epctrl_new();
 			return t;
 		}
 		else{
-			let t=qt.ep[k];
-			if(!t)t=qt.ep[k]=[]
+			let t=ctset.ep[k];
+			if(!t)t=ctset.ep[k]=_epctrl_new();
 			return t;
 		}
 	}
-	qt.Flush=(k)=>{
-		if(k==null){
-			let t=qt.tp;
-			if(t)qt.tp=null
-			return t;
-		}
-		else{
-			let t=qt.ep[k];
-			if(t)delete qt.ep[k];
-			return t;
-		}
-	}
-	return qt;
+	return ctset;
 }
 
 function _endpoint_new(tdrv,opt={}){
@@ -48,7 +54,7 @@ function _endpoint_new(tdrv,opt={}){
 	const onReceived=opt.OnReceived;
 
 	let prm=Object.assign({},opt,{
-		AgentBypasses:['GetInstanceID','Launch','Kick','Send'],
+		AgentBypasses:['GetInstanceID','Launch','Kick','Send','UnlockOnce'],
 		OnClose:(ep)=>{
 			ep.GetLogger().Trace(()=>'EndPoint '+epid+' ('+ep.Name+') is closing');
 			if(onClose)onClose(ep);
@@ -65,7 +71,7 @@ function _endpoint_new(tdrv,opt={}){
 			ep._private_.recvq=[]
 			for(let recv of rq){
 				ep.GetLogger().Trace(()=>'EndPoint '+epid+' call with received from '+recv.From,recv.Payload);
-				recv.Call(ep,recv.From,recv.Payload);
+				recv.Call();
 			}
 		},
 	});
@@ -74,8 +80,7 @@ function _endpoint_new(tdrv,opt={}){
 	let ep=Agent.StandBy(prm);
 	ep._private_.epid=epid;
 	ep._private_.recvq=[]
-	ep._private_.sendq=_qset_new();
-	ep._private_.delaying=_qset_new(); // for delay test 
+	ep._private_.epcset=_epctrlset_new();
 
 	const checkReady=()=>{
 		if(!ep.IsReady()){
@@ -85,27 +90,41 @@ function _endpoint_new(tdrv,opt={}){
 		return true;
 	}
 
-	const handleFetch=ep.Fetch;
-	ep.Fetch=()=>{
-		let h=handleFetch();
-		h.GetInstanceID=ep.GetInstanceID;
-		h.Send=ep.Send;
-		return h;
-	}
-
 	ep.GetInstanceID=()=>epid;
-	ep.Launch=(epid_to,data)=>{
+	ep.Launch=(epid_to,payload)=>{
 		if(!checkReady())return;
-		let sq=ep._private_.sendq.Ref(epid_to);
+		let epc=ep._private_.epcset.Ref(epid_to);
 
-		ep.GetLogger().Tick(()=>'EndPoint '+epid+' ('+ep.Name+') launch to '+epid_to,data);
+		let plt=tdrv.ExtractPayloadType(payload);
+		if(plt!=null){
+			let pls=tdrv.GetPayloadSpec(plt);
+			if(!pls){
+				ep.GetLogger().Fatal(()=>'Undefined Payload: '+plt);
+				return;
+			}
+			if(pls.CallOnce.Limit){
+				let cng=epc.Calling[plt];
+				let now=Date.now();
+				if(cng){
+					// already calls with same payload type 
+					if(cng.Timeout==null)return;
+					if(cng.Timeout>now)return;
+				}
+				else cng=epc.Calling[plt]={Timeout:null}
+				if(pls.CallOnce.Timeout)cng.Timeout=now+pls.CallOnce.Timeout;
+			}
+		}
 
-		sq.push(data);
+		ep.GetLogger().Tick(()=>'EndPoint '+epid+' ('+ep.Name+') launch to '+epid_to,payload);
+
+		epc.SendQ.push(payload);
 	}
 	ep.Kick=(epid_to=null)=>{
 		if(!checkReady())return;
-		let sq=ep._private_.sendq.Flush(epid_to);
-		if(!sq)return;
+		let epc=ep._private_.epcset.Get(epid_to);
+		if(!epc)return;
+		let sq=epc.SendQ;
+		epc.SendQ=[]
 
 		let delay=tdrv.MakeDelay();
 		if(delay<1){
@@ -123,7 +142,7 @@ function _endpoint_new(tdrv,opt={}){
 		}
 
 		// keep packets ordering 
-		let dq=ep._private_.delaying.Ref(epid_to);
+		let dq=epc.DelayQ;
 		dq.push(sq);
 		const launch=()=>{
 			tdrv.GetLauncher().Delay(delay,()=>{
@@ -148,14 +167,20 @@ function _endpoint_new(tdrv,opt={}){
 			launch();
 		}
 	}
-	ep.Send=(epid_to,data)=>{
-		ep.Launch(epid_to,data);
+	ep.Send=(epid_to,payload)=>{
+		ep.Launch(epid_to,payload);
 		ep.Kick(epid_to);
 	}
 
-	ep._private_.receive=(epid_from,data)=>{
-		ep.GetLogger().Tick(()=>'EndPoint '+epid+' ('+ep.Name+') received from '+epid_from,data);
-		if(onReceived)onReceived(ep,epid_from,data);
+	ep.UnlockOnce=(epid_to,plt)=>{
+		let epc=ep._private_.epcset.Get(epid_to);
+		if(!epc)return;
+		if(!epc.Calling[plt])return;	
+		delete epc.Calling[plt];
+	}
+	ep._private_.receive=(epid_from,payload)=>{
+		ep.GetLogger().Tick(()=>'EndPoint '+epid+' ('+ep.Name+') received from '+epid_from,payload);
+		if(onReceived)onReceived(ep,epid_from,payload);
 	}
 
 	return ep;
