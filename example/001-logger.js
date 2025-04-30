@@ -3,9 +3,9 @@
 // © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
-// Examples: Logger --------------------- //
-
 import Log from '../api/logger.js';
+
+// Example: Logger ---------------------- //
 
 // set showable log level 
 Log.Showable=Log.LEVEL.DEBUG;

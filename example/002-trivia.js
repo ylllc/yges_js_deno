@@ -7,7 +7,7 @@ import YgEs from '../api/common.js';
 import Log from '../api/logger.js';
 import Util from '../api/util.js';
 
-// Examples: Value Trivia --------------- //
+// Example: Value Trivia ---------------- //
 
 function test(func,data){
 

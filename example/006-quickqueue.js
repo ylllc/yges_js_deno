@@ -6,7 +6,7 @@
 import QuickQueue from '../api/quickqueue.js';
 import Log from '../api/logger.js';
 
-// Examples: Quick Queue ---------------- //
+// Example: Quick Queue ----------------- //
 
 function test(){
 

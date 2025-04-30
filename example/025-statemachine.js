@@ -8,7 +8,7 @@ import StateMachine from '../api/stmac.js';
 import Timing from '../api/timing.js';
 import Log from '../api/logger.js';
 
-// Examples: StateMachine --------------- //
+// Example: StateMachine ---------------- //
 
 let states={
 	'StateA':{

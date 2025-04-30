@@ -9,7 +9,7 @@ import WebSockClient from '../api/websock_client.js';
 import Log from '../api/logger.js';
 import File from '../api/file.js';
 
-// Examples: WebSocket Client ----------- //
+// Example: WebSocket Client ------------ //
 
 const LIFEFILE='../!websock_client_running';
 

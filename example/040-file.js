@@ -9,7 +9,7 @@ import Engine from '../api/engine.js';
 import Timing from '../api/timing.js';
 import Log from '../api/logger.js';
 
-// Examples: File Control --------------- //
+// Example: File Control ---------------- //
 
 Engine.Start();
 

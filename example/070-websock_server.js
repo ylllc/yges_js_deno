@@ -10,7 +10,7 @@ import WebSockServer from '../api/websock_server.js';
 import Log from '../api/logger.js';
 import File from '../api/file.js';
 
-// Examples: WebSocket Server ----------- //
+// Example: WebSocket Server ------------ //
 
 const LIFEFILE='../!websock_server_running';
 

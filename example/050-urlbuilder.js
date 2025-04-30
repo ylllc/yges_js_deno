@@ -3,10 +3,10 @@
 // © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
-// Example: URL Builder ----------------- //
-
 import URLBuilder from '../api/urlbuilder.js';
 import Log from '../api/logger.js';
+
+// Example: URL Builder ----------------- //
 
 Log.Info('----- Parse nonURL -----');
 let url='a/b%2Fc.txt?a=1&b=2#abc#xyz';

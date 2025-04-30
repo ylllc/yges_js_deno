@@ -3,13 +3,13 @@
 // © 2024-5 Yggdrasil Leaves, LLC.        //
 //        All rights reserved.            //
 
-// Examples: Agent ---------------------- //
-
 import Engine from '../api/engine.js';
 import AgentManager from '../api/agent.js';
 import Timing from '../api/timing.js';
 import Log from '../api/logger.js';
 import HappeningManager from '../api/happening.js';
+
+// Example: Agent ----------------------- //
 
 // start the Engine 
 Engine.Start();

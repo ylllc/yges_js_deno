@@ -8,7 +8,7 @@ import Timing from '../api/timing.js';
 import HTTPServer from '../api/http_server.js';
 import File from '../api/file.js';
 
-// Examples: HTTP Server ---------------- //
+// Example: HTTP Server ----------------- //
 
 const LIFEFILE='../!http_server_running';
 const PUBLIC_ROOT='../web/public';

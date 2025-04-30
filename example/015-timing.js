@@ -6,7 +6,7 @@
 import Log from '../api/logger.js';
 import Timing from '../api/timing.js';
 
-// Examples: Basic Timing Features ------ //
+// Example: Basic Timing Features ------- //
 
 // delaying 
 Timing.Delay(500,()=>{

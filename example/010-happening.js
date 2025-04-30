@@ -6,7 +6,7 @@
 import HappeningManager from '../api/happening.js';
 import Log from '../api/logger.js';
 
-// Examples: Happening Manager ---------- //
+// Example: Happening Manager ----------- //
 
 // can override common happening management procedure 
 HappeningManager.OnHappen=(h)=>{

@@ -11,7 +11,7 @@ import Engine from '../api/engine.js';
 import HappeningManager from '../api/happening.js';
 import Log from '../api/logger.js';
 
-// Examples: Host ----------------------- //
+// Example: Host ------------------------ //
 
 // start the Engine 
 Engine.Start();

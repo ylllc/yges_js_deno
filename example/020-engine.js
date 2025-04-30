@@ -7,7 +7,7 @@ import Engine from '../api/engine.js';
 import Log from '../api/logger.js';
 import Util from '../api/util.js';
 
-// Examples: Async Proceure Engine ------ //
+// Example: Async Proceure Engine ------- //
 
 // start the Engine 
 Engine.Start();

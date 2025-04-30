@@ -6,7 +6,7 @@
 import Util from '../api/util.js';
 import Log from '../api/logger.js';
 
-// Examples: Iterators ------------------ //
+// Example: Iterators ------------------- //
 
 // a famous problem 
 // variables in looping scope are broken in delayed callbacks. 
