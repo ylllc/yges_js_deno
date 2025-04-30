@@ -34,6 +34,19 @@ YgEs.CreateEnum=(src)=>{
 	return ll;
 }
 
+YgEs.SetDefault=(dst,def)=>{
+
+	if(Array.isArray(def))return dst;
+	if(typeof def!=='object')return dst;
+	if(dst==null)dst={}
+
+	for(let k in def){
+		dst[k]=(dst[k]===undefined)?def[k]:
+			YgEs.SetDefault(dst[k],def[k]);
+	}
+	return dst;
+}
+
 YgEs.FromError=(err)=>{
 	return {
 		Name:err.name,
