@@ -77,7 +77,7 @@ function _endpoint_new(tdrv,opt={}){
 	});
 	if(!prm.Name)prm.Name='YgEs.EndPoint.Control';
 
-	let ep=Agent.StandBy(prm);
+	let ep=YgEs.AgentManager.StandBy(prm);
 	ep._private_.epid=epid;
 	ep._private_.recvq=[]
 	ep._private_.epcset=_epctrlset_new();

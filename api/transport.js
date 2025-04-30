@@ -21,7 +21,6 @@ const _default_spec={
 
 function _transport_new(opt={}){
 
-	const payload=opt.Payload??null;
 	const hurting=opt.Hurting??0.0;
 	const unorderable=opt.Unorderable??false;
 	const delay_min=opt.DelayMin??0;
@@ -46,6 +45,7 @@ function _transport_new(opt={}){
 		return data.Payload;
 	});
 	const onExtractPayloadType=opt.OnExtractPayloadType??((payload)=>null);
+	const onExtractSessionID=opt.OnExtractSessionID??((payload)=>null);
 	const onSend=opt.OnSend??((ep_from,epid_to,pack)=>{
 		let epid_from=ep_from.GetInstanceID();
 		tp.GetLogger().Tick(()=>'terminated transport: '+pack);
@@ -61,11 +61,17 @@ function _transport_new(opt={}){
 	}
 
 	let prm=Object.assign({},opt,{
-		AgentBypasses:['GetPayloadSpec','GetEndPoint','ExtractPayloadType','Send','Receive'],
+		AgentBypasses:['GetPayloadSpec','GetEndPoint','ExtractPayloadType','Send','Receive',
+			'AttachSession','DetachSession'],
 		OnOpen:(agent)=>{
 			onOpen(agent);
 		},
 		OnClose:(agent)=>{
+			for(let sh of Object.values(tp._private_.session)){
+				sh.Close();
+			}
+			tp._private_.session={}
+
 			onClose(agent);
 			if(tp._private_.host)tp._private_.host.Close();
 		},
@@ -76,8 +82,9 @@ function _transport_new(opt={}){
 	});
 	if(!prm.Name)prm.Name='YgEs.Transport.Driver';
 
-	let tp=Agent.StandBy(prm);
+	let tp=YgEs.AgentManager.StandBy(prm);
 	tp._private_.endpoint={}
+	tp._private_.session={}
 
 	for(let plt in plss){
 		let pls_s=plss[plt];
@@ -210,7 +217,20 @@ function _transport_new(opt={}){
 				tp.GetLogger().Notice(()=>'No payloads: ',data);
 			}
 			else for(let pl of pla){
-				if(!plrs){
+
+				let sid=onExtractSessionID(pl);
+				if(sid){
+					// receive for a session 
+					let sess=tp._private_.session[sid];
+					if(!sess){
+						tp.GetLogger().Notice(()=>'Unknown session: '+sid);
+					}
+					else{
+						let plt=onExtractPayloadType(pl);
+						sess.GetAgent()._private_.receive(ep_to,epid_from,plt,pl);
+					}
+				}
+				else if(!plrs){
 					// receive plain payload 
 					ep_to._private_.receive(epid_from,pl);
 				}
@@ -237,6 +257,7 @@ function _transport_new(opt={}){
 					}
 					else{
 						// call now 
+						pls._private_.OnReceived(ep_to,epid_from);
 						plr(ep_to,epid_from,pl);
 					}
 				}
@@ -245,6 +266,27 @@ function _transport_new(opt={}){
 		catch(e){
 			tp.GetLogger().Fatal('Transport error at unpack: '+e.toString(),YgEs.FromError(e));
 		}
+	}
+
+	tp.AttachSession=(sess)=>{
+		let sid=sess.GetInstanceID();
+		if(tp._private_.session[sid]){
+			tp.GetLogger().Warn(()=>'Session '+sid+' already attached');
+			return sess;
+		}
+		tp._private_.session[sid]=sess.Open();
+		return sess;
+	}
+
+	tp.DetachSession=(sess)=>{
+		let sid=sess.GetInstanceID();
+		let sh=tp._private_.session[sid];
+		if(!sh){
+			tp.GetLogger().Warn(()=>'Session '+sid+' not attached');
+			return;
+		}
+		sh.Close();
+		delete tp._private_.session[sid];
 	}
 
 	tp._private_.host=opt.HasHost?EndPoint.Create(tp,{
