@@ -206,6 +206,7 @@ function _transport_new(opt={}){
 		Launcher:tp.GetLauncher(),
 		HappenTo:tp.GetHappeningManager(),
 		OnReceived:opt.OnReceived,
+		EPID:null,
 	}).Fetch():null;
 
 	return tp;

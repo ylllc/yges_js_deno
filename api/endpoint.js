@@ -41,7 +41,7 @@ function _qset_new(){
 
 function _endpoint_new(tdrv,opt={}){
 
-	const epid=opt.EPID??YgEs.NextID();
+	const epid=(opt.EPID!==undefined)?opt.EPID:YgEs.NextID();
 
 	const onClose=opt.OnClose;
 	const onReady=opt.OnReady;
