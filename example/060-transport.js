@@ -58,9 +58,15 @@ let tm_ep2=EndPoint.Create(tm_tp.GetAgent(),eopt).Open();
 
 (async ()=>{
 
+	// wait for transports ready 
+	await Timing.SyncKit(1000,()=>lb_tp.IsReady()).ToPromise();
+	await Timing.SyncKit(1000,()=>tm_tp.IsReady()).ToPromise();
+
 	// wait for endpoints ready 
 	await Timing.SyncKit(1000,()=>lb_ep1.IsReady()).ToPromise();
 	await Timing.SyncKit(1000,()=>lb_ep2.IsReady()).ToPromise();
+	await Timing.SyncKit(1000,()=>tm_ep1.IsReady()).ToPromise();
+	await Timing.SyncKit(1000,()=>tm_ep2.IsReady()).ToPromise();
 
 	// send each other 
 	// (when onorderable delay test, maybe receive B to A) 
