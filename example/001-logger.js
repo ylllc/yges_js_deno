@@ -69,3 +69,22 @@ ll2.Way=(src)=>{
 	console.log(src.Text);
 }
 ll2.Info('super-overridden local log');
+
+// logs are suppressed by parent setting 
+ll1.Showable=Log.LEVEL.DEBUG;
+ll2.Trace('TRACE Log should suppress');
+// but enabled by local setting 
+ll2.Showable=Log.LEVEL.TRACE;
+ll2.Trace('TRACE Log should show');
+
+// log splitter (is inheritance of local log) 
+let lsp=Log.CreateSplitter('TestLogSplitter',Log.LEVEL.DEBUG);
+lsp.Attach('log1',ll1);
+lsp.Attach('log2',ll2);
+
+// logs are splitted to all attached local log 
+lsp.Debug('split DEBUG test');
+// logs are suppressed by both settings 
+lsp.Trace('split TRACE test (is suppressed)');
+lsp.Showable=Log.LEVEL.TRACE;
+lsp.Trace('split TRACE test (is shown on LL2)');
