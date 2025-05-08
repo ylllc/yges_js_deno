@@ -58,6 +58,8 @@ function _client_new(url,opt={}){
 		HappenTo:opt.HappenTo??HappeningManager.CreateLocal(),
 		Launcher:opt.Launcher??Engine.CreateLauncher(),
 
+		AgentBypasses:['GetURL','Send'],
+
 		OnOpen:(wk)=>{
 			log.Info('bgn of WebSock client: '+url);
 

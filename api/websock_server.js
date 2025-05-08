@@ -17,6 +17,8 @@ function _server_new(port,opt={}){
 
 	const limit=opt.ConnectionLimit??-1;
 
+	const _onReady=opt.OnReady??(()=>{})
+	const _onClose=opt.OnClose??(()=>{})
 	const _onConnect=opt.OnConnect??((ctx)=>{return false;})
 	const _onDisconnect=opt.OnDisconnect??((ctx)=>{})
 	const _onReceived=opt.OnReceived??((ctx,data,isbin)=>{})
@@ -32,6 +34,8 @@ function _server_new(port,opt={}){
 		_private_:{
 			ll:null,
 		},
+
+		AgentBypasses:['GetPort'],
 
 		OnOpen:(wk)=>{
 			log.Info('bgn of WebSock server port '+port);
@@ -62,8 +66,11 @@ function _server_new(port,opt={}){
 		},
 		OnReady:(wk)=>{
 			log.Info('WebSock server ready port '+port);
+			_onReady();
 		},
 		OnClose:(wk)=>{
+			_onClose();
+
 			let done=false;
 			ws._private_.ll.Close(()=>{done=true;});
 			wk.WaitFor('WebSock server closing',()=>done);
