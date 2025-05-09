@@ -22,10 +22,17 @@ const CLASS_ROOT='YgEs.RootLauncher';
 
 function _create_proc(prm,launcher){
 
-	let onStart=prm.OnStart??null;
-	let onPoll=prm.OnPoll;
-	let onDone=prm.OnDone??null;
-	let onAbort=prm.OnAbort??null;
+	const onStart=prm.OnStart??((proc)=>{});
+	const onPoll=prm.OnPoll??((proc)=>{});
+	const onDone=prm.OnDone??((proc)=>{});
+	const onAbort=prm.OnAbort??((proc)=>{
+		proc.HappenTo.Happen(
+			'Aborted',{
+			Class:CLASS_PROC,
+			Cause:'Aborted',
+			Info:proc.GetInfo('Aborted'),
+		});
+	});
 
 	let started=false;
 	let finished=false;
@@ -64,48 +71,36 @@ function _create_proc(prm,launcher){
 			if(started)return;
 			if(proc.IsEnd())return;
 			started=true;
-			if(onStart){
-				try{
-					onStart(proc.User);
-				}
-				catch(e){
-					proc.HappenTo.Happen(e,{
-						Class:CLASS_PROC,
-						Cause:'ThrownFromCallback',
-						Info:proc.GetInfo('OnStart'),
-					});
-					proc.Abort();
-				}
+			try{
+				onStart(proc);
+			}
+			catch(e){
+				proc.HappenTo.Happen(e,{
+					Class:CLASS_PROC,
+					Cause:'ThrownFromCallback',
+					Info:proc.GetInfo('OnStart'),
+				});
+				proc.Abort();
 			}
 		},
 		Abort:()=>{
 			if(proc.IsEnd())return;
 			aborted=true;
-			if(onAbort){
-				try{
-					onAbort(proc.User);
-				}
-				catch(e){
-					proc.HappenTo.Happen(e,{
-						Class:CLASS_PROC,
-						Cause:'ThrownFromCallback',
-						Info:proc.GetInfo('OnAbort'),
-					});
-				}
+			try{
+				onAbort(proc);
 			}
-			else{
-				proc.HappenTo.Happen(
-					'Aborted',{
+			catch(e){
+				proc.HappenTo.Happen(e,{
 					Class:CLASS_PROC,
-					Cause:'Aborted',
-					Info:proc.GetInfo('Aborted'),
+					Cause:'ThrownFromCallback',
+					Info:proc.GetInfo('OnAbort'),
 				});
 			}
 		},
 		Poll:()=>{
 			if(proc.IsEnd())return false;
 			try{
-				if(onPoll(proc.User))return true;
+				if(onPoll(proc))return true;
 			}
 			catch(e){
 				proc.HappenTo.Happen(e,{
@@ -116,23 +111,18 @@ function _create_proc(prm,launcher){
 				proc.Abort();
 				return false;
 			}
-			if(onDone){
-				try{
-					onDone(proc.User);
-					finished=true;
-				}
-				catch(e){
-					proc.HappenTo.Happen(e,{
-						Class:CLASS_PROC,
-						Cause:'ThrownFromCallback',
-						Info:proc.GetInfo('OnDone'),
-					});
-					proc.Abort();
-					return false;
-				}
-			}
-			else{
+			try{
+				onDone(proc);
 				finished=true;
+			}
+			catch(e){
+				proc.HappenTo.Happen(e,{
+					Class:CLASS_PROC,
+					Cause:'ThrownFromCallback',
+					Info:proc.GetInfo('OnDone'),
+				});
+				proc.Abort();
+				return false;
 			}
 			return false;
 		},
@@ -177,6 +167,8 @@ function _create_proc(prm,launcher){
 }
 
 function _yges_enginge_create_launcher(prm){
+
+	const onAbort=prm.OnAbort??((lnc)=>{});
 
 	let abandoned=false;
 	let aborted=false;
@@ -265,7 +257,7 @@ function _yges_enginge_create_launcher(prm){
 				Log.Notice('the Engine not started. call Start() to run.');
 			}
 			if(abandoned){
-				if(prm.OnAbort)prm.OnAbort();
+				onAbort(lnc);
 				return;
 			}
 			if(!prm.OnPoll){
@@ -364,7 +356,7 @@ function _yges_enginge_create_launcher(prm){
 			let until=new Date(Date.now()+time);
 			return lnc.Launch({
 					Name:CLASS_DELAYPROC,
-					OnPoll:(user)=>{
+					OnPoll:(proc)=>{
 						return Date.now()<until;
 					},
 					OnDone:cb_done,

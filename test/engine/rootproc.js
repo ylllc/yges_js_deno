@@ -17,17 +17,17 @@ const scenaria=[
 		Proc:async (tool)=>{
 			let proc=tool.Launcher.Launch({
 				HappenTo:tool.Launcher.HappenTo,
-				OnStart:(user)=>{
-					user.lock=true;
+				OnStart:(proc)=>{
+					proc.User.lock=true;
 					++count_start;
 				},
-				OnPoll:(user)=>{
-					return user.lock;
+				OnPoll:(proc)=>{
+					return proc.User.lock;
 				},
-				OnDone:(user)=>{
+				OnDone:(proc)=>{
 					++count_done;
 				},
-				OnAbort:(user)=>{
+				OnAbort:(proc)=>{
 					++count_abort;
 				}
 			});

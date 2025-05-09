@@ -49,10 +49,10 @@ function _run(start,states={},opt={}){
 		GetInfo:()=>GetInfo(),
 	}
 
-	let poll_nop=(user)=>{}
+	let poll_nop=(proc)=>{}
 	let poll_cur=poll_nop;
 
-	let call_start=(user)=>{
+	let call_start=(proc)=>{
 		if(state_next==null){
 			// normal end 
 			cur=null;
@@ -76,7 +76,7 @@ function _run(start,states={},opt={}){
 		state_cur=state_next;
 		state_next=null;
 		try{
-			if(cur.OnStart)cur.OnStart(ctrl,user);
+			if(cur.OnStart)cur.OnStart(ctrl,proc);
 			poll_cur=poll_up;
 		}
 		catch(e){
@@ -89,11 +89,11 @@ function _run(start,states={},opt={}){
 			return;
 		}
 		// can try extra polling 
-		poll_cur(user);
+		poll_cur(proc);
 	}
-	let poll_up=(user)=>{
+	let poll_up=(proc)=>{
 		try{
-			var r=cur.OnPollInUp?cur.OnPollInUp(ctrl,user):true;
+			var r=cur.OnPollInUp?cur.OnPollInUp(ctrl,proc):true;
 		}
 		catch(e){
 			happen.Happen(e,{
@@ -109,7 +109,7 @@ function _run(start,states={},opt={}){
 		else if(r===true){
 			try{
 				// normal transition 
-				if(cur.OnReady)cur.OnReady(ctrl,user);
+				if(cur.OnReady)cur.OnReady(ctrl,proc);
 				poll_cur=poll_keep;
 			}
 			catch(e){
@@ -122,17 +122,17 @@ function _run(start,states={},opt={}){
 				return;
 			}
 			// can try extra polling 
-			poll_cur(user);
+			poll_cur(proc);
 		}
 		else{
 			// interruption 
 			state_next=r.toString();
-			call_end(user);
+			call_end(proc);
 		}
 	}
-	let poll_keep=(user)=>{
+	let poll_keep=(proc)=>{
 		try{
-			var r=cur.OnPollInKeep?cur.OnPollInKeep(ctrl,user):true;
+			var r=cur.OnPollInKeep?cur.OnPollInKeep(ctrl,proc):true;
 		}
 		catch(e){
 			happen.Happen(e,{
@@ -148,17 +148,17 @@ function _run(start,states={},opt={}){
 		else if(r===true){
 			// normal end 
 			state_next=null;
-			call_stop(user);
+			call_stop(proc);
 		}
 		else{
 			// normal transition 
 			state_next=r.toString();
-			call_stop(user);
+			call_stop(proc);
 		}
 	}
-	let call_stop=(user)=>{
+	let call_stop=(proc)=>{
 		try{
-			if(cur.OnStop)cur.OnStop(ctrl,user);
+			if(cur.OnStop)cur.OnStop(ctrl,proc);
 			poll_cur=poll_down;
 		}
 		catch(e){
@@ -171,11 +171,11 @@ function _run(start,states={},opt={}){
 			return;
 		}
 		// can try extra polling 
-		poll_cur(user);
+		poll_cur(proc);
 	}
-	let poll_down=(user)=>{
+	let poll_down=(proc)=>{
 		try{
-			var r=cur.OnPollInDown?cur.OnPollInDown(ctrl,user):true;
+			var r=cur.OnPollInDown?cur.OnPollInDown(ctrl,proc):true;
 		}
 		catch(e){
 			happen.Happen(e,{
@@ -190,18 +190,18 @@ function _run(start,states={},opt={}){
 		else if(r===false)proc.Abort();
 		else if(r===true){
 			// normal transition 
-			call_end(user);
+			call_end(proc);
 		}
 		else{
 			// interruption 
 			state_next=r.toString();
-			call_end(user);
+			call_end(proc);
 		}
 	}
-	let call_end=(user)=>{
+	let call_end=(proc)=>{
 		try{
-			if(cur.OnEnd)cur.OnEnd(ctrl,user);
-			call_start(user);
+			if(cur.OnEnd)cur.OnEnd(ctrl,proc);
+			call_start(proc);
 		}
 		catch(e){
 			happen.Happen(e,{
@@ -219,15 +219,15 @@ function _run(start,states={},opt={}){
 		Log:log,
 		HappenTo:happen,
 		User:user,
-		OnStart:(user)=>{
-			call_start(user);
+		OnStart:(proc)=>{
+			call_start(proc);
 		},
-		OnPoll:(user)=>{
-			poll_cur(user);
+		OnPoll:(proc)=>{
+			poll_cur(proc);
 			return !!cur;
 		},
-		OnDone:opt.OnDone??'',
-		OnAbort:opt.OnAbort??'',
+		OnDone:opt.OnDone??null,
+		OnAbort:opt.OnAbort??null,
 	}
 
 	let proc=launcher.Launch(stmac);

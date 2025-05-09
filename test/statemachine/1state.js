@@ -10,42 +10,42 @@ import StateMachine from '../../api/stmac.js';
 
 const states={
 	'Test':{
-		OnStart:(ctx,user)=>{
-			Test.ChkStrict(++user.Count,2,'cb_start called illegular');
+		OnStart:(ctx,proc)=>{
+			Test.ChkStrict(++proc.User.Count,2,'cb_start called illegular');
 		},
-		OnPollInUp:(ctx,user)=>{
-			Test.ChkGreat(++user.Count,2,'poll_up called illegular');
-			Test.ChkLessEq(user.Count,10,'poll_up called illegular');
-			return (user.Count<10)?null:true;
+		OnPollInUp:(ctx,proc)=>{
+			Test.ChkGreat(++proc.User.Count,2,'poll_up called illegular');
+			Test.ChkLessEq(proc.User.Count,10,'poll_up called illegular');
+			return (proc.User.Count<10)?null:true;
 		},
-		OnReady:(ctx,user)=>{
-			Test.ChkStrict(++user.Count,11,'cb_ready called illegular');
+		OnReady:(ctx,proc)=>{
+			Test.ChkStrict(++proc.User.Count,11,'cb_ready called illegular');
 		},
-		OnPollInKeep:(ctx,user)=>{
-			Test.ChkGreat(++user.Count,11,'poll_keep called illegular');
-			Test.ChkLessEq(user.Count,20,'poll_keep called illegular');
-			return (user.Count<20)?null:true;
+		OnPollInKeep:(ctx,proc)=>{
+			Test.ChkGreat(++proc.User.Count,11,'poll_keep called illegular');
+			Test.ChkLessEq(proc.User.Count,20,'poll_keep called illegular');
+			return (proc.User.Count<20)?null:true;
 		},
-		OnStop:(ctx,user)=>{
-			Test.ChkStrict(++user.Count,21,'cb_stop called illegular');
+		OnStop:(ctx,proc)=>{
+			Test.ChkStrict(++proc.User.Count,21,'cb_stop called illegular');
 		},
-		OnPollInDown:(ctx,user)=>{
-			Test.ChkGreat(++user.Count,21,'poll_down called illegular');
-			Test.ChkLessEq(user.Count,30,'poll_down called illegular');
-			return (user.Count<30)?null:true;
+		OnPollInDown:(ctx,proc)=>{
+			Test.ChkGreat(++proc.User.Count,21,'poll_down called illegular');
+			Test.ChkLessEq(proc.User.Count,30,'poll_down called illegular');
+			return (proc.User.Count<30)?null:true;
 		},
-		OnEnd:(ctx,user)=>{
-			Test.ChkStrict(++user.Count,31,'cb_end called illegular');
+		OnEnd:(ctx,proc)=>{
+			Test.ChkStrict(++proc.User.Count,31,'cb_end called illegular');
 		},
 	},
 }
 
 let opt={
 	User:{Count:1}, // share in states 
-	OnDone:(user)=>{
-		Test.ChkStrict(++user.Count,32,'cb_done called illegular');
+	OnDone:(proc)=>{
+		Test.ChkStrict(++proc.User.Count,32,'cb_done called illegular');
 	},
-	OnAbort:(user)=>{
+	OnAbort:(proc)=>{
 		Test.Never('states abend');
 	},
 }

@@ -24,22 +24,22 @@ Util.SafeStepIter(0,10,1,(i)=>{
 			// initial settings 
 			name:'async '+i,
 		},
-		OnStart:(user)=>{
+		OnStart:(proc)=>{
 			// called before running 
-			user.lock=true;
+			proc.User.lock=true;
 			Engine.Delay(500,(ctx)=>{
-				user.lock=false;
+				proc.User.lock=false;
 			});
 		},
-		OnPoll:(user)=>{
+		OnPoll:(proc)=>{
 			// polling while returns true
-			return user.lock;
+			return proc.User.lock;
 		},
-		OnDone:(user)=>{
-			Log.Info(user.name+' done');
+		OnDone:(proc)=>{
+			Log.Info(proc.User.name+' done');
 		},
-		OnAbort:(user)=>{
-			Log.Info(user.name+' abort');
+		OnAbort:(proc)=>{
+			Log.Info(proc.User.name+' abort');
 		},
 	});
 });

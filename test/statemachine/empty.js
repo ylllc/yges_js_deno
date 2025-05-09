@@ -13,10 +13,10 @@ const states={
 }
 
 let opt={
-	OnDone:(user)=>{
+	OnDone:(proc)=>{
 		// OK 
 	},
-	OnAbort:(user)=>{
+	OnAbort:(proc)=>{
 		Test.Never('states abend');
 	},
 }

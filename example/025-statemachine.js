@@ -12,107 +12,107 @@ import Log from '../api/logger.js';
 
 let states={
 	'StateA':{
-		OnStart:(ctx,user)=>{
+		OnStart:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' start');
 		},
-		OnPollInUp:(ctx,user)=>{
+		OnPollInUp:(ctx,proc)=>{
 			// goto next phase 
-			return (++user.Count<10)?null:true;
+			return (++proc.User.Count<10)?null:true;
 		},
-		OnReady:(ctx,user)=>{
+		OnReady:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' ready');
 		},
-		OnPollInKeep:(ctx,user)=>{
+		OnPollInKeep:(ctx,proc)=>{
 			// goto StateB 
-			return (++user.Count<20)?null:'StateB';
+			return (++proc.User.Count<20)?null:'StateB';
 		},
-		OnStop:(ctx,user)=>{
+		OnStop:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' stop');
 		},
-		OnPollOnDown:(ctx,user)=>{
+		OnPollOnDown:(ctx,proc)=>{
 			// goto next state 
-			return (++user.Count<30)?null:true;
+			return (++proc.User.Count<30)?null:true;
 		},
-		OnEnd:(ctx,user)=>{
+		OnEnd:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' end');
 		},
 	},
 	'StateB':{
-		OnStart:(ctx,user)=>{
+		OnStart:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' start');
 		},
-		OnPollInUp:(ctx,user)=>{
+		OnPollInUp:(ctx,proc)=>{
 			// goto next phase 
-			return (++user.Count<40)?null:true;
+			return (++proc.User.Count<40)?null:true;
 		},
-		OnReady:(ctx,user)=>{
+		OnReady:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' ready');
 		},
-		OnPollInKeep:(ctx,user)=>{
+		OnPollInKeep:(ctx,proc)=>{
 			// goto end
-			return (++user.Count<50)?null:true;
+			return (++proc.User.Count<50)?null:true;
 		},
-		OnStop:(ctx,user)=>{
+		OnStop:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' stop');
 		},
-		OnPollInDown:(ctx,user)=>{
+		OnPollInDown:(ctx,proc)=>{
 			// next state is interrupted by StateC 
-			return (++user.Count<60)?null:'StateC';
+			return (++proc.User.Count<60)?null:'StateC';
 		},
-		OnEnd:(ctx,user)=>{
+		OnEnd:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' end');
 		},
 	},
 	'StateC':{
-		OnStart:(ctx,user)=>{
+		OnStart:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' start');
 		},
-		OnPollInUp:(ctx,user)=>{
+		OnPollInUp:(ctx,proc)=>{
 			// next phase is interrupted by StateD 
 			// and stop this state now 
-			return (++user.Count<70)?null:'StateD';
+			return (++proc.User.Count<70)?null:'StateD';
 		},
-		OnReady:(ctx,user)=>{
+		OnReady:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' ready');
 		},
-		OnPollInKeep:(ctx,user)=>{
+		OnPollInKeep:(ctx,proc)=>{
 			// skipped by interruption 
-			return (++user.Count<80)?null:true;
+			return (++proc.User.Count<80)?null:true;
 		},
-		OnStop:(ctx,user)=>{
+		OnStop:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' stop');
 		},
-		OnPollInDown:(ctx,user)=>{
+		OnPollInDown:(ctx,proc)=>{
 			// goto next state 
-			return (++user.Count<90)?null:true;
+			return (++proc.User.Count<90)?null:true;
 		},
-		OnEnd:(ctx,user)=>{
+		OnEnd:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' end');
 		},
 	},
 	'StateD':{
-		OnStart:(ctx,user)=>{
+		OnStart:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' start');
 		},
-		OnPollInUp:(ctx,user)=>{
+		OnPollInUp:(ctx,proc)=>{
 			// goto next phase 
-			return (++user.Count<100)?null:true;
+			return (++proc.User.Count<100)?null:true;
 		},
-		OnReady:(ctx,user)=>{
+		OnReady:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' ready');
 		},
-		OnPollInKeep:(ctx,user)=>{
+		OnPollInKeep:(ctx,proc)=>{
 			// goto end 
-			return (++user.Count<110)?null:true;
+			return (++proc.User.Count<110)?null:true;
 		},
-		OnStop:(ctx,user)=>{
+		OnStop:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' stop');
 		},
-		OnPollInDown:(ctx,user)=>{
+		OnPollInDown:(ctx,proc)=>{
 			// goto next state (is end)
-			return (++user.Count<120)?null:true;
+			return (++proc.User.Count<120)?null:true;
 		},
-		OnEnd:(ctx,user)=>{
+		OnEnd:(ctx,proc)=>{
 			Log.Info(ctx.GetCurState()+' end');
 		},
 	},
@@ -124,26 +124,26 @@ Engine.Start();
 let opt1={
 	Launcher:Engine.CreateLauncher(),
 	User:{name:'Test1',Count:1}, // share in states 
-	OnDone:(user)=>{
-		Log.Info(user.name+' done');
+	OnDone:(proc)=>{
+		Log.Info(proc.User.name+' done');
 
 		// run from StateB 
 		// and abort after 200msec 
 		let ctrl=StateMachine.Run('StateB',states,opt2);
 		Timing.Delay(200,()=>{ctrl.Abort();});
 	},
-	OnAbort:(user)=>{
-		Log.Info(user.name+' abort');
+	OnAbort:(proc)=>{
+		Log.Info(proc.User.name+' abort');
 	},
 }
 let opt2={
 	Launcher:Engine.CreateLauncher(),
 	User:{name:'Test2',Count:1}, // share in states 
-	OnDone:(user)=>{
-		Log.Info(user.name+' done');
+	OnDone:(proc)=>{
+		Log.Info(proc.User.name+' done');
 	},
-	OnAbort:(user)=>{
-		Log.Info(user.name+' abort');
+	OnAbort:(proc)=>{
+		Log.Info(proc.User.name+' abort');
 	},
 }
 

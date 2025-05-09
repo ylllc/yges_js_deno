@@ -56,7 +56,7 @@ export default {
 					let abend=false;
 					let hap2=YgEs.HappeningManager.CreateLocal({
 						Name:'Happened in '+t.Title,
-						OnHappen:(hap)=>{
+						OnHappen:(hm,hap)=>{
 							abend=true;
 							console.error(hap.ToString());
 							console.dir(hap.GetProp());

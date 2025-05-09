@@ -35,17 +35,17 @@ const scenaria=[
 
 			for(let i=0;i<PROCS;++i){
 				lnc.Launch({
-					OnStart:(user)=>{
-						user.until=new Date(Date.now()+WAIT);
+					OnStart:(proc)=>{
+						proc.User.until=new Date(Date.now()+WAIT);
 						++count_start;
 					},
-					OnPoll:(user)=>{
-						return new Date()<user.until;
+					OnPoll:(proc)=>{
+						return new Date()<proc.User.until;
 					},
-					OnDone:(user)=>{
+					OnDone:(proc)=>{
 						++count_done;
 					},
-					OnAbort:(user)=>{
+					OnAbort:(proc)=>{
 						++count_abort;
 					}
 				});

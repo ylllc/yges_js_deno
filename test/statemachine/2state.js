@@ -10,34 +10,34 @@ import StateMachine from '../../api/stmac.js';
 
 const states={
 	'Test1':{
-		OnPollInKeep:(ctx,user)=>{
-			Test.ChkLessEq(++user.Count,10,'poll_keep called illegular');
-			return (user.Count<10)?null:'Test2';
+		OnPollInKeep:(ctx,proc)=>{
+			Test.ChkLessEq(++proc.User.Count,10,'poll_keep called illegular');
+			return (proc.User.Count<10)?null:'Test2';
 		},
-		OnEnd:(ctx,user)=>{
-			Test.ChkStrict(++user.Count,11,'cb_end called illegular');
+		OnEnd:(ctx,proc)=>{
+			Test.ChkStrict(++proc.User.Count,11,'cb_end called illegular');
 		},
 	},
 	'Test2':{
-		OnStart:(ctx,user)=>{
-			Test.ChkStrict(++user.Count,12,'cb_start called illegular');
+		OnStart:(ctx,proc)=>{
+			Test.ChkStrict(++proc.User.Count,12,'cb_start called illegular');
 		},
-		OnPollInKeep:(ctx,user)=>{
-			Test.ChkLessEq(++user.Count,20,'poll_keep called illegular');
-			return (user.Count<20)?null:true;
+		OnPollInKeep:(ctx,proc)=>{
+			Test.ChkLessEq(++proc.User.Count,20,'poll_keep called illegular');
+			return (proc.User.Count<20)?null:true;
 		},
-		OnEnd:(ctx,user)=>{
-			Test.ChkStrict(++user.Count,21,'cb_end called illegular');
+		OnEnd:(ctx,proc)=>{
+			Test.ChkStrict(++proc.User.Count,21,'cb_end called illegular');
 		},
 	},
 }
 
 let opt={
 	User:{Count:1}, // share in states 
-	OnDone:(user)=>{
-		Test.ChkStrict(++user.Count,22,'cb_done called illegular');
+	OnDone:(proc)=>{
+		Test.ChkStrict(++proc.User.Count,22,'cb_done called illegular');
 	},
-	OnAbort:(user)=>{
+	OnAbort:(proc)=>{
 		Test.Never('states abend');
 	},
 }
