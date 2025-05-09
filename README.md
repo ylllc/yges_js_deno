@@ -54,3 +54,23 @@ Access by your web browser.
 ```
 $ rm server_running
 ```
+
+
+## For Your Project
+
+### Fork this Repository
+
+should not clone from this repository directly.  
+this repository often changes reconstructive
+and may break your project.  
+
+### Create a Branch for Your Project
+
+should not use main. 
+main should keep clean to update from the upstream.  
+
+### Update Yggdrasil Essence
+
+sync main in your repository.  
+and merge to your branch as needed.  
+BE CAREFUL.  
