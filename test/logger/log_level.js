@@ -15,7 +15,7 @@ const scenaria=[
 
 			// capture a log for test 
 			let count=0;
-			Log.Way=(src)=>{
+			Log.Way=(logger,src)=>{
 				++count;
 			}
 
@@ -36,7 +36,7 @@ const scenaria=[
 
 			// local log (instant overriden)
 			let ll2=Log.CreateLocal('Local2');
-			ll2.Way=(msg)=>{count+=10;};
+			ll2.Way=(logger,msg)=>{count+=10;};
 			ll2.Info('?');
 			Test.ChkStrict(count,12,'local logged');
 		},

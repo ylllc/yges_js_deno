@@ -12,7 +12,7 @@ import EndPoint from '../api/endpoint.js';
 import File from '../api/file.js';
 import Log from '../api/logger.js';
 
-Log.Showable=Log.LEVEL.TRACE;
+//Log.Showable=Log.LEVEL.TRACE;
 
 // Example: HTTP Server with WebSocket -- //
 

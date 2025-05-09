@@ -15,10 +15,10 @@ const scenaria=[
 
 			// capture a log for test 
 			let subj=null;
-			Log.Format=(src)=>{
+			Log.Format=(logger,src)=>{
 				src.Text=src.Capt+':'+src.Lev+':'+src.Msg;
 			}
-			Log.Way=(src)=>{
+			Log.Way=(logger,src)=>{
 				Test.ChkStrict(src.Text,subj,'captured log');
 			}
 

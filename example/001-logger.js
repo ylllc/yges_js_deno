@@ -51,9 +51,9 @@ ll1.Trace('Local TRACE Log');
 ll1.Put(Log.LEVEL.DEBUG,'Local DEBUG Log');
 
 // can override output 
-Log.Format=(src)=>{
+Log.Format=(logger,src)=>{
 }
-Log.Way=(src)=>{
+Log.Way=(logger,src)=>{
 	console.log(JSON.stringify(src));
 }
 Log.Debug('Global override log');
@@ -62,10 +62,10 @@ ll1.Debug('Local override log');
 
 // local overridings are selected first 
 let ll2=ll1.CreateLocal('Local2');
-ll2.Format=(src)=>{
+ll2.Format=(logger,src)=>{
 	src.Text='* '+src.Msg+' *';
 }
-ll2.Way=(src)=>{
+ll2.Way=(logger,src)=>{
 	console.log(src.Text);
 }
 ll2.Info('super-overridden local log');
