@@ -19,7 +19,7 @@ Engine.Start();
 let log_local=Log.CreateLocal('TransportTest');
 let launcher=Engine.CreateLauncher();
 let hap_local=HappeningManager.CreateLocal({
-	OnHappen:(hap)=>{log_local.Fatal(hap.GetProp());},
+	OnHappen:(hm,hap)=>{log_local.Fatal(hap.GetProp());},
 });
 
 // transport setting

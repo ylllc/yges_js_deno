@@ -13,7 +13,7 @@ const scenaria=[
 		Title:'Happening Info',
 		Proc:(tool)=>{
 			let hap_local=tool.HappenTo.CreateLocal({
-				OnHappen:(hap)=>{
+				OnHappen:(hm,hap)=>{
 					if(!hap.User.ForMyTest){
 						// unknown happens send to parent 
 						tool.HappenTo.Happen(hap);

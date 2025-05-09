@@ -9,7 +9,7 @@ import Log from '../api/logger.js';
 // Example: Happening Manager ----------- //
 
 // can override common happening management procedure 
-HappeningManager.OnHappen=(h)=>{
+HappeningManager.OnHappen=(hm,h)=>{
 	Log.Warn(h.ToString(),h.GetProp());
 }
 

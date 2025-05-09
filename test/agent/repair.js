@@ -57,7 +57,7 @@ const scenaria=[
 		Proc:async (tool)=>{
 			workset.Launcher=tool.Launcher;
 			workset.HappenTo=tool.HappenTo.CreateLocal({
-				OnHappen:(hap)=>{
+				OnHappen:(hm,hap)=>{
 //					tool.Log.Fatal(hap.ToString(),hap.GetProp());
 				},
 			});

@@ -18,7 +18,7 @@ const scenaria=[
 		Title:'Happening Resolving',
 		Proc:(tool)=>{
 			let hap_local1=tool.HappenTo.CreateLocal({
-				OnHappen:(hap)=>{
+				OnHappen:(hm,hap)=>{
 					tool.Log.Fatal('Happen',hap);
 				}
 			});

@@ -9,7 +9,7 @@ import Log from './logger.js';
 // Happening Manager -------------------- //
 (()=>{ // local namespace 
 
-function _default_happened(hap){
+function _default_happened(mng,hap){
 	Log.Fatal(hap.ToString(),hap.GetProp());	
 }
 function _default_abandoned(hap){
@@ -83,10 +83,10 @@ function _create_manager(prm,parent=null){
 	const onHappen=(hap)=>{
 		for(let hm=mng;hm;hm=hm.GetParent()){
 			if(!hm.OnHappen)continue;
-			hm.OnHappen(hap);
+			hm.OnHappen(mng,hap);
 			return;
 		}
-		_default_happened(hap);
+		_default_happened(mng,hap);
 	}
 
 	const iid=YgEs.NextID();

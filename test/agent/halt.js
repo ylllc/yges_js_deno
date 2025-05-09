@@ -81,12 +81,12 @@ const scenaria=[
 			workset1.Launcher=tool.Launcher;
 			workset2.Launcher=tool.Launcher;
 			workset1.HappenTo=tool.HappenTo.CreateLocal({
-				OnHappen:(hap)=>{
+				OnHappen:(hm,hap)=>{
 //					tool.Log.Fatal(hap.ToString(),hap.GetProp());
 				},
 			});
 			workset2.HappenTo=tool.HappenTo.CreateLocal({
-				OnHappen:(hap)=>{
+				OnHappen:(hm,hap)=>{
 					tool.Log.Fatal(hap.ToString(),hap.GetProp());
 				},
 			});

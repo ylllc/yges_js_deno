@@ -17,7 +17,7 @@ Engine.Start();
 // for Worker environment 
 let launcher=Engine.CreateLauncher();
 let hap_local=HappeningManager.CreateLocal({
-	OnHappen:(hap)=>{Log.Fatal(hap.GetProp());},
+	OnHappen:(hm,hap)=>{Log.Fatal(hap.GetProp());},
 });
 
 // Worker1 
