@@ -17,6 +17,8 @@ let YgEs={
 let _prevID=(1234567890+Date.now())&0x7fffffff;
 let _deltaID=727272727; // 31bit prime number, except 2 
 
+YgEs.ShowPrivate=false;
+
 YgEs.InitID=(init,delta=null)=>{
 	_prevID=init;
 	if(delta)_deltaID=delta;
@@ -32,6 +34,44 @@ YgEs.CreateEnum=(src)=>{
 	let ll={}
 	for(let i=0;i<src.length;++i)ll[src[i]]=i;
 	return ll;
+}
+
+YgEs.SoftClass=()=>{
+
+	const name='YgEs.SoftClass';
+	let priv_cur={_super_:{}}
+
+	let inst={
+		Name:name,
+		User:{},
+		_class_:name,
+		_parent_:undefined,
+		_private_:{},
+		GetClassName:()=>inst._class_,
+		GetParentName:()=>inst._parent_,
+		IsComprised:(name)=>!!inst._private_[name],
+		Trait:(name,priv=null,pub=null)=>{
+			let t=priv?priv:{}
+			inst._private_[name]=YgEs.ShowPrivate?t:{};
+			t._super_={}
+			if(pub)Object.assign(inst,pub);
+			return t;
+		},
+		Extend:(name,priv=null,pub=null)=>{
+			let t=inst.Trait(name,priv,pub);
+			inst._parent_=inst._class_;
+			inst._class_=inst.Name=name;
+			priv_cur=t;
+			return t;
+		},
+		Inherit:(symbol,override)=>{
+			const dst=priv_cur._super_[symbol]=inst[symbol];
+			inst[symbol]=override;
+			return dst;
+		},
+	}
+	inst.Trait(name);
+	return inst;
 }
 
 YgEs.SetDefault=(dst,def)=>{
