@@ -15,9 +15,12 @@ const scenaria=[
 
 			const obj=YgEs.SoftClass();
 			Test.ChkStrict('YgEs.SoftClass',obj.GetClassName());
-			Test.ChkStrict(undefined,obj.GetParentName());
 			Test.ChkStrict(true,obj.IsComprised('YgEs.SoftClass'),'means SoftClass instance');
 			Test.ChkStrict(false,obj.IsComprised(undefined),'means not extended');
+
+			Test.ChkStrict('YgEs.SoftClass',obj.GetCaption(),'caption is same to class name');
+			obj.Name='MySoftClass';
+			Test.ChkStrict('MySoftClass',obj.GetCaption(),'caption is same to user defined name');
 		},
 	},
 	{
@@ -32,7 +35,6 @@ const scenaria=[
 				Func1:()=>123,
 			});
 			Test.ChkStrict(cn1,obj.GetClassName());
-			Test.ChkStrict('YgEs.SoftClass',obj.GetParentName());
 			Test.ChkStrict(true,obj.IsComprised('YgEs.SoftClass'),'means SoftClass instance');
 			Test.ChkStrict(true,obj.IsComprised(cn1),'means extended');
 			Test.ChkStrict(false,obj.IsComprised(cn2),'try with unrelated class');
@@ -43,7 +45,6 @@ const scenaria=[
 				Func1:()=>234,
 			});
 			Test.ChkStrict(cn2,obj.GetClassName());
-			Test.ChkStrict(cn1,obj.GetParentName());
 			Test.ChkStrict(true,obj.IsComprised('YgEs.SoftClass'),'means SoftClass instance');
 			Test.ChkStrict(true,obj.IsComprised(cn1),'means extended');
 			Test.ChkStrict(true,obj.IsComprised(cn2),'means extended');
@@ -63,7 +64,6 @@ const scenaria=[
 				Func1:()=>-123,
 			});
 			Test.ChkStrict('YgEs.SoftClass',obj.GetClassName());
-			Test.ChkStrict(undefined,obj.GetParentName());
 			Test.ChkStrict(true,obj.IsComprised('YgEs.SoftClass'),'means SoftClass instance');
 			Test.ChkStrict(true,obj.IsComprised(cn1),'trait class inside');
 			Test.ChkStrict(true,priv1.traited,'private member');
@@ -88,22 +88,33 @@ const scenaria=[
 		Title:'Private Backdoor',
 		Proc:async (tool)=>{
 
-			const obj=YgEs.SoftClass();
+			const back=YgEs.ShowPrivate;
+			YgEs.ShowPrivate=true;
+
+			const obj1=YgEs.SoftClass();
 			const cn1='TestClass1';
 			const cn2='TestClass2';
 
-			const back=YgEs.ShowPrivate;
-			YgEs.ShowPrivate=true;
-			const priv1=obj.Extend(cn1,{test1:-1});
+			const priv1=obj1.Extend(cn1,{test1:-1});
+			const priv2=obj1.Extend(cn2,{test2:-2});
+
 			YgEs.ShowPrivate=false;
-			const priv2=obj.Extend(cn2,{test2:-2});
+
+			const obj2=YgEs.SoftClass();
+
 			YgEs.ShowPrivate=back;
+
+			obj2.Extend(cn1,{test1:-1});
+			obj2.Extend(cn2,{test2:-2});
 
 			Test.ChkStrict(-1,priv1.test1,'private 1');
 			Test.ChkStrict(-2,priv2.test2,'private 2');
 
-			Test.ChkStrict(-1,obj._private_[cn1].test1,'private 1 via backdoor');
-			Test.ChkStrict(undefined,obj._private_[cn2].test2,'private 2 via global is backdoor');
+			Test.ChkStrict(-1,obj1._private_[cn1].test1,'private 1 via backdoor');
+			Test.ChkStrict(-2,obj1._private_[cn2]?.test2,'private 2 via backdoor');
+
+			Test.ChkStrict(undefined,obj2._private_[cn1]?.test1,'private 1 blocked via backdoor');
+			Test.ChkStrict(undefined,obj2._private_[cn2]?.test2,'private 2 blocked via backdoor');
 		},
 	},
 ]
