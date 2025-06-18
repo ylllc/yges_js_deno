@@ -19,20 +19,51 @@ function _cpmsg(msg,v1,op,v2){
 	return ''+msg+' ('+YgEs.Inspect(v1)+' '+op+' '+YgEs.Inspect(v2)+')';
 }
 
-export default {
+YgEs.Test={
 	Name:'YgEs.Test',
 	User:{},
 	_private_:{},
 
 	Never:(msg=null)=>{assert(false,msg)},
 	Chk:(cond,msg=null)=>{assert(cond,msg)},
-	ChkLoose:(v1,v2,msg=null)=>{assert(v1==v2,_cpmsg(msg,v1,'==',v2))},
-	ChkStrict:(v1,v2,msg=null)=>{assert(v1===v2,_cpmsg(msg,v1,'===',v2))},
 	ChkLess:(v1,v2,msg=null)=>{assert(v1<v2,_cpmsg(msg,v1,'<',v2))},
 	ChkLessEq:(v1,v2,msg=null)=>{assert(v1<=v2,_cpmsg(msg,v1,'<=',v2))},
 	ChkGreat:(v1,v2,msg=null)=>{assert(v1>v2,_cpmsg(msg,v1,'>',v2))},
 	ChkGreatEq:(v1,v2,msg=null)=>{assert(v1>=v2,_cpmsg(msg,v1,'>=',v2))},
-	ChkApprox:(v1,v2,range,msg=null)=>{assert(((v1<v2)?(v2-v1):(v1-v2))<=range,_cpmsg(msg,v1,'>=',v2))},
+
+	ChkLoose:(v1,v2,msg=null)=>{
+		switch(typeof v1){
+			case 'object':
+			for(let k in v1)YgEs.Test.ChkLoose(v1[k],v2[k],msg);
+			for(let k in v2)YgEs.Test.ChkLoose(v1[k],v2[k],msg);
+			break;
+
+			default: 
+			assert(v1==v2,_cpmsg(msg,v1,'==',v2))
+		}
+	},
+	ChkStrict:(v1,v2,msg=null)=>{
+		switch(typeof v1){
+			case 'object':
+			for(let k in v1)YgEs.Test.ChkStrict(v1[k],v2[k],msg);
+			for(let k in v2)YgEs.Test.ChkStrict(v1[k],v2[k],msg);
+			break;
+
+			default: 
+			assert(v1===v2,_cpmsg(msg,v1,'===',v2))
+		}
+	},
+	ChkApprox:(v1,v2,range,msg=null)=>{
+		switch(typeof v1){
+			case 'object':
+			for(let k in v1)YgEs.Test.ChkApprox(v1[k],v2[k],range,msg);
+			for(let k in v2)YgEs.Test.ChkApprox(v1[k],v2[k],range,msg);
+			break;
+
+			default: 
+			assert(((v1<v2)?(v2-v1):(v1-v2))<=range,_cpmsg(msg,v1,'>=',v2))
+		}
+	},
 
 	Run:(scn)=>{
 
@@ -94,3 +125,4 @@ export default {
 //		});
 	},
 };
+export default YgEs.Test;

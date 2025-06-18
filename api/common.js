@@ -14,6 +14,11 @@ let YgEs={
 
 (()=>{ // local namespace 
 
+const _rx_zero=/^(0+(|\.)0*|0*(|\.)0+)$/;
+const _rx_null=/^null$/i;
+const _rx_false=/^false$/i;
+const _rx_undefined=/^undefined$/i;
+
 let _prevID=(1234567890+Date.now())&0x7fffffff;
 let _deltaID=727272727; // 31bit prime number, except 2 
 
@@ -36,13 +41,13 @@ YgEs.CreateEnum=(src)=>{
 	return ll;
 }
 
-YgEs.CoreError=(src,prop={})=>{
+YgEs.CoreError=(src,prop=undefined)=>{
 
 	if(YgEs.HappeningManager)YgEs.HappeningManager.Happen(src,prop);
 	else throw src;
 }
 
-YgEs.CoreWarn=(src,prop={})=>{
+YgEs.CoreWarn=(src,prop=undefined)=>{
 
 	if(YgEs.HappeningManager)YgEs.HappeningManager.Happen(src,prop);
 	else if(YgEs.Log)YgEs.Log.Warn(src,prop);
@@ -50,6 +55,200 @@ YgEs.CoreWarn=(src,prop={})=>{
 		console.warn(src);
 		console.dir(prop);
 	}
+}
+
+function _validate_number(src,attr,tag=''){
+
+	let dst=src;
+	if(attr.Max!==undefined){
+		if(dst>attr.Max){
+			YgEs.CoreWarn(tag+' is too much: '+src+'/'+attr.Max);
+			dst=attr.Max;
+		}
+	}
+	if(attr.Min!==undefined){
+		if(dst<attr.Min){
+			YgEs.CoreWarn(tag+' is too less: '+src+'/'+attr.Min);
+			dst=attr.Min;
+		}
+	}
+	if(attr.Integer){
+		let d2=Math.round(dst);
+		if(d2!=dst){
+			YgEs.CoreWarn(tag+' have fragments: '+dst);
+			dst=d2;
+		}
+	}
+
+	return dst;
+}
+
+function _validate_string(src,attr,tag=''){
+
+	let dst=src;
+	if(attr.Max!==undefined){
+		if(src.length>attr.Max){
+			YgEs.CoreWarn(tag+' is too long: '+src.length+'/'+attr.Max);
+			dst=src.substring(0,attr.Max);
+		}
+	}
+	if(attr.Min!==undefined){
+		if(src.length<attr.Min){
+			YgEs.CoreWarn(tag+' is too short: '+src.length+'/'+attr.Min);
+		}
+	}
+
+	return dst;
+}
+
+function _fix_undefined(src,attr,tag=''){
+
+	if(src===null)return src;
+	if(src!==undefined)return src;
+	if(attr.Default!==undefined)return attr.Default;
+
+	if(attr.List)return []
+	if(attr.Dict)return {}
+
+	if(attr.Required){
+		YgEs.CoreWarn(tag+' is missing');
+	}
+
+	return src;
+}
+
+YgEs.Validate=(src,attr,tag='')=>{
+
+	let dst=src;
+
+	if(attr.Any){}
+	else switch(typeof src){
+		case 'boolean':
+		if(!attr.Boolable){
+			YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+			if(attr.Integer || attr.Numeric)dst=src?1:0;
+			else if(attr.Literal)dst=src?'true':'false';
+			else dst=undefined;
+		}
+		break;
+
+		case 'number':
+		if(!attr.Integer && !attr.Numeric){
+			YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+			if(attr.Literal)dst=''+dst;
+			else if(attr.Boolable)dst=!!dst;
+			else dst=undefined;
+		}
+		else dst=_validate_number(src,attr,tag);
+		break;
+
+		case 'string':
+		if(!attr.Literal){
+			YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+			if(attr.Integer){
+				dst=parseInt(dst);
+				if(!attr.NaNable && Number.isNaN(dst)){
+					if(attr.Boolable)dst=!!src;
+					else dst=undefined;
+				}
+			}
+			else if(attr.Numeric){
+				dst=parseFloat(dst);
+				if(!attr.NaNable && Number.isNaN(dst)){
+					if(attr.Boolable)dst=!!src;
+					else dst=undefined;
+				}
+			}
+			else if(attr.Boolable)dst=YgEs.Booleanize(src,true);
+			else dst=undefined;
+		}
+		else dst=_validate_string(src,attr,tag);
+		break;
+
+		case 'object':
+		if(src===null){
+			if(!attr.Nullable){
+				YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+				if(attr.Boolable)dst=false;
+				else if(attr.Integer || attr.Numeric)dst=0;
+				else if(attr.Literal)dst='';
+				else dst=undefined;
+			}
+		}
+		else if(Array.isArray(src)){
+			if(!attr.List){
+				YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+				dst=undefiend;
+			}
+			else if(typeof attr.List==='object'){
+				dst=[];
+				for(let k in src){
+					dst[k]=YgEs.Validate(src[k],attr.List,tag+'['+k+']');
+				}
+			}
+		}
+		else{
+			let cnt=(attr.Dict?1:0)+(attr.Struct?1:0)+(attr.Class?1:0);
+			if(cnt>1){
+				YgEs.CoreWarn(tag+' has object types in a chaos',attr);
+			}
+			else if(attr.Dict){
+				if(typeof attr.Dict==='object'){
+					dst={}
+					for(let k in src){
+						dst[k]=YgEs.Validate(src[k],attr.Dict,tag+'["'+k+'"]');
+					}
+				}
+			}
+			else if(attr.Struct){
+				if(typeof attr.Struct==='object'){
+					dst={}
+					for(let k in attr.Struct){
+						dst[k]=YgEs.Validate(src[k],attr.Struct[k],tag+'["'+k+'"]');
+					}
+					for(let k in src){
+						if(attr.Struct[k])continue;
+						// undefined item 
+						if(attr.Others)dst[k]=src[k];
+						else{
+							YgEs.CoreWarn(tag+'["'+k+'"] is undefined spec',src[k]);
+						}
+					}
+				}
+			}
+			else if(attr.Class){
+				switch(typeof attr.Class){
+					case 'string':
+					if(!src.IsComprised(attr.Class)){
+						YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+						dst=undefined;
+					}
+					break;
+
+					case 'function':
+					if(!src instanceof attr.Class){
+						YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+						dst=undefined;
+					}
+					break;
+
+					default:
+					YgEs.CoreWarn(tag+' specified by invalid attr',attr);
+					dst=undefined;
+				}
+			}
+			else{
+				YgEs.CoreWarn(tag+' has unknown object type',attr);
+			}
+		}
+		break;
+	}
+
+	if(attr.Validator)dst=attr.Validator(dst,attr,tag);
+
+	dst=_fix_undefined(dst,attr,tag);
+
+	return dst;
 }
 
 YgEs.SoftClass=()=>{
@@ -137,6 +336,47 @@ YgEs.FromError=(err)=>{
 		Stack:err.stack,
 		Src:err,
 	}
+}
+
+YgEs.Booleanize=(val,stringable=false)=>{
+	if(val===null)return false;
+	if(val===undefined)return false;
+	switch(typeof val){
+		case 'boolean':
+		return val;
+
+		case 'number':
+		if(isNaN(val))return true;
+		break;
+
+		case 'string':
+		if(stringable){
+			if(val.match(_rx_zero))return false;
+			if(val.match(_rx_false))return false;
+			if(val.match(_rx_null))return false;
+			if(val.match(_rx_undefined))return false;
+		}
+		break;
+
+		case 'object':
+		return true;
+	}
+	return !!val;
+}
+
+YgEs.Trinarize=(val,stringable=false)=>{
+
+	if(val==null)return null;
+	if(val===undefined)return null;
+	switch(typeof val){
+		case 'string':
+		if(stringable){
+			if(val.match(_rx_null))return null;
+			if(val.match(_rx_undefined))return null;
+		}
+		break;
+	}
+	return YgEs.Booleanize(val,stringable);
 }
 
 YgEs.JustString=(val)=>{
