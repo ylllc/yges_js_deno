@@ -86,101 +86,107 @@ function _do_write(t,src){
 function _create_local(capt=null,showable=null,parent=null){
 
 	const iid=YgEs.NextID();
-	let t={
-		Name:'YgEs.LocalLog',
-		User:{},
-		_private_:{},
 
-		Showable:showable,
-		Caption:capt,
+	let self=YgEs.SoftClass();
+	self.Extend('YgEs.LocalLog',{
+		// private
+	},{
+		// public
+		Showable:YgEs.Validate(showable,{Integer:true,Nullable:true,Min:0,Max:_level_names.length}),
+		Caption:YgEs.Validate(capt,{Literal:true,Nullable:true}),
 		Format:null,
 		Way:null,
 
 		LEVEL_NAMES:_level_names,
 		LEVEL:_level_lookup,
 
-		CreateLocal:(capt=null,showable=null)=>_create_local(capt,showable,t),
-		CreateSplitter:(capt=null,showable=null)=>_create_splitter(capt,showable,t),
+		CreateLocal:(capt=null,showable=null)=>_create_local(capt,showable,self),
+		CreateSplitter:(capt=null,showable=null)=>_create_splitter(capt,showable,self),
 
 		GetInstanceID:()=>iid,
 		GetParent:()=>parent,
 		GetCaption:()=>{
-			for(let inst=t;inst;inst=inst.GetParent()){
-				if(inst.Caption!==null)return inst.Caption;
+			for(let t=self;t;t=t.GetParent()){
+				if(t.Caption!==null)return t.Caption;
 			}
 			return '';
 		},
 		GetShowable:()=>{
-			for(let inst=t;inst;inst=inst.GetParent()){
-				if(inst.Showable!==null)return inst.Showable;
+			for(let t=self;t;t=t.GetParent()){
+				if(t.Showable!==null)return t.Showable;
 			}
 			return _default_showable;
 		},
 
 		Put:(lev,msg,prop=null)=>{
-			if(lev>=t.LEVEL_NAMES.length)return;
-			if(lev<t.GetShowable())return;
+			if(lev>=self.LEVEL_NAMES.length)return;
+			if(lev<self.GetShowable())return;
 			let src={
 				Date:new Date().toISOString(),
-				Capt:t.GetCaption(),
+				Capt:self.GetCaption(),
 				Lev:lev,
 				Msg:msg
 			}
 			if(prop)src.Prop=prop;
-			_do_format(t,src);
-			_do_write(t,src);
+			_do_format(self,src);
+			_do_write(self,src);
 		},
 
-		Tick:(msg,prop=null)=>{t.Put(t.LEVEL.TICK,msg,prop);},
-		Trace:(msg,prop=null)=>{t.Put(t.LEVEL.TRACE,msg,prop);},
-		Debug:(msg,prop=null)=>{t.Put(t.LEVEL.DEBUG,msg,prop);},
-		Info:(msg,prop=null)=>{t.Put(t.LEVEL.INFO,msg,prop);},
-		Notice:(msg,prop=null)=>{t.Put(t.LEVEL.NOTICE,msg,prop);},
-		Warn:(msg,prop=null)=>{t.Put(t.LEVEL.WARN,msg,prop);},
-		Fatal:(msg,prop=null)=>{t.Put(t.LEVEL.FATAL,msg,prop);},
-		Crit:(msg,prop=null)=>{t.Put(t.LEVEL.CRIT,msg,prop);},
-		Alert:(msg,prop=null)=>{t.Put(t.LEVEL.ALERT,msg,prop);},
-		Emerg:(msg,prop=null)=>{t.Put(t.LEVEL.EMERG,msg,prop);},
-	}
-	return t;
+		Tick:(msg,prop=null)=>{self.Put(self.LEVEL.TICK,msg,prop);},
+		Trace:(msg,prop=null)=>{self.Put(self.LEVEL.TRACE,msg,prop);},
+		Debug:(msg,prop=null)=>{self.Put(self.LEVEL.DEBUG,msg,prop);},
+		Info:(msg,prop=null)=>{self.Put(self.LEVEL.INFO,msg,prop);},
+		Notice:(msg,prop=null)=>{self.Put(self.LEVEL.NOTICE,msg,prop);},
+		Warn:(msg,prop=null)=>{self.Put(self.LEVEL.WARN,msg,prop);},
+		Fatal:(msg,prop=null)=>{self.Put(self.LEVEL.FATAL,msg,prop);},
+		Crit:(msg,prop=null)=>{self.Put(self.LEVEL.CRIT,msg,prop);},
+		Alert:(msg,prop=null)=>{self.Put(self.LEVEL.ALERT,msg,prop);},
+		Emerg:(msg,prop=null)=>{self.Put(self.LEVEL.EMERG,msg,prop);},
+	});
+
+	return self;
 }
 
 function _create_splitter(capt=null,showable=null,parent=null){
 
-	let t=_create_local(capt,showable,parent);
-	t._private_.slot={}
-	t.Format=(logger,src)=>{
-		for(let sub of Object.values(t._private_.slot)){
-			if(src.Lev<sub.GetShowable())continue;
-			_do_format(sub,src);
-		}
-	}
-	t.Way=(logger,src)=>{
-		for(let sub of Object.values(t._private_.slot)){
-			if(src.Lev<sub.GetShowable())continue;
-			_do_write(sub,src);
-		}
-	}
-	t.Ref=(id)=>{
-		return t._private_.slot[id];
-	}
-	t.Attach=(id,logger)=>{
-		if(!logger){
-			t.Detach(id);
-			return;
-		}
-		t._private_.slot[id]=logger;
-	}
-	t.Detach=(id)=>{
-		if(!t._private_.slot[id])return;
-		delete t._private_.slot[id];
-	}
+	let self=_create_local(capt,showable,parent);
+	let priv=self.Extend('YgEs.LogSplitter',{
+		// private 
+		slot:{},
+	},{
+		// public 
+		Format:(logger,src)=>{
+			for(let sub of Object.values(priv.slot)){
+				if(src.Lev<sub.GetShowable())continue;
+				_do_format(sub,src);
+			}
+		},
+		Way:(logger,src)=>{
+			for(let sub of Object.values(priv.slot)){
+				if(src.Lev<sub.GetShowable())continue;
+				_do_write(sub,src);
+			}
+		},
+		Ref:(id)=>{
+			return priv.slot[id];
+		},
+		Attach:(id,logger)=>{
+			if(!logger){
+				self.Detach(id);
+				return;
+			}
+			priv.slot[id]=logger;
+		},
+		Detach:(id)=>{
+			if(!priv.slot[id])return;
+			delete priv.slot[id];
+		},
+	});
 
-	return t;
+	return self;
 }
 
-const Log=YgEs.Log=_create_local();
-YgEs.Log.Name='YgEs.GlobalLog';
+const Log=YgEs.Log=_create_local('Global');
 
 })();
 export default YgEs.Log;
