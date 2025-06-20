@@ -32,6 +32,9 @@ const scenaria=[
 			let obj2=YgEs.SoftClass();
 			Test.ChkStrict(obj2,YgEs.Validate(obj2,{Class:'YgEs.SoftClass'}));
 			Test.ChkStrict(obj1,YgEs.Validate(obj1,{Any:true}));
+
+			let func=()=>{}
+			Test.ChkStrict(func,YgEs.Validate(func,{Callable:true}));
 		},
 	},
 	{

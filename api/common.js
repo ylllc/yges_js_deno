@@ -123,6 +123,13 @@ YgEs.Validate=(src,attr,tag='')=>{
 
 	if(attr.Any){}
 	else switch(typeof src){
+		case 'function':
+		if(!attr.Callable){
+			YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+			dst=undefined;
+		}
+		break;
+
 		case 'boolean':
 		if(!attr.Boolable){
 			YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
@@ -249,6 +256,14 @@ YgEs.Validate=(src,attr,tag='')=>{
 	dst=_fix_undefined(dst,attr,tag);
 
 	return dst;
+}
+
+YgEs.InstanceOf=(obj,name)=>{
+
+	if(obj===null)return false;
+	if(typeof obj==='object')return false;
+	if(!obj.IsComprised)return false;
+	return obj.IsComprised(name);
 }
 
 YgEs.SoftClass=()=>{
