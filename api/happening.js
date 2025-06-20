@@ -19,184 +19,186 @@ function _default_resolved(hap){
 	Log.Debug('* Resolved * '+hap.ToString(),hap.GetProp());	
 }
 
-function _create_happening(cbprop,cbstr,cberr,init={}){
-
-	let resolved=false;
-	let abandoned=false;
-	let onResolved=init.OnResolved??_default_resolved;
-	let onAbandoned=init.OnAbandoned??_default_abandoned;
+function _create_happening(cbprop,cbstr,cberr,prm={}){
 
 	const iid=YgEs.NextID();
-	let hap={
-		Name:init.Name??'YgEs.Happening',
-		User:init.User??{},
-		_private_:{},
 
-		_yges_happening_:true, // means this is YgEs.Happening 
+	const onResolved=YgEs.Validate(prm.OnResolved,{
+		Callable:true,
+		Dafault:_default_resolved
+	});
+	const onAbandoned=YgEs.Validate(prm.OnAbandoned,{
+		Callable:true,
+		Default:_default_abandoned,
+	});
 
+	let self=YgEs.SoftClass();
+	if(YgEs.Validate(prm.User,{Struct:true}))Object.assign(self.User,prm.User);
+
+	let priv=self.Extend('YgEs.Happening',{
+		// private 
+		resolved:false,
+		abandoned:false,
+	},{
+		// public 
 		GetInstanceID:()=>iid,
 		GetProp:cbprop,
 		ToString:cbstr,
 		toString:cbstr,
 		ToError:cberr,
 
-		IsResolved:()=>resolved,
-		IsAbandoned:()=>abandoned && !resolved,
+		IsResolved:()=>priv.resolved,
+		IsAbandoned:()=>priv.abandoned && !priv.resolved,
 
 		GetStatus:()=>{
-			if(resolved)return 'Resolved';
-			if(abandoned)return 'Abandoned';
+			if(priv.resolved)return 'Resolved';
+			if(priv.abandoned)return 'Abandoned';
 			return 'Posed';
 		},
 		GetInfo:()=>{return {
 			InstanceID:iid,
-			Name:hap.Name,
-			Status:hap.GetStatus(),
+			Name:self.Name,
+			Status:self.GetStatus(),
 			Msg:cbstr(),
 			Prop:cbprop(),
-			User:hap.User,
+			User:self.User,
 		}},
 
 		Resolve:()=>{
-			if(resolved)return;
-			resolved=true;
-			abandoned=false;
-			if(onResolved)onResolved(hap);
+			if(priv.resolved)return;
+			priv.resolved=true;
+			priv.abandoned=false;
+			if(onResolved)onResolved(self);
 		},
 
 		Abandon:()=>{
-			if(resolved)return;
-			if(abandoned)return;
-			abandoned=true;
-			if(onAbandoned)onAbandoned(hap);
+			if(priv.resolved)return;
+			if(priv.abandoned)return;
+			priv.abandoned=true;
+			if(onAbandoned)onAbandoned(self);
 		},
-	}
-	return hap;
+	});
+
+	return self;
 }
 
 function _create_manager(prm,parent=null){
 
-	let issues=[]
-	let children=[]
-	let abandoned=false;
+	const iid=YgEs.NextID();
 
 	const onHappen=(hap)=>{
-		for(let hm=mng;hm;hm=hm.GetParent()){
+		for(let hm=self;hm;hm=hm.GetParent()){
 			if(!hm.OnHappen)continue;
-			hm.OnHappen(mng,hap);
+			hm.OnHappen(self,hap);
 			return;
 		}
-		_default_happened(mng,hap);
+		_default_happened(self,hap);
 	}
 
-	const iid=YgEs.NextID();
-	let mng={
-		Name:prm.Name??'YgEs.HappeningManager',
-		User:prm.User??{},
-		_private_:{},
+	let self=YgEs.SoftClass();
+	if(YgEs.Validate(prm.User,{Struct:true}))Object.assign(self.User,prm.User);
 
-		OnHappen:prm.OnHappen??null,
+	let priv=self.Extend('YgEs.HappeningManager',{
+		// private 
+		abandoned:false,
+		issues:[],
+		children:[],
+	},{
+		// public 
+		OnHappen:YgEs.Validate(prm.OnHappen,{Callable:true}),
 
 		CreateLocal:(prm={})=>{
-			let cm=_create_manager(prm,mng);
-			children.push(cm);
+			let cm=_create_manager(prm,self);
+			priv.children.push(cm);
 			return cm;
 		},
 
 		GetInstanceID:()=>iid,
 		GetParent:()=>parent,
-		GetChildren:()=>children,
-		GetIssues:()=>issues,
-		IsAbandoned:()=>abandoned,
+		GetChildren:()=>priv.children,
+		GetIssues:()=>priv.issues,
+		IsAbandoned:()=>priv.abandoned,
 
 		GetStatus:()=>{
-			if(abandoned)return 'Abandoned';
+			if(priv.abandoned)return 'Abandoned';
 			return 'Available';
 		},
 		GetInfo:()=>{
 			let r={
 				InstanceID:iid,
-				Name:mng.Name,
-				Status:mng.GetStatus(),
-				User:mng.User,
+				Name:self.GetCaption(),
+				Status:self.GetStatus(),
+				User:self.User,
 				Issues:[],
 				Sub:[],
 			}
-			for(let hap of issues)r.Issues.push(hap.GetInfo());
-			for(let sub of children)r.Sub.push(sub.GetInfo());
+			for(let hap of priv.issues)r.Issues.push(hap.GetInfo());
+			for(let sub of priv.children)r.Sub.push(sub.GetInfo());
 			return r;
 		},
 
 		Abandon:()=>{
-			for(let sub of children){
+			for(let sub of priv.children){
 				sub.Abandon();
 			}
-			for(let hap of issues){
+			for(let hap of priv.issues){
 				hap.Abandon();
 			}
-			issues=[]
-			abandoned=true;
+			priv.issues=[]
+			priv.abandoned=true;
 		},
 
 		CountIssues:()=>{
-			let ct=issues.length;
-			for(let sub of children){
+			let ct=priv.issues.length;
+			for(let sub of priv.children){
 				ct+=sub.CountIssues();
 			}
 			return ct;
 		},
 		IsCleaned:()=>{
-			if(issues.length>0)return false;
-			for(let sub of children){
+			if(priv.issues.length>0)return false;
+			for(let sub of priv.children){
 				if(!sub.IsCleaned())return false;
 			}
 			return true;
 		},
 		CleanUp:()=>{
 			let tmp=[]
-			for(let hap of issues){
+			for(let hap of priv.issues){
 				if(!hap.IsResolved())tmp.push(hap);
 			}
-			issues=tmp;
+			priv.issues=tmp;
 
 			tmp=[]
-			for(let sub of children){
+			for(let sub of priv.children){
 				if(sub.IsAbandoned())continue;
 				sub.CleanUp();
 				tmp.push(sub);
 			}
-			children=tmp;
+			priv.children=tmp;
 		},
 
 		Poll:(cb)=>{
 			if(!cb)return;
-			for(let hap of issues){
+			for(let hap of priv.issues){
 				if(hap.IsResolved())continue;
 				if(hap.IsAbandoned())continue;
 				cb(hap);
 			}
-			for(let sub of children){
+			for(let sub of priv.children){
 				sub.Poll(cb);
 			}
 		},
 
-		Happen:(src,prop={},init={})=>{
+		Happen:(src,prop={},prm={})=>{
 
 			let hap=null;
-			if(typeof src!='object'){
+			if(src==null || typeof src!='object'){
 				hap=_create_happening(
 					()=>prop,
 					()=>''+src,
 					()=>new Error(''+src,{cause:prop}),
-					init
-				);
-			}
-			else if(src._yges_happening_){
-				hap=_create_happening(
-					()=>src.GetProp(),
-					()=>''+src,
-					()=>new Error(''+src,{cause:src.GetProp()}),
-					init
+					prm
 				);
 			}
 			else if(src instanceof Error){
@@ -204,7 +206,15 @@ function _create_manager(prm,parent=null){
 					()=>YgEs.FromError(src),
 					()=>'{'+src.Name+'} '+src.message,
 					()=>src,
-					init
+					prm
+				);
+			}
+			else if(YgEs.InstanceOf(src,'YgEs.Happening')){
+				hap=_create_happening(
+					()=>src.GetProp(),
+					()=>''+src,
+					()=>new Error(''+src,{cause:src.GetProp()}),
+					prm
 				);
 			}
 			else{
@@ -212,16 +222,17 @@ function _create_manager(prm,parent=null){
 					()=>Object.assign(src,prop),
 					()=>'Happening',
 					()=>new Error('Happening',{cause:Object.assign(src,prop)}),
-					init
+					prm
 				);
 			}
 
-			issues.push(hap);
+			priv.issues.push(hap);
 			onHappen(hap);
 			return hap;
 		},
-	}
-	return mng;
+	});
+
+	return self;
 }
 
 YgEs.HappeningManager=_create_manager({Name:'YgEs.GlobalHappeningManager'});
