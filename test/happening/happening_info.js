@@ -32,7 +32,12 @@ const scenaria=[
 				},
 			});
 			
-			hap_local.Happen('Happen Test',{A:1,B:-2},{User:{ForMyTest:true}});
+			hap_local.Happen('Happen Test',{A:1,B:-2},{
+				User:{ForMyTest:true},
+				OnResolved:(hap)=>{
+//					tool.Log.Debug('Resolved: '+hap.ToString(),hap.GetProp());	
+				},
+			});
 			hap_local.User.Test='test';
 
 			let info=hap_local.GetInfo();

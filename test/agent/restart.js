@@ -29,6 +29,7 @@ const scenaria=[
 	{
 		Title:'Agent Restart',
 		Proc:async (tool)=>{
+			workset.Log=tool.Log;
 			workset.Launcher=tool.Launcher;
 			workset.HappenTo=tool.Launcher.HappenTo;
 			agent=AgentManager.StandBy(workset);

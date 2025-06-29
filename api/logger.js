@@ -83,7 +83,11 @@ function _do_write(t,src){
 }
 
 // create local instance 
-function _create_local(capt=null,showable=null,parent=null){
+function _create_local(capt=undefined,showable=undefined,parent=undefined){
+
+	capt=YgEs.Validate(capt,{Literal:true,Nullable:true},'capt');
+	showable=YgEs.Validate(showable,{Integer:true,Nullable:true,Min:0,Max:_level_names.length},'showable');
+	parent=YgEs.Validate(parent,{Class:'YgEs.LocalLog'},parent);
 
 	const iid=YgEs.NextID();
 
@@ -92,8 +96,8 @@ function _create_local(capt=null,showable=null,parent=null){
 		// private
 	},{
 		// public
-		Showable:YgEs.Validate(showable,{Integer:true,Nullable:true,Min:0,Max:_level_names.length}),
-		Caption:YgEs.Validate(capt,{Literal:true,Nullable:true}),
+		Showable:showable,
+		Caption:capt,
 		Format:null,
 		Way:null,
 

@@ -57,7 +57,24 @@ YgEs.CoreWarn=(src,prop=undefined)=>{
 	}
 }
 
-function _validate_number(src,attr,tag=''){
+YgEs.Clone=(src)=>{
+
+	if(src===null)return null;
+	else if(Array.isArray(src)){
+		let dst=[]
+		for(let v of src)dst.push(YgEs.Clone(v));
+		return dst;
+	}
+	else if(typeof src==='object'){
+		let dst={}
+		for(let k in src)dst[k]=YgEs.Clone(src[k]);
+		return dst;
+	}
+
+	return src;
+}
+
+function _validate_number(src,attr,tag){
 
 	let dst=src;
 	if(attr.Max!==undefined){
@@ -83,7 +100,7 @@ function _validate_number(src,attr,tag=''){
 	return dst;
 }
 
-function _validate_string(src,attr,tag=''){
+function _validate_string(src,attr,tag){
 
 	let dst=src;
 	if(attr.Max!==undefined){
@@ -101,7 +118,7 @@ function _validate_string(src,attr,tag=''){
 	return dst;
 }
 
-function _fix_undefined(src,attr,tag=''){
+function _fix_undefined(src,attr,tag){
 
 	if(src===null)return src;
 	if(src!==undefined)return src;
@@ -117,9 +134,10 @@ function _fix_undefined(src,attr,tag=''){
 	return src;
 }
 
-YgEs.Validate=(src,attr,tag='')=>{
+YgEs.Validate=(src,attr,tag='',dcf=false)=>{
 
 	let dst=src;
+	if(attr.Clone)dcf=true;
 
 	if(attr.Any){}
 	else switch(typeof src){
@@ -140,7 +158,13 @@ YgEs.Validate=(src,attr,tag='')=>{
 		break;
 
 		case 'number':
-		if(!attr.Integer && !attr.Numeric){
+		if(attr.Key){
+			if(!attr.Key[src]){
+				YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+				dst=undefined;
+			}
+		}
+		else if(!attr.Integer && !attr.Numeric){
 			YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
 			if(attr.Literal)dst=''+dst;
 			else if(attr.Boolable)dst=!!dst;
@@ -150,7 +174,13 @@ YgEs.Validate=(src,attr,tag='')=>{
 		break;
 
 		case 'string':
-		if(!attr.Literal){
+		if(attr.Key){
+			if(!attr.Key[src]){
+				YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
+				dst=undefined;
+			}
+		}
+		else if(!attr.Literal){
 			YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
 			if(attr.Integer){
 				dst=parseInt(dst);
@@ -183,38 +213,56 @@ YgEs.Validate=(src,attr,tag='')=>{
 			}
 		}
 		else if(Array.isArray(src)){
-			if(!attr.List){
+			if(attr.List){
+				let sa=attr.List;
+				if(typeof sa==='object'){
+					dst=[];
+					for(let k in src){
+						dst[k]=YgEs.Validate(src[k],sa,tag+'['+k+']',dcf);
+					}
+				}
+				else if(dcf)dst=YgEs.Clone(src);
+			}
+			else if(attr.Dict){
+				let sa=attr.Dict;
+				if(typeof sa==='object'){
+					dst=[];
+					for(let k in src){
+						dst[k]=YgEs.Validate(src[k],sa,tag+'['+k+']',dcf);
+					}
+				}
+				else if(dcf)dst=YgEs.Clone(src);
+			}
+			else{
 				YgEs.CoreWarn(tag+' is invalid: '+YgEs.Inspect(src));
 				dst=undefiend;
-			}
-			else if(typeof attr.List==='object'){
-				dst=[];
-				for(let k in src){
-					dst[k]=YgEs.Validate(src[k],attr.List,tag+'['+k+']');
-				}
 			}
 		}
 		else{
 			let cnt=(attr.Dict?1:0)+(attr.Struct?1:0)+(attr.Class?1:0);
 			if(cnt>1){
 				YgEs.CoreWarn(tag+' has object types in a chaos',attr);
+				if(dcf)dst=YgEs.Clone(src);
 			}
 			else if(attr.Dict){
-				if(typeof attr.Dict==='object'){
+				let sa=attr.Dict;
+				if(typeof sa==='object'){
 					dst={}
 					for(let k in src){
-						dst[k]=YgEs.Validate(src[k],attr.Dict,tag+'["'+k+'"]');
+						dst[k]=YgEs.Validate(src[k],sa,tag+'["'+k+'"]',dcf);
 					}
 				}
+				else if(dcf)dst=YgEs.Clone(src);
 			}
 			else if(attr.Struct){
-				if(typeof attr.Struct==='object'){
+				let sa=attr.Struct;
+				if(typeof sa==='object'){
 					dst={}
-					for(let k in attr.Struct){
-						dst[k]=YgEs.Validate(src[k],attr.Struct[k],tag+'["'+k+'"]');
+					for(let k in sa){
+						dst[k]=YgEs.Validate(src[k],sa[k],tag+'["'+k+'"]',dcf);
 					}
 					for(let k in src){
-						if(attr.Struct[k])continue;
+						if(sa[k])continue;
 						// undefined item 
 						if(attr.Others)dst[k]=src[k];
 						else{
@@ -222,6 +270,7 @@ YgEs.Validate=(src,attr,tag='')=>{
 						}
 					}
 				}
+				else if(dcf)dst=YgEs.Clone(src);
 			}
 			else if(attr.Class){
 				switch(typeof attr.Class){
@@ -246,6 +295,7 @@ YgEs.Validate=(src,attr,tag='')=>{
 			}
 			else{
 				YgEs.CoreWarn(tag+' has unknown object type',attr);
+				if(dcf)dst=YgEs.Clone(src);
 			}
 		}
 		break;
@@ -266,67 +316,68 @@ YgEs.InstanceOf=(obj,name)=>{
 	return obj.IsComprised(name);
 }
 
-YgEs.SoftClass=()=>{
+YgEs.SoftClass=(name=undefined,user=undefined)=>{
 
-	const name='YgEs.SoftClass';
 	let priv_idx={}
 
-	const entrait=(name,priv,pub)=>{
+	const basename='YgEs.SoftClass';
+	const entrait=(subname,priv,pub)=>{
 
-		if(priv_idx[name]){
-			YgEs.CoreWarn('** '+name+' already exists in class table of '+inst.GetCaption()+' **',Object.keys(priv_idx));
+		if(priv_idx[subname]){
+			YgEs.CoreWarn('** '+subname+' already exists in class table of '+self.GetCaption()+' **',Object.keys(priv_idx));
 		}
 
 		let t=priv?priv:{}
-		priv_idx[name]=t;
-		if(pub)Object.assign(inst,pub);
+		priv_idx[subname]=t;
+		if(pub)Object.assign(self,pub);
 		return t;
 	}
 
-	let inst={
-		Name:undefined,
-		User:{},
-		_class_:name,
+	let self={
+		Name:name,
+		User:user??{},
+		_class_:basename,
 		_genealogy_:[],
 		_private_:YgEs.ShowPrivate?priv_idx:{},
-		GetCaption:()=>inst.Name??inst._class_,
-		GetClassName:()=>inst._class_,
-		GetGenealogy:()=>inst._genealogy_,
-		IsComprised:(name)=>!!priv_idx[name],
-		Trait:(name,priv=null,pub=null)=>{
-			let t=entrait(name,priv,pub);
-			priv_cur._trait_.push({_class_:name,_user_:t});
+		GetCaption:()=>self.Name??self._class_,
+		GetClassName:()=>self._class_,
+		GetGenealogy:()=>self._genealogy_,
+		IsComprised:(subname)=>!!priv_idx[subname],
+		Trait:(subname,priv=null,pub=null)=>{
+			let t=entrait(subname,priv,pub);
+			priv_cur._trait_.push({_class_:subname,_user_:t});
 			return t;
 		},
-		Extend:(name,priv=null,pub=null)=>{
+		Extend:(subname,priv=null,pub=null)=>{
 
-			let t=entrait(name,priv,pub);
-			let pn=inst._class_;
-			inst._class_=name;
-			inst._genealogy_.push(name);
-			priv_cur={_class_:name,_parent_:priv_cur,_trait_:[],_super_:{},_user_:t}
-			if(YgEs.ShowPrivate)inst._inherit_=priv_cur;
+			let t=entrait(subname,priv,pub);
+			let pn=self._class_;
+			self._class_=subname;
+			self._genealogy_.push(subname);
+			priv_cur={_class_:subname,_parent_:priv_cur,_trait_:[],_super_:{},_user_:t}
+			if(YgEs.ShowPrivate)self._inherit_=priv_cur;
 			return t;
 		},
 		Inherit:(symbol,override)=>{
 			if(priv_cur._super_[symbol]){
-				YgEs.CoreWarn('** '+symbol+' already exists in inheritance table of '+inst.GetCaption()+' **',priv_cur._super_);
+				YgEs.CoreWarn('** '+symbol+' already exists in inheritance table of '+self.GetCaption()+' **',priv_cur._super_);
 			}
 
-			const dst=priv_cur._super_[symbol]=inst[symbol];
-			inst[symbol]=override;
+			const dst=priv_cur._super_[symbol]=self[symbol];
+			self[symbol]=override;
 			return dst;
 		},
 	}
-	let priv_cur={_class_:name,_trait_:[],_super_:{},_user_:entrait(name)}
+	let priv_cur={_class_:basename,_trait_:[],_super_:{},_user_:entrait(basename)}
 	if(YgEs.ShowPrivate){
-		inst._inherit_=priv_cur;
-		inst._private_=priv_idx;
+		self._inherit_=priv_cur;
+		self._private_=priv_idx;
 	}
 
-	return inst;
+	return self;
 }
 
+// [Deprecated] 
 YgEs.SetDefault=(dst,def)=>{
 
 	if(Array.isArray(def))return dst;

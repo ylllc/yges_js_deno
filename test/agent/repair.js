@@ -55,10 +55,11 @@ const scenaria=[
 	{
 		Title:'Agent Repairing',
 		Proc:async (tool)=>{
+			workset.Log=tool.Log;
 			workset.Launcher=tool.Launcher;
 			workset.HappenTo=tool.HappenTo.CreateLocal({
 				OnHappen:(hm,hap)=>{
-//					tool.Log.Fatal(hap.ToString(),hap.GetProp());
+//					tool.Log.Fatal('Happen: '+hap.ToString(),hap.GetProp());
 				},
 			});
 			agent=AgentManager.StandBy(workset);
@@ -66,7 +67,11 @@ const scenaria=[
 
 			// the agent has a Happening at start 
 			// and must repair it to open.  
-			workset.HappenTo.Happen('Test Hap.');
+			workset.HappenTo.Happen('Test Hap.',null,{
+			OnResolved:(hap)=>{
+//				agent.GetLogger().Debug('Resolved: '+hap.ToString(),hap.GetProp());	
+			},
+		});
 
 			handle=agent.Fetch();
 			handle.Open();

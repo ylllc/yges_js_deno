@@ -21,19 +21,17 @@ function _default_resolved(hap){
 
 function _create_happening(cbprop,cbstr,cberr,prm={}){
 
+	prm=YgEs.Validate(prm,{Others:true,Struct:{
+		Name:{Literal:true},
+		User:{Struct:true},
+
+		OnResolved:{Callable:true,Default:_default_resolved},
+		OnAbandoned:{Callable:true,Default:_default_abandoned},
+	}},'prm');
+
 	const iid=YgEs.NextID();
 
-	const onResolved=YgEs.Validate(prm.OnResolved,{
-		Callable:true,
-		Dafault:_default_resolved
-	});
-	const onAbandoned=YgEs.Validate(prm.OnAbandoned,{
-		Callable:true,
-		Default:_default_abandoned,
-	});
-
-	let self=YgEs.SoftClass();
-	if(YgEs.Validate(prm.User,{Struct:true}))Object.assign(self.User,prm.User);
+	let self=YgEs.SoftClass(prm.Name,prm.User);
 
 	let priv=self.Extend('YgEs.Happening',{
 		// private 
@@ -68,14 +66,14 @@ function _create_happening(cbprop,cbstr,cberr,prm={}){
 			if(priv.resolved)return;
 			priv.resolved=true;
 			priv.abandoned=false;
-			if(onResolved)onResolved(self);
+			prm.OnResolved(self);
 		},
 
 		Abandon:()=>{
 			if(priv.resolved)return;
 			if(priv.abandoned)return;
 			priv.abandoned=true;
-			if(onAbandoned)onAbandoned(self);
+			prm.OnAbandoned(self);
 		},
 	});
 
@@ -83,6 +81,12 @@ function _create_happening(cbprop,cbstr,cberr,prm={}){
 }
 
 function _create_manager(prm,parent=null){
+
+	prm=YgEs.Validate(prm,{Others:true,Struct:{
+		Name:{Literal:true},
+		User:{Struct:true},
+		OnHappen:{Callable:true},
+	}},'prm');
 
 	const iid=YgEs.NextID();
 
@@ -95,8 +99,7 @@ function _create_manager(prm,parent=null){
 		_default_happened(self,hap);
 	}
 
-	let self=YgEs.SoftClass();
-	if(YgEs.Validate(prm.User,{Struct:true}))Object.assign(self.User,prm.User);
+	let self=YgEs.SoftClass(prm.Name,prm.User);
 
 	let priv=self.Extend('YgEs.HappeningManager',{
 		// private 
@@ -105,7 +108,7 @@ function _create_manager(prm,parent=null){
 		children:[],
 	},{
 		// public 
-		OnHappen:YgEs.Validate(prm.OnHappen,{Callable:true}),
+		OnHappen:prm.OnHappen,
 
 		CreateLocal:(prm={})=>{
 			let cm=_create_manager(prm,self);
@@ -190,7 +193,7 @@ function _create_manager(prm,parent=null){
 			}
 		},
 
-		Happen:(src,prop={},prm={})=>{
+		Happen:(src,prop=null,prm={})=>{
 
 			let hap=null;
 			if(src==null || typeof src!='object'){

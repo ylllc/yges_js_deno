@@ -23,6 +23,29 @@ const _state_lookup=Object.freeze(ll);
 
 function _standby(prm){
 
+	prm=YgEs.Validate(prm,{Others:true,Struct:{
+		Name:{Literal:true,Default:'YgEs.Agent'},
+		User:{Struct:true},
+		Log:{Class:'YgEs.LocalLog',Default:Log},
+		HappenTo:{Class:'YgEs.HappeningManager',Default:HappeningManager},
+		Launcher:{Class:'YgEs.Launcher',Default:Engine},
+		AgentBypasses:{List:{Literal:true}},
+		UserBypasses:{List:{Literal:true}},
+		Dependencies:{Dict:{Class:'YgEs.Handle'}},
+		OnOpen:{Callable:true,Default:(agent)=>{}},
+		OnClose:{Callable:true,Default:(agent)=>{}},
+		OnBack:{Callable:true,Default:(agent)=>{}},
+		OnRepair:{Callable:true,Default:(agent)=>{}},
+		OnReady:{Callable:true,Default:(agent)=>{}},
+		OnTrouble:{Callable:true,Default:(agent)=>{}},
+		OnRecover:{Callable:true,Default:(agent)=>{}},
+		OnHalt:{Callable:true,Default:(agent)=>{}},
+		OnPollInHealthy:{Callable:true,Default:(agent)=>{}},
+		OnPollInTrouble:{Callable:true,Default:(agent)=>{}},
+		OnFinish:{Callable:true,Default:(agent,cleaned)=>{}},
+		OnAbort:{Callable:true,Default:(agent)=>{}},
+	}},'prm');
+
 	let opencount=0;
 	let ctrl=null;
 	let ready=false;
@@ -31,17 +54,9 @@ function _standby(prm){
 	let aborted=false;
 	let wait=[]
 
-	let name=prm.Name??'YgEs.Agent';
-	let log=prm.Log??Log;
-	let happen=prm.HappenTo??HappeningManager;
-	let launcher=prm.Launcher??Engine;
-	let user=prm.User??{};
-	let abps=prm.AgentBypasses??[];
-	let ubps=prm.UserBypasses??[];
-
 	let GetInfo=(site='')=>{
 		let r={
-			Name:name,
+			Name:prm.Name,
 			CrashSite:site,
 			State:ctrl?ctrl.GetCurState():'NONE',
 			Busy:!!ctrl,
@@ -50,10 +65,9 @@ function _standby(prm){
 			Aborted:aborted,
 			Restarting:restart,
 			Handles:opencount,
-			User:user,
+			User:prm.User,
 			Waiting:[],
-			Happening:happen.GetInfo(),
-			Launcher:launcher.GetInfo(),
+			Happening:prm.HappenTo.GetInfo(),
 		}
 		for(let w of wait)r.Waiting.push({Label:w.Label,Prop:w.Prop});
 		return r;
@@ -65,8 +79,8 @@ function _standby(prm){
 				if(opencount<1)return true;
 				restart=false;
 
-				happen.CleanUp();
-				return happen.IsCleaned()?'UP':'REPAIR';
+				prm.HappenTo.CleanUp();
+				return prm.HappenTo.IsCleaned()?'UP':'REPAIR';
 			},
 		},
 		'BROKEN':{
@@ -83,10 +97,10 @@ function _standby(prm){
 				try{
 					//start repairing 
 					wait=[]
-					if(prm.OnRepair)prm.OnRepair(agent);
+					prm.OnRepair(agent);
 				}
 				catch(e){
-					happen.Happen(e,{
+					prm.HappenTo.Happen(e,{
 						Class:'YgEs.Agent',
 						Cause:'ThrownFromCallback',
 						Info:GetInfo('OnRepair'),
@@ -95,8 +109,8 @@ function _standby(prm){
 			},
 			OnPollInKeep:(ctrl,proc)=>{
 				if(opencount<1){
-					happen.CleanUp();
-					return happen.IsCleaned()?'IDLE':'BROKEN';
+					prm.HappenTo.CleanUp();
+					return prm.HappenTo.IsCleaned()?'IDLE':'BROKEN';
 				}
 
 				// wait for delendencies 
@@ -107,7 +121,7 @@ function _standby(prm){
 						cont.push(d);
 					}
 					catch(e){
-						happen.Happen(e,{
+						prm.HappenTo.Happen(e,{
 							Class:'YgEs.Agent',
 							Cause:'ThrownFromCallback',
 							Info:GetInfo('wait for repair'),
@@ -118,8 +132,8 @@ function _standby(prm){
 				if(wait.length>0)return;
 
 				// wait for all happens resolved 
-				happen.CleanUp();
-				if(happen.IsCleaned())return 'UP';
+				prm.HappenTo.CleanUp();
+				if(prm.HappenTo.IsCleaned())return 'UP';
 			},
 		},
 		'DOWN':{
@@ -137,14 +151,14 @@ function _standby(prm){
 
 					if(ctrl.GetPrevState()=='UP'){
 						back=true;
-						if(prm.OnBack)prm.OnBack(agent);
+						prm.OnBack(agent);
 					}
 					else{
-						if(prm.OnClose)prm.OnClose(agent);
+						prm.OnClose(agent);
 					}
 				}
 				catch(e){
-					happen.Happen(e,{
+					prm.HappenTo.Happen(e,{
 						Class:'YgEs.Agent',
 						Cause:'ThrownFromCallback',
 						Info:GetInfo(back?'OnBack':'OnClose'),
@@ -161,7 +175,7 @@ function _standby(prm){
 						cont.push(d);
 					}
 					catch(e){
-						happen.Happen(e,{
+						prm.HappenTo.Happen(e,{
 							Class:'YgEs.Agent',
 							Cause:'ThrownFromCallback',
 							Info:GetInfo('wait for down'),
@@ -170,15 +184,15 @@ function _standby(prm){
 				}
 				wait=cont;
 				if(wait.length>0)return null;
-				happen.CleanUp();
-				return happen.IsCleaned()?'IDLE':'BROKEN';
+				prm.HappenTo.CleanUp();
+				return prm.HappenTo.IsCleaned()?'IDLE':'BROKEN';
 			},
 		},
 		'UP':{
 			OnStart:(ctrl,proc)=>{
 				try{
 					wait=[]
-					if(prm.OnOpen)prm.OnOpen(agent);
+					prm.OnOpen(agent);
 
 					// up dependencles too 
 					if(prm.Dependencies){
@@ -192,7 +206,7 @@ function _standby(prm){
 					}
 				}
 				catch(e){
-					happen.Happen(e,{
+					prm.HappenTo.Happen(e,{
 						Class:'YgEs.Agent',
 						Cause:'ThrownFromCallback',
 						Info:GetInfo('OnOpen'),
@@ -210,7 +224,7 @@ function _standby(prm){
 						cont.push(d);
 					}
 					catch(e){
-						happen.Happen(e,{
+						prm.HappenTo.Happen(e,{
 							Class:'YgEs.Agent',
 							Cause:'ThrownFromCallback',
 							Info:GetInfo('wait for up'),
@@ -218,7 +232,7 @@ function _standby(prm){
 					}
 				}
 				wait=cont;
-				if(!happen.IsCleaned())return 'DOWN';
+				if(!prm.HappenTo.IsCleaned())return 'DOWN';
 				if(wait.length<1)return 'HEALTHY';
 			},
 			OnEnd:(ctrl,proc)=>{
@@ -226,10 +240,10 @@ function _standby(prm){
 					try{
 						// mark ready before callback 
 						ready=true;
-						if(prm.OnReady)prm.OnReady(agent);
+						prm.OnReady(agent);
 					}
 					catch(e){
-						happen.Happen(e,{
+						prm.HappenTo.Happen(e,{
 							Class:'YgEs.AgentError',
 							Cause:'ThrownFromCallback',
 							Info:GetInfo('OnReady'),
@@ -244,13 +258,13 @@ function _standby(prm){
 					ready=false;
 					return 'DOWN';
 				}
-				if(!happen.IsCleaned())return 'TROUBLE';
+				if(!prm.HappenTo.IsCleaned())return 'TROUBLE';
 
 				try{
-					if(prm.OnPollInHealthy)prm.OnPollInHealthy(agent);
+					prm.OnPollInHealthy(agent);
 				}
 				catch(e){
-					happen.Happen(e,{
+					prm.HappenTo.Happen(e,{
 						Class:'YgEs.AgentError',
 						Cause:'ThrownFromCallback',
 						Info:GetInfo('OnPollInHealthy'),
@@ -262,10 +276,10 @@ function _standby(prm){
 		'TROUBLE':{
 			OnStart:(ctrl,proc)=>{
 				try{
-					if(prm.OnTrouble)prm.OnTrouble(agent);
+					prm.OnTrouble(agent);
 				}
 				catch(e){
-					happen.Happen(e,{
+					prm.HappenTo.Happen(e,{
 						Class:'YgEs.AgentError',
 						Cause:'ThrownFromCallback',
 						Info:GetInfo('OnTrouble'),
@@ -277,16 +291,16 @@ function _standby(prm){
 					ready=false;
 					return 'DOWN';
 				}
-				happen.CleanUp();
-				if(happen.IsCleaned())return 'HEALTHY';
+				prm.HappenTo.CleanUp();
+				if(prm.HappenTo.IsCleaned())return 'HEALTHY';
 
 				try{
-					let c=happen.CountIssues();
-					if(prm.OnPollInTrouble)prm.OnPollInTrouble(agent);
-					if(c<happen.CountIssues())return 'HALT';
+					let c=prm.HappenTo.CountIssues();
+					prm.OnPollInTrouble(agent);
+					if(c<prm.HappenTo.CountIssues())return 'HALT';
 				}
 				catch(e){
-					happen.Happen(e,{
+					prm.HappenTo.Happen(e,{
 						Class:'YgEs.AgentError',
 						Cause:'ThrownFromCallback',
 						Info:GetInfo('OnPollInTrouble'),
@@ -297,10 +311,10 @@ function _standby(prm){
 			OnEnd:(ctrl,proc)=>{
 				if(ctrl.GetNextState()=='HEALTHY'){
 					try{
-						if(prm.OnRecover)prm.OnRecover(agent);
+						prm.OnRecover(agent);
 					}
 					catch(e){
-						happen.Happen(e,{
+						prm.HappenTo.Happen(e,{
 							Class:'YgEs.AgentError',
 							Cause:'ThrownFromCallback',
 							Info:GetInfo('OnRecover'),
@@ -314,10 +328,10 @@ function _standby(prm){
 				halt=true;
 
 				try{
-					if(prm.OnHalt)prm.OnHalt(agent);
+					prm.OnHalt(agent);
 				}
 				catch(e){
-					happen.Happen(e,{
+					prm.HappenTo.Happen(e,{
 						Class:'YgEs.AgentError',
 						Cause:'ThrownFromCallback',
 						Info:GetInfo('OnHalt'),
@@ -329,18 +343,18 @@ function _standby(prm){
 					ready=false;
 					return 'DOWN';
 				}
-				happen.CleanUp();
-				if(happen.IsCleaned())return 'HEALTHY';
+				prm.HappenTo.CleanUp();
+				if(prm.HappenTo.IsCleaned())return 'HEALTHY';
 			},
 			OnEnd:(ctrl,proc)=>{
 				halt=false;
 
 				if(ctrl.GetNextState()=='HEALTHY'){
 					try{
-						if(prm.OnRecover)prm.OnRecover(agent);
+						prm.OnRecover(agent);
 					}
 					catch(e){
-						happen.Happen(e,{
+						prm.HappenTo.Happen(e,{
 							Class:'YgEs.AgentError',
 							Cause:'ThrownFromCallback',
 							Info:GetInfo('OnRecover'),
@@ -351,11 +365,12 @@ function _standby(prm){
 		},
 	}
 
-	let agent={
-		Name:name+'.Worker',
-		User:user,
-		_private_:{},
+	let agent=YgEs.SoftClass(prm.Name+'.Worker',prm.User);
 
+	let priv_a=agent.Extend('YgEs.Agent',{
+		// private 
+	},{
+		// public 
 		IsOpen:()=>opencount>0,
 		IsBusy:()=>!!ctrl || opencount>0,
 		IsReady:()=>ready && opencount>0,
@@ -363,9 +378,9 @@ function _standby(prm){
 		GetState:()=>ctrl?ctrl.GetCurState():'NONE',
 		GetInfo:()=>GetInfo(''),
 
-		GetLogger:()=>log,
-		GetLauncher:()=>{return launcher;},
-		GetHappeningManager:()=>{return happen;},
+		GetLogger:()=>prm.Log,
+		GetLauncher:()=>{return prm.Launcher;},
+		GetHappeningManager:()=>{return prm.HappenTo;},
 		GetDependencies:()=>{return prm.Dependencies;},
 
 		WaitFor:(label,cb_chk,prop={})=>{
@@ -381,18 +396,18 @@ function _standby(prm){
 			h.Open();
 			return h;
 		},
-	}
+	});
 
 	let ctrlopt={
-		Name:name+'.StateMachine',
-		Log:log,
-		HappenTo:happen,
-		Launcher:launcher,
-		User:user,
+		Name:prm.Name+'.StateMachine',
+		Log:prm.Log,
+		HappenTo:prm.HappenTo,
+		Launcher:prm.Launcher,
+		User:prm.User,
 		OnDone:(proc)=>{
 			ctrl=null;
 			aborted=false;
-			if(prm.OnFinish)prm.OnFinish(agent,happen.IsCleaned());
+			if(prm.OnFinish)prm.OnFinish(agent,prm.HappenTo.IsCleaned());
 		},
 		OnAbort:(proc)=>{
 			ctrl=null;
@@ -402,18 +417,20 @@ function _standby(prm){
 	}
 
 	let handle=(w)=>{
-		let in_open=false;
-		let h={
-			Name:name+'.Handle',
-			User:{},
 
+		let h=YgEs.SoftClass(prm.Name+'.Handle');
+		let priv_h=h.Extend('YgEs.Handle',{
+			// private
+			in_open:false,
+		},{
+			// public
 			GetAgent:()=>{return agent;},
 			GetLogger:()=>agent.GetLogger(),
 			GetLauncher:()=>agent.GetLauncher(),
 			GetHappeningManager:()=>agent.GetHappeningManager(),
 			GetDependencies:()=>agent.GetDependencies(),
 
-			IsOpenHandle:()=>in_open,
+			IsOpenHandle:()=>priv_h.in_open,
 			IsOpenAgent:()=>agent.IsOpen(),
 			IsBusy:()=>agent.IsBusy(),
 			IsReady:()=>agent.IsReady(),
@@ -423,8 +440,8 @@ function _standby(prm){
 			Restart:()=>agent.Restart(),
 
 			Open:()=>{
-				if(!in_open){
-					in_open=true;
+				if(!priv_h.in_open){
+					priv_h.in_open=true;
 					++opencount;
 				}
 				if(!ctrl){
@@ -434,12 +451,13 @@ function _standby(prm){
 				}
 			},
 			Close:()=>{
-				if(!in_open)return;
-				in_open=false;
+				if(!priv_h.in_open)return;
+				priv_h.in_open=false;
 				--opencount;
 			},
-		}
-		for(let n of abps){
+		});
+
+		for(let n of prm.AgentBypasses){
 			h[n]=(...args)=>{
 				if(!h.IsReady()){
 					h.GetLogger().Notice('not ready');
@@ -448,7 +466,7 @@ function _standby(prm){
 				return agent[n].call(null,...args);
 			}
 		}
-		for(let n of ubps){
+		for(let n of prm.UserBypasses){
 			h[n]=(...args)=>{
 				if(!h.IsReady()){
 					h.GetLogger().Notice('not ready');
