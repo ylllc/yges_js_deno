@@ -63,7 +63,7 @@ function _default_way(src){
 function _do_format(t,src){
 
 	for(let inst=t;inst;inst=inst.GetParent()){
-		if(inst.Format!==null){
+		if(inst.Format){
 			inst.Format(inst,src);
 			return;
 		}
@@ -74,7 +74,7 @@ function _do_format(t,src){
 function _do_write(t,src){
 
 	for(let inst=t;inst;inst=inst.GetParent()){
-		if(inst.Way!==null){
+		if(inst.Way){
 			inst.Way(inst,src);
 			return;
 		}
@@ -98,31 +98,31 @@ function _create_local(capt=undefined,showable=undefined,parent=undefined){
 		// public
 		Showable:showable,
 		Caption:capt,
-		Format:null,
-		Way:null,
+		Format:undefined,
+		Way:undefined,
 
 		LEVEL_NAMES:_level_names,
 		LEVEL:_level_lookup,
 
-		CreateLocal:(capt=null,showable=null)=>_create_local(capt,showable,self),
-		CreateSplitter:(capt=null,showable=null)=>_create_splitter(capt,showable,self),
+		CreateLocal:(capt=undefined,showable=undefined)=>_create_local(capt,showable,self),
+		CreateSplitter:(capt=undefined,showable=undefined)=>_create_splitter(capt,showable,self),
 
 		GetInstanceID:()=>iid,
 		GetParent:()=>parent,
 		GetCaption:()=>{
 			for(let t=self;t;t=t.GetParent()){
-				if(t.Caption!==null)return t.Caption;
+				if(t.Caption!=null)return t.Caption;
 			}
 			return '';
 		},
 		GetShowable:()=>{
 			for(let t=self;t;t=t.GetParent()){
-				if(t.Showable!==null)return t.Showable;
+				if(t.Showable!=null)return t.Showable;
 			}
 			return _default_showable;
 		},
 
-		Put:(lev,msg,prop=null)=>{
+		Put:(lev,msg,prop=undefined)=>{
 			if(lev>=self.LEVEL_NAMES.length)return;
 			if(lev<self.GetShowable())return;
 			let src={
@@ -136,22 +136,22 @@ function _create_local(capt=undefined,showable=undefined,parent=undefined){
 			_do_write(self,src);
 		},
 
-		Tick:(msg,prop=null)=>{self.Put(self.LEVEL.TICK,msg,prop);},
-		Trace:(msg,prop=null)=>{self.Put(self.LEVEL.TRACE,msg,prop);},
-		Debug:(msg,prop=null)=>{self.Put(self.LEVEL.DEBUG,msg,prop);},
-		Info:(msg,prop=null)=>{self.Put(self.LEVEL.INFO,msg,prop);},
-		Notice:(msg,prop=null)=>{self.Put(self.LEVEL.NOTICE,msg,prop);},
-		Warn:(msg,prop=null)=>{self.Put(self.LEVEL.WARN,msg,prop);},
-		Fatal:(msg,prop=null)=>{self.Put(self.LEVEL.FATAL,msg,prop);},
-		Crit:(msg,prop=null)=>{self.Put(self.LEVEL.CRIT,msg,prop);},
-		Alert:(msg,prop=null)=>{self.Put(self.LEVEL.ALERT,msg,prop);},
-		Emerg:(msg,prop=null)=>{self.Put(self.LEVEL.EMERG,msg,prop);},
+		Tick:(msg,prop=undefined)=>{self.Put(self.LEVEL.TICK,msg,prop);},
+		Trace:(msg,prop=undefined)=>{self.Put(self.LEVEL.TRACE,msg,prop);},
+		Debug:(msg,prop=undefined)=>{self.Put(self.LEVEL.DEBUG,msg,prop);},
+		Info:(msg,prop=undefined)=>{self.Put(self.LEVEL.INFO,msg,prop);},
+		Notice:(msg,prop=undefined)=>{self.Put(self.LEVEL.NOTICE,msg,prop);},
+		Warn:(msg,prop=undefined)=>{self.Put(self.LEVEL.WARN,msg,prop);},
+		Fatal:(msg,prop=undefined)=>{self.Put(self.LEVEL.FATAL,msg,prop);},
+		Crit:(msg,prop=undefined)=>{self.Put(self.LEVEL.CRIT,msg,prop);},
+		Alert:(msg,prop=undefined)=>{self.Put(self.LEVEL.ALERT,msg,prop);},
+		Emerg:(msg,prop=undefined)=>{self.Put(self.LEVEL.EMERG,msg,prop);},
 	});
 
 	return self;
 }
 
-function _create_splitter(capt=null,showable=null,parent=null){
+function _create_splitter(capt=undefined,showable=undefined,parent=undefined){
 
 	let self=_create_local(capt,showable,parent);
 	let priv=self.Extend('YgEs.LogSplitter',{
