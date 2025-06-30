@@ -13,7 +13,7 @@ import Log from './logger.js';
 
 function _run(start,states={},opt={}){
 
-	start=YgEs.Validate(start,{Literal:true,Nullable:true},'start');
+	start=YgEs.Validate(start,{Key:states,Nullable:true},'start');
 	states=YgEs.Validate(states,{Dict:true},'states');
 	opt=YgEs.Validate(opt,{Others:true,Struct:{
 		Name:{Literal:true,Default:'YgEs.StateMachine'},
