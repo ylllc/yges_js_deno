@@ -59,6 +59,8 @@ const scenaria=[
 	{
 		Title:'Agent Dependencies',
 		Proc:async (tool)=>{
+			workset1.Log=tool.Log;
+			workset2.Log=tool.Log;
 			workset1.Launcher=tool.Launcher;
 			workset2.Launcher=tool.Launcher;
 			workset1.HappenTo=tool.HappenTo;

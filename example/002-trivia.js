@@ -72,10 +72,10 @@ test({
 test({
 	'!!':(val)=>!!val?'true':'false',
 	'IsValid':(val)=>Util.IsValid(val)?'true':'false',
-	'Booleanize':(val)=>Util.Booleanize(val),
-	'stringable Booleanize':(val)=>Util.Booleanize(val,true),
-	'Trinarize':(val)=>Util.Trinarize(val),
-	'stringable Trinarize':(val)=>Util.Trinarize(val,true),
+	'Booleanize':(val)=>YgEs.Booleanize(val),
+	'stringable Booleanize':(val)=>YgEs.Booleanize(val,true),
+	'Trinarize':(val)=>YgEs.Trinarize(val),
+	'stringable Trinarize':(val)=>YgEs.Trinarize(val,true),
 },{
 	'""':"",
 	'0':0,

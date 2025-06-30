@@ -29,11 +29,16 @@ validate(undefined,{Boolable:true});
 validate(undefined,{Integer:true});
 validate(undefined,{Numeric:true});
 validate(undefined,{Literal:true});
-validate(undefined,{Default:-123});
 validate(undefined,{Required:true});
 validate(undefined,{List:true});
 validate(undefined,{Dict:true});
 validate(undefined,{Struct:true});
+validate(undefined,{Class:Object});
+
+// Complementation from undefind, and not null 
+validate(undefined,{Default:-123});
+validate(null,{Default:-123});
+validate(null,{Nullable:true,Default:-123});
 
 // from bool 
 validate(false,{Boolable:true});
@@ -88,3 +93,29 @@ validate(false,{Any:true,Validator:(src,attr,tag)=>{
 	if(!src)YgEs.CoreWarn(tag+' always true');
 	return true;
 }});
+
+// making quick deep copy 
+let src1={A:12,B:{B1:-1,B2:'OK'}}
+let dst1a=YgEs.Validate(src1,{Struct:true});
+let dst1b=YgEs.Validate(src1,{Others:true,Struct:{}});
+let dst1c=YgEs.Validate(src1,{Struct:true,Clone:true});
+src1.A=23;
+src1.B.B2='NG';
+Log.Info(YgEs.Inspect(src1)+'; changed source');
+Log.Info(YgEs.Inspect(dst1a)+'; quick validation (full referenced)');
+Log.Info(YgEs.Inspect(dst1b)+'; 1 layer deep copy (sub objects are referenced)');
+Log.Info(YgEs.Inspect(dst1c)+'; deep copy');
+
+// Clone via validator keep reference of class instance 
+let src2={S:{S1:'SafeCloneTest',S2:'OK'},T:new Date()}
+let dst2a=YgEs.Clone(src2);
+let dst2b=YgEs.Validate(src2,{Clone:true,Struct:{
+	S:{Struct:true},
+	T:{Class:Date},
+}});
+src2.S.S2='NG';
+Log.Info(YgEs.Inspect(src2)+'; changed source');
+Log.Info(YgEs.Inspect(dst2a)+'; simple Clone');
+Log.Info(YgEs.Inspect(dst2b)+'; Clone via validator');
+try{Log.Info(dst2a.T.toISOString()+'; will crash');}catch(e){Log.Fatal(YgEs.FromError(e));}
+Log.Info(dst2b.T.toISOString()+'; keep Date instance');

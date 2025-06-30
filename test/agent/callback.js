@@ -49,6 +49,7 @@ const scenaria=[
 	{
 		Title:'Agent Callback',
 		Proc:async (tool)=>{
+			workset.Log=tool.Log;
 			workset.Launcher=tool.Launcher;
 			workset.HappenTo=tool.Launcher.HappenTo;
 

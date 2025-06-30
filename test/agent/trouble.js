@@ -23,7 +23,11 @@ let workset={
 
 		// happening after ready 
 		// required resolving it to recover 
-		agent.GetHappeningManager().Happen('Test Hap.');
+		agent.GetHappeningManager().Happen('Test Hap.',null,{
+			OnResolved:(hap)=>{
+//				agent.GetLogger().Debug('Resolved: '+hap.ToString(),hap.GetProp());	
+			},
+		});
 	},
 	OnPollInHealthy:(agent)=>{
 		agent.User.Count+=4;
@@ -58,10 +62,11 @@ const scenaria=[
 	{
 		Title:'Agent Recovering',
 		Proc:async (tool)=>{
+			workset.Log=tool.Log;
 			workset.Launcher=tool.Launcher;
 			workset.HappenTo=tool.Launcher.HappenTo.CreateLocal({
 				OnHappen:(hm,hap)=>{
-//					tool.Log.Fatal(hap.ToString(),hap.GetProp());
+//					tool.Log.Fatal('Happen: '+hap.ToString(),hap.GetProp());
 				},
 			});
 

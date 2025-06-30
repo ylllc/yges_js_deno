@@ -26,7 +26,11 @@ let workset1={
 
 		// happening after ready 
 		// required resolving it to recover 
-		agent.GetHappeningManager().Happen('Test Hap.');
+		agent.GetHappeningManager().Happen('Test Hap.',null,{
+			OnResolved:(hap)=>{
+//				agent.GetLogger().Debug('Resolved: '+hap.ToString(),hap.GetProp());	
+			},
+		});
 	},
 	OnTrouble:(agent)=>{
 		agent.User.Count+=3;
@@ -35,7 +39,11 @@ let workset1={
 	OnPollInTrouble:(agent)=>{
 		// more happening in poll_trouble() 
 		// this agent locked down and stop polling until cleaned up 
-		agent.GetHappeningManager().Happen('More Test Hap.');
+		agent.GetHappeningManager().Happen('More Test Hap.',null,{
+			OnResolved:(hap)=>{
+//				agent.GetLogger().Debug('Resolved: '+hap.ToString(),hap.GetProp());	
+			},
+		});
 	},
 	OnRecover:(agent)=>{
 		agent.User.Count+=4;
@@ -78,11 +86,13 @@ const scenaria=[
 	{
 		Title:'Rescue Locked Agent',
 		Proc:async (tool)=>{
+			workset1.Log=tool.Log;
+			workset2.Log=tool.Log;
 			workset1.Launcher=tool.Launcher;
 			workset2.Launcher=tool.Launcher;
 			workset1.HappenTo=tool.HappenTo.CreateLocal({
 				OnHappen:(hm,hap)=>{
-//					tool.Log.Fatal(hap.ToString(),hap.GetProp());
+//					tool.Log.Fatal('Happen: '+hap.ToString(),hap.GetProp());
 				},
 			});
 			workset2.HappenTo=tool.HappenTo.CreateLocal({
