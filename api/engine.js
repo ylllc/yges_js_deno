@@ -264,7 +264,7 @@ function _yges_enginge_create_launcher(prm){
 				self.HappenTo.Happen('the Engine was abandoned, no longer launch new procedures.');
 				return;
 			}
-			if(!_working){
+			if(!e_priv.working){
 				Log.Notice('the Engine not started. call Start() to run.');
 			}
 			if(priv.abandoned){
@@ -380,51 +380,51 @@ function _yges_enginge_create_launcher(prm){
 }
 
 let Engine=YgEs.Engine=_yges_enginge_create_launcher({
-	Name:'YgEs.RootLauncher',
 	Cycle:DEFAULT_ROOT_CYCLE,
 });
 
-let _working=false;
-let _cancel=null;
+let e_priv=Engine.Extend('YgEs.Engine',{
+	// private 
+	working:false,
+	cancel:null,
 
-function _poll_engine(){
+	poll_engine:()=>{
+		if(!e_priv.working)return;
+		if(Engine.IsAbandoned())return;
 
-	if(!_working)return;
-	if(Engine.IsAbandoned())return;
+		Engine.Poll();
 
-	Engine.Poll();
+		e_priv.cancel=Timing.Delay(Engine.Cycle,()=>{
+			e_priv.cancel=null;
+			e_priv.poll_engine();
+		});
+	},
 
-	_cancel=Timing.Delay(Engine.Cycle,()=>{
-		_cancel=null;
-		_poll_engine();
-	});
-}
+	stop:()=>{
+		e_priv.working=false;
+		if(e_priv.cancel!=null)e_priv.cancel();
+	},
+},{
+	// public 
 
-function _stop(){
+	Start:()=>{
+		if(Engine.IsAbandoned())return;
+		if(e_priv.working)return;
+		e_priv.working=true;
+		e_priv.poll_engine();
+	},
 
-	_working=false;
-	if(_cancel!=null)_cancel();
-}
+	Stop:()=>{
+		e_priv.stop();
+		if(Engine.IsAbandoned())return;
+		Engine.Abort();
+	},
 
-YgEs.Engine.Start=()=>{
-
-	if(Engine.IsAbandoned())return;
-	if(_working)return;
-	_working=true;
-	_poll_engine();
-}
-
-YgEs.Engine.Stop=()=>{
-
-	_stop();
-	if(Engine.IsAbandoned())return;
-	Engine.Abort();
-}
-
-YgEs.Engine.ShutDown=()=>{
-	Engine.Abandon();
-	_stop();
-}
+	ShutDown:()=>{
+		Engine.Abandon();
+		e_priv.stop();
+	},
+});
 
 })();
 export default YgEs.Engine;
