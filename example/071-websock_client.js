@@ -44,24 +44,21 @@ function _client_new(name,url,interval){
 		// wait ms and auto reconnect when disconnected 
 		AutoReconnectWait:5000, 
 
-		OnConnected:()=>{
+		OnConnected:(agent)=>{
 			Log.Info('WebSock client '+name+' is ready');
 
 			// create a task for this connection 
 			task=_task_new(client,interval);
 		},
-		OnDisconnected:(normal)=>{
+		OnDisconnected:(agent,normal)=>{
 
 			// must close for terminate 
 			if(!task)return;
 			task.Close();
 			return;
 		},
-		OnReceived:(msg)=>{
+		OnReceived:(agent,msg)=>{
 			Log.Info(msg);
-		},
-		OnError:(err)=>{
-			Log.Fatal(err.message,err);
 		},
 	}
 	let client=WebSockClient.SetUp(url,opt);

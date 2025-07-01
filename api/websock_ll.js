@@ -12,36 +12,55 @@ import {WebSocketServer} from 'npm:ws';
 
 function _server_new(port,opt={}){
 
-	const limit=opt.ConnectionLimit??-1;
-	let clicnt=0;
+	port=YgEs.Validate(port,{Integer:true},'port');
+	opt=YgEs.Validate(opt,{Struct:{
+		Name:{Literal:true},
+		ConnectionLimit:{Integer:true,Min:-1,Default:-1},
+		OnConnect:{Callable:true,Default:(cnx)=>{}},
+		OnDisconnect:{Callable:true,Default:(cnx)=>{}},
+		OnReceived:{Callable:true,Default:(cnx,data,isbin)=>{}},
+		OnError:{Callable:true,Default:(cnx,err)=>{}},
+	}},'opt');
 
-	const _onConnect=opt.OnConnect??((cnx)=>{})
-	const _onDisconnect=opt.OnDisconnect??((cnx)=>{})
-	const _onReceived=opt.OnReceived??((cnx,data,isbin)=>{})
-	const _onError=opt.OnError??((cnx,err)=>{})
+	let server=YgEs.SoftClass();
+	let server_priv=server.Extend('YgEs.WebSockLowLevel.Server',{
+		// private 
+		ll:new WebSocketServer({port:port}),
+		clicnt:0,
+	},{
+		// public 
+		Close:(cb_done)=>{
+			server_priv.ll.clients.forEach((sock)=>{sock.close();});
+			server_priv.ll.close(()=>{
+				server_priv.ll.clients.forEach((sock)=>{
+					if(![sock.OPEN,sock.CLOSING].includes(sock.readyState))return;
+					sock.terminate();
+				});
 
-	let prm={
-		port:port,
-	}
-	let ll=new WebSocketServer(prm);
-	ll.on('connection',(sock,req)=>{
+				server_priv.ll=null;
+				if(cb_done)cb_done();
+			});
+		},
+	});
 
-		if(limit>=0 && limit<=clicnt){
+	server_priv.ll.on('connection',(sock,req)=>{
+
+		if(opt.ConnectionLimit>=0 && opt.ConnectionLimit<=server_priv.clicnt){
 			sock.terminate();
 			return;
 		}
 
-		let cnx={
-			Name:'YgEs.WebSockServer.Connection',
-			User:{},
-			_private_:{
-				ready:false,
-			},
-
-			IsReady:()=>cnx._private_.ready,
+		let cnx=YgEs.SoftClass();
+		let cnx_priv=cnx.Extend('YgEs.WebSockLowLevel.Connection',{
+			// private 
+			ready:false,
+			sock:sock,
+		},{
+			// public 
+			IsReady:()=>cnx_priv.ready,
 			Close:(code=1000,msg='Shut from the server')=>{
-				if(!v._private_.ready)return;
-				cnx._private_.ready=false;
+				if(!cnx_priv.ready)return;
+				cnx_priv.ready=false;
 				sock.close(code,msg);
 				sock=null;
 			},
@@ -49,49 +68,30 @@ function _server_new(port,opt={}){
 				if(!cnx.IsReady())return;
 				sock.send(data);
 			},
-		}
+		});
+
 		sock.on('error',(err)=>{
-			_onError(cnx,err);
+			opt.OnError(cnx,err);
 		});
 
 		sock.on('close',()=>{
-			_onDisconnect(cnx);
-			--clicnt;
+			opt.OnDisconnect(cnx);
+			--server_priv.clicnt;
 		});
 		sock.on('message',(data,isbin)=>{
-			_onReceived(cnx,data,isbin);
+			opt.OnReceived(cnx,data,isbin);
 		});
 
-		cnx._private_.ready=_onConnect(cnx,req);
-		if(!cnx._private_.ready){
+		cnx_priv.ready=opt.OnConnect(cnx,req);
+		if(!cnx_priv.ready){
 			sock.terminate();
-			sock=null;
+			cnx_priv.sock=sock=null;
 		}
 		else{
 			// allowed client 
-			++clicnt;
+			++server_priv.clicnt;
 		}
 	});
-
-	let server={
-		Name:'YgEs.WebSockLowLevel.Server',
-		_private_:{
-			ll:ll,
-		},
-
-		Close:(cb_done)=>{
-			ll.clients.forEach((sock)=>{sock.close();});
-			ll.close(()=>{
-				ll.clients.forEach((sock)=>{
-					if(![sock.OPEN,sock.CLOSING].includes(sock.readyState))return;
-					sock.terminate();
-				});
-
-				server._private_.ll=null;
-				if(cb_done)cb_done();
-			});
-		},
-	}
 
 	return server;
 }

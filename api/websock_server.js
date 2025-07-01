@@ -15,75 +15,97 @@ import WebSockLowLevel from './websock_ll.js';
 
 function _server_new(port,opt={}){
 
-	const limit=opt.ConnectionLimit??-1;
+	opt=YgEs.Validate(opt,{Struct:{
+		User:{Struct:true,Default:{}},
+		Log:{Class:'YgEs.LocalLog'},
+		HappenTo:{Class:'YgEs.HappeningManager'},
+		Launcher:{Class:'YgEs.Launcher'},
+		ConnectionLimit:{Integer:true,Min:-1,Default:-1},
+		OnReady:{Callable:true,Default:(agent)=>{}},
+		OnClose:{Callable:true,Default:(agent)=>{}},
+		OnConnect:{Callable:true,Default:(ctx)=>{return false;}},
+		OnDisconnect:{Callable:true,Default:(ctx)=>{}},
+		OnReceived:{Callable:true,Default:(ctx,data,isbin)=>{}},
+		OnError:{Callable:true,Default:(ctx,err)=>{}},
+	}},'opt');
 
-	const _onReady=opt.OnReady??(()=>{})
-	const _onClose=opt.OnClose??(()=>{})
-	const _onConnect=opt.OnConnect??((ctx)=>{return false;})
-	const _onDisconnect=opt.OnDisconnect??((ctx)=>{})
-	const _onReceived=opt.OnReceived??((ctx,data,isbin)=>{})
-	const _onError=opt.OnError??((ctx,err)=>{})
+	const log=opt.Log??Log;
 
-	let log=opt.Log??Log;
-
-	let ws={
-		Name:'YgEs.WebSockServer.Agent',
+	let fld={
+		Log:log,
 		HappenTo:opt.HappenTo??HappeningManager.CreateLocal(),
 		Launcher:opt.Launcher??Engine.CreateLauncher(),
-		User:opt.User??{},
-		_private_:{
-			ll:null,
-		},
+		User:opt.User,
 
 		AgentBypasses:['GetPort'],
 
-		OnOpen:(wk)=>{
+		OnOpen:(agent)=>{
 			log.Info('bgn of WebSock server port '+port);
 
 			let prm={
-				ConnectionLimit:limit,
+				ConnectionLimit:opt.ConnectionLimit,
 
 				OnConnect:(cnx,req)=>{
-					let ctx=cnx.User;
-					ctx.Close=(code=1000,msg='Shut from the server')=>{cnx.Close(code,msg);}
-					ctx.Send=(data)=>{cnx.Send(data);}
-					return _onConnect(ctx,req);
+					let ctx=cnx.User.Context=YgEs.SoftClass();
+					ctx.Extend('YgEs.WebSockServer.Connection',{
+						// private 
+					},{
+						// public 
+						GetAgent:()=>agent,
+						IsReady:()=>{
+							return cnx.IsReady();
+						},
+						Close:(code=1000,msg='Shut from the server')=>{
+							cnx.Close(code,msg);
+						},
+						Send:(data)=>{
+							cnx.Send(data);
+						},
+					});
+					return opt.OnConnect(ctx,req);
 				},
 				OnDisconnect:(cnx)=>{
-					let ctx=cnx.User;
-					_onDisconnect(ctx);
+					let ctx=cnx.User.Context;
+					opt.OnDisconnect(ctx);
 				},
 				OnReceived:(cnx,data,isbin)=>{
-					let ctx=cnx.User;
-					_onReceived(ctx,data,isbin);
+					let ctx=cnx.User.Context;
+					opt.OnReceived(ctx,data,isbin);
 				},
 				OnError:(err)=>{
-					let ctx=cnx.User;
-					_onError(ctx,err);
+					let ctx=cnx.User.Context;
+					opt.OnError(ctx,err);
 				},
 			}
-			ws._private_.ll=WebSockLowLevel.CreateServer(port,prm);
+			agent.ll=WebSockLowLevel.CreateServer(port,prm);
 		},
-		OnReady:(wk)=>{
+		OnReady:(agent)=>{
 			log.Info('WebSock server ready port '+port);
-			_onReady();
+			opt.OnReady(agent);
 		},
-		OnClose:(wk)=>{
-			_onClose();
+		OnClose:(agent)=>{
+			opt.OnClose(agent);
 
 			let done=false;
-			ws._private_.ll.Close(()=>{done=true;});
-			wk.WaitFor('WebSock server closing',()=>done);
+			agent.ll.Close(()=>{done=true;});
+			agent.WaitFor('WebSock server closing',()=>done);
 		},
-		OnFinish:(wk,clean)=>{
+		OnFinish:(agent,clean)=>{
 			log.Info('end of WebSock server port '+port);
-			ws._private_.ll=null;
+			agent.ll=null;
 		},
 	}
 
-	var server=AgentManager.StandBy(ws);
-	server.GetPort=()=>port;
-	return server;
+	var agent=AgentManager.StandBy(fld);
+	agent.Extend('YgEs.WebSockServer.Agent',{
+		// private 
+		ll:null,
+	},{
+		// public 
+		GetPort:()=>port,
+	});
+
+	return agent;
 }
 
 let WebSockServer=YgEs.WebSockServer={
