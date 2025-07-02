@@ -28,7 +28,7 @@ function _client_new(url,opt={}){
 
 	const log=opt.Log??Log;
 
-	let fld={
+	let field={
 		Log:log,
 		HappenTo:opt.HappenTo??HappeningManager.CreateLocal(),
 		Launcher:opt.Launcher??Engine.CreateLauncher(),
@@ -48,12 +48,12 @@ function _client_new(url,opt={}){
 		},
 		OnPollInHealthy:(agent)=>{
 			if(!agent_priv.internal){
-				let hap=fld.HappenTo.Happen('Connection missing');
+				let hap=field.HappenTo.Happen('Connection missing');
 				if(opt.AutoReconnectWait>0)agent_priv.reconnect(hap,opt.AutoReconnectWait);
 				return;
 			}
 			if(agent_priv.internal.readyState!==WebSocket.OPEN){
-				let hap=fld.HappenTo.Happen('Connection trouble');
+				let hap=field.HappenTo.Happen('Connection trouble');
 				if(opt.AutoReconnectWait>0)agent_priv.reconnect(hap,opt.AutoReconnectWait);
 				return;
 			}
@@ -72,14 +72,14 @@ function _client_new(url,opt={}){
 		},
 	}
 
-	let agent=AgentManager.StandBy(fld);
+	let agent=AgentManager.StandBy(field);
 	let agent_priv=agent.Extend('YgEs.WebSockClient.Agent',{
 		// private 
 		internal:null,
 		connect:(cb_done)=>{
 			agent_priv.internal=new WebSocket(url);
 			agent_priv.internal.onerror=(err)=>{
-				let hap=fld.HappenTo.Happen(err.message,err);
+				let hap=field.HappenTo.Happen(err.message,err);
 				if(opt.AutoReconnectWait>0)agent_priv.reconnect(hap,opt.AutoReconnectWait);
 			}
 			agent_priv.internal.onclose=(ev)=>{
@@ -87,7 +87,7 @@ function _client_new(url,opt={}){
 					// normal close 
 				}
 				else{
-					fld.HappenTo.Happen('Cut off from the server');
+					field.HappenTo.Happen('Cut off from the server');
 				}
 				opt.OnDisconnected(agent,ev.wasClean);
 			}

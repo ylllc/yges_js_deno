@@ -22,6 +22,7 @@ function hello_world(walker){
 var route1=HTTPServer.Present({GET:hello_world});
 var route2=HTTPServer.Serve(PUBLIC_ROOT,{
 	Route:{
+		'empty':HTTPServer.Empty(),
 		'doc':HTTPServer.Serve(DOCS_ROOT),
 		'test':HTTPServer.Serve(TEST_ROOT,{
 			DirEnt:true,

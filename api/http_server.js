@@ -69,41 +69,71 @@ async function _dirent(basedir,srcdir,deep,opt){
 	return t;
 }
 
+function _world_new(){
+
+	let wt=YgEs.SoftClass();
+	wt.Extend('YgEs.HTTPServer.World',{
+		// private 
+	},{
+		// public 
+		Walk:(walker)=>{
+			// empty response 
+			walker.Response.writeHead(204,{'Content-Type':'text/plain'});
+			walker.Response.end();
+		},
+	});
+	return wt;
+}
+
 function _serve_new(dir,opt={}){
 
-	var tt={
-		Name:'YgEs.HTTPServer.Serve',
-		User:opt.User??{},
-		_private_:{},
+	opt=YgEs.Validate(opt,{Struct:{
+		User:{Struct:true,Default:{}},
+		Indices:{List:{Literal:true},Default:['index.html','index.htm']},
+		Route:{Dict:{Class:'YgEs.HTTPServer.World'}},
+		DirEnt:{Boolable:true},
+		DeepEnt:{Integer:true},
+		Filter:{Callable:true},
+		MTime:{Boolable:true},
+		CTime:{Boolable:true},
+		ATime:{Boolable:true},
+		BTime:{Boolable:true},
+	}},'opt');
 
+	let world=_world_new();
+	world.Extend('YgEs.HTTPServer.Serve',{
+		// private 
+	},{
+		// public 
+		User:opt.User,
 		Dir:dir,
 		Charset:(path)=>HTTPServer.DefaultCharset,
-		Indices:opt.Indices??['index.html','index.htm'],
+		Indices:opt.Indices,
 
 		Walk:(walker)=>{
 
-			var step=walker.Layer[walker.Level];
-			if(opt.Route && opt.Route[step]){
-				_route_new(opt.Route,{User:tt.User}).Walk(walker);
+			let step=walker.Layer[walker.Level];
+			if(opt.Route[step]){
+				_route_new(opt.Route,{User:world.User}).Walk(walker);
 				return;
 			}
 
 			// empty subpath requires entering to fix base 
 			if(walker.Level>=walker.Layer.length && walker.Layer[walker.Layer.length-1]!=''){
 				walker.ParsedURL.Path+='/';
-				var url=walker.ParsedURL.Bake();
+				let url=walker.ParsedURL.Bake();
 				walker.Response.writeHead(301,{Location:url});
 				walker.Response.end();
 				return;
 			}
 
-			var subpath=walker.Layer.slice(walker.Level).join('/');
-			var basepath=tt.Dir+'/';
-			var srcpath=basepath+subpath;
+			let subpath=walker.Layer.slice(walker.Level).join('/');
+			let basepath=world.Dir+'/';
+			let srcpath=basepath+subpath;
 
 			Timing.ToPromise(async (ok,ng)=>{
 
-				var st=await File.Stat(srcpath);
+				let st=await File.Stat(srcpath);
 
 				if(srcpath.substring(srcpath.length-1)!='/'){
 					// check file exists 
@@ -116,7 +146,7 @@ function _serve_new(dir,opt={}){
 					// add extra / when srcpath is directory 
 					if(st.IsDir()){
 						walker.ParsedURL.Path+='/';
-						var url=walker.ParsedURL.Bake();
+						let url=walker.ParsedURL.Bake();
 						walker.Response.writeHead(301,{Location:url});
 						walker.Response.end();
 						ok();
@@ -127,14 +157,14 @@ function _serve_new(dir,opt={}){
 				if(srcpath.substring(srcpath.length-1)=='/'){
 					if(opt.DirEnt){
 						// get dirents 
-						var g=await _dirent(basepath,srcpath,opt.DeepEnt,{
-							Filter:opt.Filter??null,
+						let g=await _dirent(basepath,srcpath,opt.DeepEnt,{
+							Filter:opt.Filter??undefined,
 							MTime:opt.MTime??false,
 							CTime:opt.CTime??false,
 							ATime:opt.ATime??false,
 							BTime:opt.BTime??false,
 						});
-						var s=JSON.stringify(g);
+						let s=JSON.stringify(g);
 						walker.Response.writeHead(200,{'Content-Type':'application/json','Content-Length':s.length});
 						walker.Response.end(s);
 						ok();
@@ -142,9 +172,9 @@ function _serve_new(dir,opt={}){
 					}
 					else{
 						// try finding an index file 
-						var f=false;
-						for(var n of tt.Indices){
-							var st2=await File.Stat(srcpath+n);
+						let f=false;
+						for(let n of world.Indices){
+							let st2=await File.Stat(srcpath+n);
 							if(!st2)continue;
 							if(!st2.IsFile())continue;
 							f=true;
@@ -160,7 +190,7 @@ function _serve_new(dir,opt={}){
 					}
 				}
 
-				await _transfer(walker.Response,st,null,tt.Charset);
+				await _transfer(walker.Response,st,null,world.Charset);
 				ok();
 			},(res)=>{
 				return res;
@@ -168,66 +198,79 @@ function _serve_new(dir,opt={}){
 				walker.Listener.Error(walker.Response,500,err.message);
 			});
 		},
-	}
-	return tt;
+	});
+
+	return world;
 }
 
 function _present_new(meth,opt={}){
 
-	var pt={
-		Name:'YgEs.HTTPServer.Present',
-		User:opt.User??{},
-		_private_:{},
+	opt=YgEs.Validate(opt,{Struct:{
+		User:{Struct:true,Default:{}},
+	}},'opt');
 
+	let world=_world_new();
+	world.Extend('YgEs.HTTPServer.Present',{
+		// private 
+	},{
+		// public 
+		User:opt.User,
 		Methods:meth,
 
 		Walk:(walker)=>{
-			var m=walker.Request.method;
-			if(!pt.Methods[m]){
+			let m=walker.Request.method;
+			if(!world.Methods[m]){
 				walker.Listener.Error(walker.Response,405,'Not allowed');
 				return;
 			}
-			pt.Methods[m](walker);
+			world.Methods[m](walker);
 		},
-	}
-	return pt;
+	});
+
+	return world;
 }
 
 function _route_new(map,opt={}){
 
-	var rt={
-		Name:'YgEs.HTTPServer.Route',
-		User:opt.User??{},
-		_private_:{},
+	opt=YgEs.Validate(opt,{Struct:{
+		User:{Struct:true,Default:{}},
+	}},'opt');
 
+	let world=_world_new();
+	world.Extend('YgEs.HTTPServer.Route',{
+		// private 
+	},{
+		// public 
+		User:opt.User,
 		Map:map,
 
 		Walk:(walker)=>{
-			var n=walker.Layer[walker.Level];
-			if(!rt.Map[n]){
+			let n=walker.Layer[walker.Level];
+			if(!world.Map[n]){
 				walker.Listener.Error(walker.Response,404,'Not found');
 				return;
 			}
 			++walker.Level;
-			rt.Map[n].Walk(walker);
+			world.Map[n].Walk(walker);
 		},
-	}
-	return rt;
+	});
+
+	return world;
 }
 
 function _request(listener,req,res){
 
 	try{
-		var walker={
-			Name:'YgEs.HTTPServer.Walker',
-			User:{},
-			_private_:{},
-
+		let walker=YgEs.SoftClass();
+		walker.Extend('YgEs.HTTPServer.Walker',{
+			// private 
+		},{
+			// public 
 			Listener:listener,
 			Request:req,
 			Response:res,
 			ParsedURL:URLBuilder.Parse(req.url),
-		}
+		});
 		walker.Layer=walker.ParsedURL.ExtractPath();
 		walker.Level=1;
 
@@ -241,24 +284,29 @@ function _request(listener,req,res){
 
 function _listener_new(port,route,opt={}){
 
-	var log=opt.Log??Log;
+	opt=YgEs.Validate(opt,{Struct:{
+		User:{Struct:true,Default:{}},
+		Log:{Class:'YgEs.LocalLog',Default:Log},
+		HappenTo:{Class:'YgEs.HappeningManager',Default:HappeningManager},
+		Launcher:{Class:'YgEs.Launcher',Default:Engine},
+	}},'opt');
 
-	var _working=true;
-	var _internal=HTTPLowLevel.SetUp((req,res)=>_request(listener,req,res));
+	let log=opt.Log??Log;
 
-	var ws={
-		Name:'YgEs.HTTPServer.Listener',
+	let field={
 		HappenTo:opt.HappenTo??HappeningManager.CreateLocal(),
 		Launcher:opt.Launcher??Engine.CreateLauncher(),
-		User:opt.User??{},
+		User:opt.User,
+
+		AgentBypasses:['GetPort'],
 
 		OnOpen:(wk)=>{
 			log.Info('bgn of server port '+port);
-			_internal.listen(port);
+			priv.internal.listen(port);
 		},
 		OnClose:(wk)=>{
-			var done=false;
-			_internal.close(()=>{
+			let done=false;
+			priv.internal.close(()=>{
 				done=true;
 			});
 			wk.WaitFor('HTTP listener closed',()=>done);
@@ -268,11 +316,18 @@ function _listener_new(port,route,opt={}){
 		},
 	}
 
-	var listener=AgentManager.StandBy(ws);
-	listener.GetPort=()=>port;
-	listener.Route=route;
-	listener.Error=_error_default;
-	return listener;
+	let agent=AgentManager.StandBy(field);
+	let priv=agent.Extend('YgEs.HTTPServer.Listener',{
+		// private 
+		internal:HTTPLowLevel.SetUp((req,res)=>_request(agent,req,res)),
+	},{
+		// public 
+		Route:route,
+		Error:_error_default,
+		GetPort:()=>port,
+	});
+
+	return agent;
 }
 
 let HTTPServer=YgEs.HTTPServer={
@@ -284,6 +339,7 @@ let HTTPServer=YgEs.HTTPServer={
 
 	SetUp:_listener_new,
 
+	Empty:_world_new,
 	Serve:_serve_new,
 	Present:_present_new,
 	Route:_route_new,
