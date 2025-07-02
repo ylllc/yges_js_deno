@@ -31,7 +31,7 @@ function _server_new(port,opt={}){
 
 	const log=opt.Log??Log;
 
-	let fld={
+	let field={
 		Log:log,
 		HappenTo:opt.HappenTo??HappeningManager.CreateLocal(),
 		Launcher:opt.Launcher??Engine.CreateLauncher(),
@@ -96,7 +96,7 @@ function _server_new(port,opt={}){
 		},
 	}
 
-	var agent=AgentManager.StandBy(fld);
+	var agent=AgentManager.StandBy(field);
 	agent.Extend('YgEs.WebSockServer.Agent',{
 		// private 
 		ll:null,
