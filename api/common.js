@@ -330,6 +330,7 @@ YgEs.SoftClass=(name=undefined,user=undefined)=>{
 		let t=priv?priv:{}
 		priv_idx[subname]=t;
 		if(pub)Object.assign(self,pub);
+		t._public=self;
 		return t;
 	}
 

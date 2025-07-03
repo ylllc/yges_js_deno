@@ -27,6 +27,8 @@ Log.Info(obj.GetClassName());
 Log.Info(obj.GetGenealogy());
 Log.Info(priv1.test);
 Log.Info(obj.Func1());
+// private instance can refer the public instance 
+Log.Info(priv1._public.Func1());
 
 // 2nd extend class 
 const priv2=obj.Extend('TestClass2',{

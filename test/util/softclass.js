@@ -40,6 +40,7 @@ const scenaria=[
 			Test.ChkStrict(false,obj.IsComprised(cn2),'try with unrelated class');
 			Test.ChkStrict(-1,priv1.test1,'private member');
 			Test.ChkStrict(123,obj.Func1(),'public func');
+			Test.ChkStrict(123,priv1._public.Func1(),'public func via private instance');
 
 			const priv2=obj.Extend(cn2,{test1:-2},{
 				Func1:()=>234,
