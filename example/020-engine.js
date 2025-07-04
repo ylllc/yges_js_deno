@@ -8,6 +8,7 @@ import Log from '../api/logger.js';
 import Util from '../api/util.js';
 
 // Example: Async Proceure Engine ------- //
+//Log.Showable=Log.LEVEL.TRACE;
 
 // start the Engine 
 Engine.Start();
