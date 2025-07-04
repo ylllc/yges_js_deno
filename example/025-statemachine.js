@@ -9,6 +9,7 @@ import Timing from '../api/timing.js';
 import Log from '../api/logger.js';
 
 // Example: StateMachine ---------------- //
+//Log.Showable=Log.LEVEL.TRACE;
 
 let states={
 	'StateA':{
