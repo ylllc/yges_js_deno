@@ -305,13 +305,16 @@ function _yges_enginge_create_launcher(prm){
 				sub.Poll();
 			}
 
-			let cont=[]
-			for(let proc of priv.active){
-				if(proc.Poll())cont.push(proc);
+			if(priv.active.length>0){
+				let cont=[]
+				for(let proc of priv.active){
+					if(proc.Poll())cont.push(proc);
+				}
+				priv.active=cont;
 			}
-			priv.active=cont;
 
-			if(self.Limit<0 || priv.active.length<self.Limit){
+			if(priv.launched.length<1){}
+			else if(self.Limit<0 || priv.active.length<self.Limit){
 				let hold=[]
 				for(let proc of priv.launched){
 					if(self.Limit>=0 && priv.active.length>=self.Limit)hold.push(proc);
