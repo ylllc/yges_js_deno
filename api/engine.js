@@ -82,7 +82,7 @@ function _create_proc(prm,launcher){
 			if(priv.started)return;
 			if(self.IsEnd())return;
 			priv.started=true;
-			priv.trace(()=>'proc '+iid+' started');
+			priv.trace(()=>self.GetCaption()+'('+iid+') started');
 			try{
 				prm.OnStart(self);
 			}
@@ -98,7 +98,7 @@ function _create_proc(prm,launcher){
 		Abort:()=>{
 			if(self.IsEnd())return;
 			priv.aborted=true;
-			priv.trace(()=>'proc '+iid+' aborted');
+			priv.trace(()=>self.GetCaption()+'('+iid+') aborted');
 			try{
 				prm.OnAbort(self);
 			}
@@ -125,7 +125,7 @@ function _create_proc(prm,launcher){
 				return false;
 			}
 			try{
-				priv.trace(()=>'proc '+iid+' finished');
+				priv.trace(()=>self.GetCaption()+'('+iid+') finished');
 				prm.OnDone(self);
 				priv.finished=true;
 			}
@@ -271,14 +271,14 @@ function _yges_enginge_create_launcher(prm){
 
 		Abandon:()=>{
 			priv.abandoned=true;
-			priv.trace(()=>'launcher '+iid+' abandoned');
+			priv.trace(()=>self.GetCaption()+'('+iid+') abandoned');
 			self.Abort();
 		},
 
 		CreateLauncher:(prm2={})=>{
 			let sub=_yges_enginge_create_launcher(prm2);
 			priv.sublauncher.push(sub);
-			priv.trace(()=>'launcher '+iid+' created sublauncher '+sub.GetInstanceID());
+			priv.trace(()=>self.GetCaption()+'('+iid+') created sublauncher '+sub.GetInstanceID());
 			return sub;
 		},
 
@@ -304,7 +304,7 @@ function _yges_enginge_create_launcher(prm){
 			}
 
 			let proc=_create_proc(prm2,self);
-			priv.trace(()=>'launcher '+iid+' launched proc '+proc.GetInstanceID());
+			priv.trace(()=>self.GetCaption()+'('+iid+') launched proc '+proc.GetInstanceID());
 			if(self.Limit<0 || priv.active.length<self.Limit){
 				priv.active.push(proc);
 				proc._start();
@@ -317,7 +317,7 @@ function _yges_enginge_create_launcher(prm){
 		Abort:()=>{
 			if(self.IsEnd())return;
 			priv.aborted=true;
-			priv.trace(()=>'launcher '+iid+' aborted');
+			priv.trace(()=>self.GetCaption()+'('+iid+') aborted');
 
 			for(let sub of priv.sublauncher)sub.Abort();
 			priv.sublauncher=[]
@@ -339,7 +339,7 @@ function _yges_enginge_create_launcher(prm){
 				priv.active=cont;
 
 				if(priv.active.length<1 && priv.launched.length<1){
-					priv.trace(()=>'launcher '+iid+' all cleared');
+					priv.trace(()=>self.GetCaption()+'('+iid+') all cleared');
 				}
 			}
 
