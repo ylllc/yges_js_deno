@@ -19,6 +19,7 @@ function _run(start,states={},opt={}){
 		Name:{Literal:true,Default:'YgEs.StateMachine'},
 		User:{Struct:true},
 		Trace:{Boolable:true},
+		Trace_StMac:{Boolable:true},
 		Trace_Proc:{Boolable:true},
 		Log:{Class:'YgEs.LocalLog',Default:Log},
 		HappenTo:{Class:'YgEs.HappeningManager',Default:HappeningManager},
@@ -31,20 +32,20 @@ function _run(start,states={},opt={}){
 
 	let priv=ctrl.Extend('YgEs.StateMachine',{
 		// private 
-		tracing:opt.Trace,
-		tracing_proc:opt.Trace_Proc,
+		tracing_stmac:opt.Trace||opt.Trace_StMac,
+		tracing_proc:opt.Trace||opt.Trace_Proc,
 		cur:null,
 		state_prev:null,
 		state_cur:null,
 		state_next:start,
 
 		trace:(msg)=>{
-			if(!priv.tracing)return;
+			if(!priv.tracing_stmac)return;
 			ctrl.GetLogger().Trace(msg);
 		},
 	},{
 		// public 
-		SetTracing_StMac:(side)=>priv.tracing=!!side,
+		SetTracing_StMac:(side)=>priv.tracing_stmac=!!side,
 		SetTracing_Proc:(side)=>{
 			priv.tracing_proc=!!side;
 			proc.SetTracing(priv.tracing_proc);

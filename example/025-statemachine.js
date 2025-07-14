@@ -128,7 +128,6 @@ let opt1={
 		Trace:TRACING,
 	}),
 	Trace:TRACING,
-	Trace_Proc:TRACING,
 	User:{name:'Test1',Count:1}, // share in states 
 	OnDone:(proc)=>{
 		Log.Info(proc.User.name+' done');
@@ -147,7 +146,6 @@ let opt2={
 		Trace:TRACING,
 	}),
 	Trace:TRACING,
-	Trace_Proc:TRACING,
 	User:{name:'Test2',Count:1}, // share in states 
 	OnDone:(proc)=>{
 		Log.Info(proc.User.name+' done');
