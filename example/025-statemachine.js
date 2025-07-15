@@ -10,7 +10,8 @@ import Log from '../api/logger.js';
 
 // Example: StateMachine ---------------- //
 //Log.Showable=Log.LEVEL.TRACE;
-const TRACING=true;
+const TRACING_STMAC=true;
+const TRACING_PROC=false;
 
 let states={
 	'StateA':{
@@ -125,9 +126,10 @@ Engine.Start();
 
 let opt1={
 	Launcher:Engine.CreateLauncher({
-		Trace:TRACING,
+		Trace:TRACING_PROC,
 	}),
-	Trace:TRACING,
+	Trace_StMac:TRACING_STMAC,
+	Trace_Proc:TRACING_PROC,
 	User:{name:'Test1',Count:1}, // share in states 
 	OnDone:(proc)=>{
 		Log.Info(proc.User.name+' done');
@@ -143,9 +145,10 @@ let opt1={
 }
 let opt2={
 	Launcher:Engine.CreateLauncher({
-		Trace:TRACING,
+		Trace:TRACING_PROC,
 	}),
-	Trace:TRACING,
+	Trace_StMac:TRACING_STMAC,
+	Trace_Proc:TRACING_PROC,
 	User:{name:'Test2',Count:1}, // share in states 
 	OnDone:(proc)=>{
 		Log.Info(proc.User.name+' done');
