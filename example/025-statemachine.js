@@ -10,7 +10,7 @@ import Log from '../api/logger.js';
 
 // Example: StateMachine ---------------- //
 //Log.Showable=Log.LEVEL.TRACE;
-const TRACING_STMAC=true;
+const TRACING_STMAC=false;
 const TRACING_PROC=false;
 
 let states={

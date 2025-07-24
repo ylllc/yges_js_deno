@@ -11,7 +11,7 @@ import HappeningManager from '../api/happening.js';
 
 // Example: Agent ----------------------- //
 //Log.Showable=Log.LEVEL.TRACE;
-const TRACING_AGENT=true;
+const TRACING_AGENT=false;
 const TRACING_STMAC=false;
 const TRACING_PROC=false;
 

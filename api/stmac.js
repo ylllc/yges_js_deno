@@ -51,8 +51,8 @@ function _run(start,states={},opt={}){
 			proc.SetTracing(priv.tracing_proc);
 		},
 		SetTracing:(side)=>{
-			SetTracing_StMac(side);
-			SetTracing_Proc(side);
+			ctrl.SetTracing_StMac(side);
+			ctrl.SetTracing_Proc(side);
 		},
 
 		GetLogger:()=>opt.Log,
