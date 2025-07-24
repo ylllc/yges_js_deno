@@ -319,6 +319,7 @@ YgEs.InstanceOf=(obj,name)=>{
 YgEs.SoftClass=(name=undefined,user=undefined)=>{
 
 	let priv_idx={}
+	let traited={}
 
 	const basename='YgEs.SoftClass';
 	const entrait=(subname,priv,pub)=>{
@@ -344,9 +345,21 @@ YgEs.SoftClass=(name=undefined,user=undefined)=>{
 		GetClassName:()=>self._class_,
 		GetGenealogy:()=>self._genealogy_,
 		IsComprised:(subname)=>!!priv_idx[subname],
+		Untrait:(subname)=>{
+			if(!traited[subname]){
+				YgEs.CoreWarn('** '+subname+' is not traited in '+self.GetCaption()+' **');
+				return;
+			}
+			let pub=traited[subname].pub;
+			if(pub)for(let k in pub){
+				if(self[k])delete self[k];
+			}
+			delete traited[subname];
+			delete priv_idx[subname];
+		},
 		Trait:(subname,priv=null,pub=null)=>{
 			let t=entrait(subname,priv,pub);
-			priv_cur._trait_.push({_class_:subname,_user_:t});
+			traited[subname]={priv:t,pub:pub};
 			return t;
 		},
 		Extend:(subname,priv=null,pub=null)=>{
@@ -355,7 +368,7 @@ YgEs.SoftClass=(name=undefined,user=undefined)=>{
 			let pn=self._class_;
 			self._class_=subname;
 			self._genealogy_.push(subname);
-			priv_cur={_class_:subname,_parent_:priv_cur,_trait_:[],_super_:{},_user_:t}
+			priv_cur={_class_:subname,_parent_:priv_cur,_super_:{},_user_:t}
 			if(YgEs.ShowPrivate)self._inherit_=priv_cur;
 			return t;
 		},
@@ -369,7 +382,7 @@ YgEs.SoftClass=(name=undefined,user=undefined)=>{
 			return dst;
 		},
 	}
-	let priv_cur={_class_:basename,_trait_:[],_super_:{},_user_:entrait(basename)}
+	let priv_cur={_class_:basename,_super_:{},_user_:entrait(basename)}
 	if(YgEs.ShowPrivate){
 		self._inherit_=priv_cur;
 		self._private_=priv_idx;

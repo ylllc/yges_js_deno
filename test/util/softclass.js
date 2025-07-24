@@ -69,6 +69,10 @@ const scenaria=[
 			Test.ChkStrict(true,obj.IsComprised(cn1),'trait class inside');
 			Test.ChkStrict(true,priv1.traited,'private member');
 			Test.ChkStrict(-123,obj.Func1(),'public func');
+
+			obj.Untrait(cn1);
+			Test.ChkStrict(false,obj.IsComprised(cn1),'untraited class');
+			Test.ChkStrict(undefined,obj.Func1,'untraited function');
 		},
 	},
 	{

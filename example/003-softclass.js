@@ -87,3 +87,12 @@ const priv2x=obj.Extend('TestClass2');
 // private backdoor (YgEs.ShowPrivate=true required) 
 Log.Info("* Debug private info *",obj._private_);
 Log.Info("* Debug inherit info *",obj._inherit_);
+
+// can untrait by traited 
+// public members of traited are removed 
+obj.Untrait('MyTrait');
+
+Log.Info("* Debug inherit info *",obj._inherit_);
+
+// cannot untraits by extended 
+obj.Untrait('TestClass3');
