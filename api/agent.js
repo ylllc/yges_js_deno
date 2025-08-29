@@ -459,6 +459,7 @@ function _standby(field){
 		IsBusy:()=>!!priv_a.ctrl || priv_a.opencount>0,
 		IsReady:()=>priv_a.ready && priv_a.opencount>0,
 		IsHalt:()=>priv_a.halt,
+		GetAgent:()=>agent,
 		GetState:()=>priv_a.ctrl?priv_a.ctrl.GetCurState():'NONE',
 		GetInfo:(site='')=>{
 			let r={
@@ -586,7 +587,7 @@ function _standby(field){
 		for(let n of field.AgentBypasses){
 			h[n]=(...args)=>{
 				if(!h.IsReady()){
-					h.GetLogger().Notice('not ready');
+					h.GetLogger().Notice(agent.GetCaption()+' not ready; skip calling '+n);
 					return null;
 				}
 				return agent[n].call(null,...args);
@@ -595,7 +596,7 @@ function _standby(field){
 		for(let n of field.UserBypasses){
 			h[n]=(...args)=>{
 				if(!h.IsReady()){
-					h.GetLogger().Notice('not ready');
+					h.GetLogger().Notice(agent.GetCaption()+' not ready; skip calling '+n);
 					return null;
 				}
 				return agent.User[n].call(null,...args);

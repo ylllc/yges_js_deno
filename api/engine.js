@@ -130,7 +130,7 @@ function _create_proc(prm,launcher){
 				priv.finished=true;
 			}
 			catch(e){
-				YgEs.Trinarize.HappenTo.Happen(e,{
+				self.HappenTo.Happen(e,{
 					Class:self.GetClassName(),
 					Cause:'ThrownFromCallback',
 					Info:self.GetInfo('OnDone'),
