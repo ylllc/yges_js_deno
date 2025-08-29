@@ -10,12 +10,18 @@ import Log from '../api/logger.js';
 import HappeningManager from '../api/happening.js';
 
 // Example: Agent ----------------------- //
+//Log.Showable=Log.LEVEL.TRACE;
+const TRACING_AGENT=false;
+const TRACING_STMAC=false;
+const TRACING_PROC=false;
 
 // start the Engine 
 Engine.Start();
 
 // for Worker environment 
-let launcher=Engine.CreateLauncher();
+let launcher=Engine.CreateLauncher({
+	Trace_Proc:TRACING_PROC,
+});
 let hap_local=HappeningManager.CreateLocal({
 	OnHappen:(hm,hap)=>{Log.Fatal(hap.GetProp());},
 });
@@ -25,6 +31,9 @@ let workset1={
 	Launcher:launcher,
 	HappenTo:hap_local,
 	User:{Count:0},
+	Trace_Agent:TRACING_AGENT,
+	Trace_StMac:TRACING_STMAC,
+	Trace_Proc:TRACING_PROC,
 	OnOpen:(worker)=>{
 		Log.Info('Worker1 open');
 		worker.WaitFor('Counting up to 10',()=>{
@@ -57,6 +66,9 @@ let workset2={
 	Launcher:launcher,
 	HappenTo:hap_local,
 	User:{Count:0},
+	Trace_Agent:TRACING_AGENT,
+	Trace_StMac:TRACING_STMAC,
+	Trace_Proc:TRACING_PROC,
 	Dependencies:{w1:AgentManager.Launch(workset1)},
 	OnOpen:(worker)=>{
 		Log.Info('Worker2 open');

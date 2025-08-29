@@ -27,6 +27,8 @@ Log.Info(obj.GetClassName());
 Log.Info(obj.GetGenealogy());
 Log.Info(priv1.test);
 Log.Info(obj.Func1());
+// private instance can refer the public instance 
+Log.Info(priv1._public.Func1());
 
 // 2nd extend class 
 const priv2=obj.Extend('TestClass2',{
@@ -85,3 +87,12 @@ const priv2x=obj.Extend('TestClass2');
 // private backdoor (YgEs.ShowPrivate=true required) 
 Log.Info("* Debug private info *",obj._private_);
 Log.Info("* Debug inherit info *",obj._inherit_);
+
+// can untrait by traited 
+// public members of traited are removed 
+obj.Untrait('MyTrait');
+
+Log.Info("* Debug inherit info *",obj._inherit_);
+
+// cannot untraits by extended 
+obj.Untrait('TestClass3');

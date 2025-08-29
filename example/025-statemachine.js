@@ -9,6 +9,9 @@ import Timing from '../api/timing.js';
 import Log from '../api/logger.js';
 
 // Example: StateMachine ---------------- //
+//Log.Showable=Log.LEVEL.TRACE;
+const TRACING_STMAC=false;
+const TRACING_PROC=false;
 
 let states={
 	'StateA':{
@@ -122,7 +125,11 @@ let states={
 Engine.Start();
 
 let opt1={
-	Launcher:Engine.CreateLauncher(),
+	Launcher:Engine.CreateLauncher({
+		Trace:TRACING_PROC,
+	}),
+	Trace_StMac:TRACING_STMAC,
+	Trace_Proc:TRACING_PROC,
 	User:{name:'Test1',Count:1}, // share in states 
 	OnDone:(proc)=>{
 		Log.Info(proc.User.name+' done');
@@ -137,7 +144,11 @@ let opt1={
 	},
 }
 let opt2={
-	Launcher:Engine.CreateLauncher(),
+	Launcher:Engine.CreateLauncher({
+		Trace:TRACING_PROC,
+	}),
+	Trace_StMac:TRACING_STMAC,
+	Trace_Proc:TRACING_PROC,
 	User:{name:'Test2',Count:1}, // share in states 
 	OnDone:(proc)=>{
 		Log.Info(proc.User.name+' done');

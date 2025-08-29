@@ -8,18 +8,23 @@ import Log from '../api/logger.js';
 import Util from '../api/util.js';
 
 // Example: Async Proceure Engine ------- //
+//Log.Showable=Log.LEVEL.TRACE;
+const TRACING_LAUNCHER=false;
+const TRACING_PROC=false;
 
 // start the Engine 
 Engine.Start();
 
 // local launcher 
-var launcher=Engine.CreateLauncher({
+let launcher=Engine.CreateLauncher({
 	Name:'MyLauncher',
+	Trace:TRACING_LAUNCHER,
 	Limit:3, // can limit parallel proc 
 });
 
 Util.SafeStepIter(0,10,1,(i)=>{
 	launcher.Launch({
+		Trace:TRACING_PROC,
 		User:{
 			// initial settings 
 			name:'async '+i,
