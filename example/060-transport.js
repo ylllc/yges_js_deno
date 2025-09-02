@@ -3,27 +3,56 @@
 // © 2025 Yggdrasil Leaves, LLC.          //
 //        All rights reserved.            //
 
-import Transport from '../api/transport.js';
-import EndPoint from '../api/endpoint.js';
+import Network from '../api/network.js';
 import Timing from '../api/timing.js';
 import Engine from '../api/engine.js';
 import HappeningManager from '../api/happening.js';
 import Log from '../api/logger.js';
 
 // Example: Transport Simulation -------- //
+Log.Showable=Log.LEVEL.TRACE;
 
 // start the Engine 
 Engine.Start();
 
 // for environment 
-let log_local=Log.CreateLocal('TransportTest');
+let log_local=Log.CreateLocal('NetworkTransportTest');
 let launcher=Engine.CreateLauncher();
 let hap_local=HappeningManager.CreateLocal({
 	OnHappen:(hm,hap)=>{log_local.Fatal(hap.GetProp());},
 });
 
-// transport setting
-const topt={
+// receiver setting
+const recvopt={
+	Log:log_local,
+	Launcher:launcher,
+	HappenTo:hap_local,
+	Trace_Agent:false,
+	Trace_StMac:false,
+	Trace_Proc:false,
+	// (for tough test) insert random msec delay 
+	DelayMin:0,
+	DelayMax:400,
+	// (for tough test) maybe break ordering by delay 
+//	Unorderable:true,
+	// (for tough test) ratio of dubbed packet on received 
+//	DubRatio:0.25,
+//	DubIntervalMin:0,
+//	DubIntervalMax:500,
+	// (for tough test) maybe cutoff during receiving 
+	OnGate:(recver,rawdata,prop)=>{
+//		if(Math.random()<0.25)return rawdata.substring(0,Math.random()*rawdata.length);
+		return rawdata;
+	},
+}
+
+// receiver 
+let recv=Network.CreateReceiver(recvopt);
+
+recv.SetTracing_Receiver(false);
+
+// sender setting
+const sendopt={
 	Log:log_local,
 	Launcher:launcher,
 	HappenTo:hap_local,
@@ -32,70 +61,87 @@ const topt={
 	DelayMax:400,
 	// (for tough test) maybe break ordering by delay 
 	Unorderable:false,
-	// (for tough test) ratio of short packet on sending 
-	Hurting:0.0,
 }
 
-// endpoint setting
-const eopt={
+// loopback sender 
+let loopback=Network.CreateLoopback(recv,sendopt);
+// terminate sender 
+let terminal=Network.CreateTerminator(sendopt);
+
+loopback.SetTracing_Sender(false);
+terminal.SetTracing_Sender(false);
+
+// transport setting
+const tpopt={
 	Log:log_local,
 	Launcher:launcher,
 	HappenTo:hap_local,
-	OnReceived:(ep,from,data)=>{
-		log_local.Info('EndPoint '+ep.GetInstanceID()+' received from '+from,data);
+	Trace_Agent:false,
+	Trace_StMac:false,
+	Trace_Proc:false,
+}
+
+let tp=Network.CreateTransport(tpopt);
+tp.SetTracing_Transport(false);
+tp.SetTracing_Agent(false);
+
+tp.AttachReceiver('lb',recv);
+tp.AttachSender('lb',loopback);
+tp.AttachSender('tm',terminal);
+
+tp.SetSelector((tp,target,prop)=>{
+	return (target=='')?'tm':'lb';
+});
+
+// endpoint setting
+const epopt={
+	Log:log_local,
+	Launcher:launcher,
+	HappenTo:hap_local,
+	OnCome:(from,body,prop)=>{
+		Log.Info('received from '+from,body);
 	},
 }
 
 // loopback endpoints 
-let lb_tp=Transport.CreateLoopback(topt).Open();
-let lb_ep1=EndPoint.Create(lb_tp.GetAgent(),eopt).Open();
-let lb_ep2=EndPoint.Create(lb_tp.GetAgent(),eopt).Open();
+let ep1=Network.CreateEndPoint(epopt).Open();
+let ep2=Network.CreateEndPoint(epopt).Open();
 
-// terminate endpoints 
-let tm_tp=Transport.CreateTerminator(topt).Open();
-let tm_ep1=EndPoint.Create(tm_tp.GetAgent(),eopt).Open();
-let tm_ep2=EndPoint.Create(tm_tp.GetAgent(),eopt).Open();
+ep1.SetTracing_EndPoint(false);
+ep2.SetTracing_EndPoint(false);
+
+tp.Connect('EP1',ep1);
+tp.Connect('EP2',ep2);
 
 (async ()=>{
 
-	// wait for transports ready 
-	await Timing.SyncKit(1000,()=>lb_tp.IsReady()).ToPromise();
-	await Timing.SyncKit(1000,()=>tm_tp.IsReady()).ToPromise();
-
 	// wait for endpoints ready 
-	await Timing.SyncKit(1000,()=>lb_ep1.IsReady()).ToPromise();
-	await Timing.SyncKit(1000,()=>lb_ep2.IsReady()).ToPromise();
-	await Timing.SyncKit(1000,()=>tm_ep1.IsReady()).ToPromise();
-	await Timing.SyncKit(1000,()=>tm_ep2.IsReady()).ToPromise();
+	await Timing.SyncKit(1000,()=>ep1.IsReady()).ToPromise();
+	await Timing.SyncKit(1000,()=>ep2.IsReady()).ToPromise();
+
+	Log.Info('all ready');
 
 	// send each other 
 	// (when onorderable delay test, maybe receive B to A) 
-	lb_ep1.Send(lb_ep2.GetInstanceID(),'Loopback Test1A');
-	lb_ep2.Send(lb_ep1.GetInstanceID(),'Loopback Test2A');
-	lb_ep1.Send(lb_ep2.GetInstanceID(),'Loopback Test1B');
-	lb_ep2.Send(lb_ep1.GetInstanceID(),'Loopback Test2B');
-	// send to me 
-	// always received in random order from another senders 
-	lb_ep1.Send(lb_ep1.GetInstanceID(),'Loopback Myself Test1');
-	lb_ep2.Send(lb_ep2.GetInstanceID(),'Loopback Myself Test2');
+	ep1.Send('EP2',null,'Loopback Test1A');
+	ep2.Send('EP1',null,'Loopback Test2A');
+	// can send a structure 
+	ep1.Send('EP2',null,{msg:'Loopback Test1B',tmp:[1,2,{a:3,b:4}]});
+	ep2.Send('EP1',null,{msg:'Loopback Test2B',tmp:[0,false,null,'',[],{}]});
 
-	// wait for endpoints ready 
-	await Timing.SyncKit(1000,()=>tm_ep1.IsReady()).ToPromise();
-	await Timing.SyncKit(1000,()=>tm_ep2.IsReady()).ToPromise();
+	// send to Transport (but not reach to opposite EndPoint) 
+	// EndPoint does not have an instance address to reply 
+	// and can only send in one way 
+	ep1.Launch('EP2',null,'Communicate Test1');
+	ep1.Send('EP1',null,'Loopback Test1');
+	ep2.Launch('EP1',null,'Communicate Test2');
+	ep2.Launch('',null,'Terminate Test');
+	ep2.KickAll();
 
-	// sendings will ignored 
-	tm_ep1.Send(tm_ep2.GetInstanceID(),'Terminate Test1');
-	tm_ep2.Send(tm_ep1.GetInstanceID(),'Terminate Test2');
+	await Timing.DelayKit(1500).ToPromise();
 
-	await Timing.DelayKit(1000).ToPromise();
-
-	lb_ep1.Close();
-	lb_ep2.Close();
-	tm_ep1.Close();
-	tm_ep2.Close();
-
-	lb_tp.Close();
-	tm_tp.Close();
+	ep1.Close();
+	ep2.Close();
 
 	launcher.Sync((dmy)=>{
 		Engine.ShutDown();

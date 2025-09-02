@@ -6,121 +6,203 @@
 import YgEs from '../api/common.js';
 import Engine from '../api/engine.js';
 import Timing from '../api/timing.js';
+import HappeningManager from '../api/happening.js';
 import WebSockServer from '../api/websock_server.js';
-import Transport from '../api/transport.js';
-import EndPoint from '../api/endpoint.js';
+import Network from '../api/network.js';
 import File from '../api/file.js';
 import Log from '../api/logger.js';
 
-//Log.Showable=Log.LEVEL.TRACE;
+Log.Showable=Log.LEVEL.TRACE;
 
 // Example: HTTP Server with WebSocket -- //
 
 const LIFEFILE='../!http_server_running';
+const WSHostEPN='WSHost';
 
 // HTTP Server 
 import './100-http_server.js'; 
 
-// WebSocket Server 
+// for environment 
+let log_local=Log.CreateLocal('WebServerTest');
+let launcher=Engine.CreateLauncher();
+let hap_local=HappeningManager.CreateLocal({
+	OnHappen:(hm,hap)=>{log_local.Fatal(hap.GetProp());},
+});
 
 // payload definition (shared between server and client) 
-const PAYLOAD_NAMES=['ECHO_REQ','ECHO_REP']
-const PAYLOAD=YgEs.CreateEnum(PAYLOAD_NAMES);
-const pld_specs={}
-pld_specs[PAYLOAD.ECHO_REQ]={
-//	QuickCall:true, // call on just received 
-}
-pld_specs[PAYLOAD.ECHO_REP]={
-//	QuickCall:true, // call on just received 
-}
-
-// extract a payload type from received structure 
-const pld_extract_type=(payload)=>payload.Type;
-
-// server simulation Transport
-let server_tp_opt={
-	HasHost:true, // clients can send to unknown server EndPoint 
-	PayloadSpecs:pld_specs,
-	PayloadReceivers:{}, // server's receive functions by available payload type 
-	OnExtractPayloadType:pld_extract_type,
-	OnSend:(ep_from,epid_to,pack)=>{
-
-		Log.Trace('send to '+epid_to,pack);
-
-		// send to client 
-		let ep=server_tp.GetEndPoint(epid_to);
-		ep.User.WebSockCtx.Send(pack);
+const pld_specs={
+	ECHO_REQ:{
+		CallOnce:{
+			// only 1 call until replied 
+			Limit:true,
+			// can call again after msec 
+			Timeout:10000,
+		},
+	},
+	ECHO_REP:{
+		// unlock ECHO_REQ when received 
+		UnlockOnce:['ECHO_REQ'],
 	},
 }
-server_tp_opt.PayloadReceivers[PAYLOAD.ECHO_REQ]=(ep_to,epid_from,data)=>{
 
-	Log.Trace('ECHO_REQ received from '+epid_from+' as Client '+epid_from,data);
-
-	// respond to sender 
-	ep_to.Send(epid_from,{Type:PAYLOAD.ECHO_REP,Content:data.Content});
+// WebSocket receiver 
+const recvopt={
+	Log:log_local,
+	Launcher:launcher,
+	HappenTo:hap_local,
+	// (for tough test) insert random msec delay 
+	DelayMin:200,
+	DelayMax:1500,
 }
-let server_tp=Transport.CreateDriver(server_tp_opt).Open();
+let ws_receiver=Network.CreateReceiver(recvopt);
+
+// WebSocket sender 
+const sendopt={
+	Log:log_local,
+	Launcher:launcher,
+	HappenTo:hap_local,
+	// (for tough test) insert random msec delay 
+	DelayMin:200,
+	DelayMax:1500,
+	OnSend:(sender,rawdata,prop)=>{
+
+		let prot=prop.Prot;
+		if(!prot){
+			Log.Notice('Protocol missing',rawdata);
+			return;
+		}
+
+		let ctx=prot.User.Context;
+		if(!ctx){
+			Log.Notice('WebSock context missing',rawdata);
+			return;
+		}
+
+		ctx.Send(rawdata);
+	},
+}
+let ws_sender=Network.CreateSender(sendopt);
+
+// WebSocket Transport 
+const tpopt={
+	Log:log_local,
+	Launcher:launcher,
+	HappenTo:hap_local,
+	PIDPrefix:'Exam101',
+	PayloadSpecs:pld_specs,
+	PayloadHooks:{
+		ECHO_REQ:{
+			OnRequest:(tp,payload,prop)=>{
+
+				let prot=prop.Prot;
+				if(!prot){
+					Log.Notice('Protocol missing',payload);
+					return;
+				}
+
+				Log.Trace('requested out of Protocol',payload);
+
+				// replying 
+				prot.Send(payload.From,'ECHO_REP',payload.Body,{Prot:prot});
+			},
+			OnBound:(tp,payload,prop)=>{
+
+				Log.Trace('bound new Protocol',payload);
+
+				return WSHostEPN;
+			},
+			OnRespond:(tp,prot,payload,prop)=>{
+
+				Log.Trace('respond in Protocol '+prot.GetPID(),payload);
+
+				// replying 
+				prot.Send(payload.From,'ECHO_REP',payload.Body,prop);
+
+				// this Protocol is continued 
+				return true;
+			},
+		},
+	},
+}
+let ws_transport=Network.CreateTransport(tpopt);
+ws_transport.AttachReceiver('ws',ws_receiver);
+ws_transport.AttachSender('ws',ws_sender);
+ws_transport.SetSelector((tp,target,prop)=>'ws');
+
+// WebSocket EndPoint 
+const epopt={
+	Log:log_local,
+	Launcher:launcher,
+	HappenTo:hap_local,
+}
+let ws_endpoint=Network.CreateEndPoint(epopt).Fetch();
+ws_transport.Connect(WSHostEPN,ws_endpoint);
 
 function _server_new(name,port,interval){
 
-	let endpoint={}
+	let protocol={}
 
 	let opt={
 		// max clients 
 		ConnectionLimit:5,
 
-		OnClose:()=>{
-			Log.Trace('WebSockServer closing');
-
-			for(let cid in endpoint)endpoint[cid].Close();
-			endpoint={}
+		OnOpen:(agent)=>{
+			Log.Trace('WebSockServer opening');
+			ws_endpoint.Open();
+			agent.WaitFor('NetworkLayer',()=>ws_endpoint.IsReady());
 		},
-		OnReady:()=>{
+		OnClose:(agent)=>{
+			Log.Trace('WebSockServer closing');
+			ws_endpoint.Close();
+
+			for(let pid in protocol)protocol[pid].Release();
+			protocol={}
+		},
+		OnReady:(agent)=>{
 			Log.Trace('WebSockServer ready');
+
+
+
 		},
 		OnConnect:(ctx,req)=>{
-			let cid=null;
-			do{
-				cid=YgEs.NextID();
-			}while(endpoint[cid]);
 
-			Log.Info('client came: '+cid);
+			let prot=ws_transport.NewProtocol(WSHostEPN);
+			let pid=prot.GetPID();
 
-			ctx.ClientID=cid;
+			Log.Info('client come: '+pid);
 
-			// client Endpoint 
-			let client_ep_opt={
-				EPID:cid,
-				User:{WebSockCtx:ctx},
-			}
-			let client_ep=endpoint[cid]=EndPoint.Create(server_tp.GetAgent(),client_ep_opt).Open();
+			ctx.ClientID=pid;
+			prot.User.Context=ctx;
+			protocol[pid]=prot;
 
 			return true;
 		},
 		OnDisconnect:(ctx)=>{
 
-			Log.Info('client gone: '+ctx.ClientID);
+			let pid=ctx.ClientID;
+			let prot=protocol[pid];
+			if(!prot)return;
 
-			let ep=endpoint[ctx.ClientID];
-			if(ep){
-				ep.Close();
-				delete endpoint[ctx.ClientID];
-			}
+			Log.Info('client gone: '+pid);
+
+			prot.Release();
+			delete protocol[pid];
 		},
 		OnReceived:(ctx,msg,isbin)=>{
-			Log.Trace('msg from '+ctx.ClientID+': '+msg);
 
-			// (tentative) fix fake ClientFrom 
-			// [ToDo] must get ctx.ClientID via Transport 
-			let j=JSON.parse(msg);
-			j.ClientFrom=ctx.ClientID;
-			msg=JSON.stringify(j);
+			let pid=ctx.ClientID;
+			let prot=protocol[pid];
+			if(!prot){
+				Log.Notice('invalid msg from '+pid+': '+msg);
+				return;
+			}
 
-			// send to the server Transport 
-			server_tp.Receive(null,msg);
+			Log.Trace('msg from '+pid+': '+msg);
+
+			ws_receiver.Receive(msg,{Prot:prot});
 		},
 		OnError:(ctx,err)=>{
-			Log.Fatal('error in '+ctx.ClientID+': '+err);
+			Log.Fatal('error in '+ctx.ClientID,err);
 		},
 	}
 
@@ -135,8 +217,8 @@ var server_ws=_server_new('WebSockForHTTPServer',8801,100);
 	// start server instances 
 	server_ws.Open();
 
-	// wait for server transport ready 
-	await Timing.SyncKit(1000,()=>server_tp.IsReady()).ToPromise();
+	// wait for server EndPoint ready 
+	await Timing.SyncKit(1000,()=>ws_endpoint.IsReady()).ToPromise();
 
 	// keep during LIFEFILE exists 
 	await Timing.SyncKit(100,()=>{
@@ -145,7 +227,6 @@ var server_ws=_server_new('WebSockForHTTPServer',8801,100);
 
 	// stop server instances 
 	server_ws.Close();
-	server_tp.Close();
 
 	// wait for end of all procedures 
 	await Engine.ToPromise();

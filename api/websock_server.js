@@ -22,6 +22,7 @@ function _server_new(port,opt={}){
 		Launcher:{Class:'YgEs.Launcher'},
 		ConnectionLimit:{Integer:true,Min:-1,Default:-1},
 		OnReady:{Callable:true,Default:(agent)=>{}},
+		OnOpen:{Callable:true,Default:(agent)=>{}},
 		OnClose:{Callable:true,Default:(agent)=>{}},
 		OnConnect:{Callable:true,Default:(ctx)=>{return false;}},
 		OnDisconnect:{Callable:true,Default:(ctx)=>{}},
@@ -78,6 +79,7 @@ function _server_new(port,opt={}){
 				},
 			}
 			agent.ll=WebSockLowLevel.CreateServer(port,prm);
+			opt.OnOpen(agent);
 		},
 		OnReady:(agent)=>{
 			log.Info('WebSock server ready port '+port);
