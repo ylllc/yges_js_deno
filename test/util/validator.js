@@ -40,6 +40,31 @@ const scenaria=[
 
 			let func=()=>{}
 			Test.ChkStrict(func,YgEs.Validate(func,{Callable:true}));
+
+			Test.ChkStrict(
+				{a:null,b:undefined,c:[],d:{}},
+				YgEs.Validate({},{Struct:{
+					a:{Default:null},
+					b:{Nullable:true},
+					c:{List:true},
+					d:{Dict:true},
+				}}));
+			Test.ChkStrict(
+				{a:null,b:undefined,c:[],d:{}},
+				YgEs.Validate(undefined,{Struct:{
+					a:{Default:null},
+					b:{Nullable:true},
+					c:{List:true},
+					d:{Dict:true},
+				}}));
+			Test.ChkStrict(
+				null,
+				YgEs.Validate(undefined,{Default:null,Struct:{
+					a:{Default:null},
+					b:{Nullable:true},
+					c:{List:true},
+					d:{Dict:true},
+				}}));
 		},
 	},
 	{

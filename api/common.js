@@ -126,6 +126,7 @@ function _fix_undefined(src,attr,tag){
 
 	if(attr.List)return []
 	if(attr.Dict)return {}
+	if(attr.Struct)return YgEs.Validate({},attr,tag);
 
 	if(attr.Required){
 		YgEs.CoreWarn(tag+' is missing');
