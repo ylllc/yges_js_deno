@@ -38,59 +38,48 @@ const pld_specs={
 	},
 }
 
-// receiver setting
-const recvopt={
+// driver setting
+const drvopt={
 	Log:log_local,
 	Launcher:launcher,
 	HappenTo:hap_local,
 	Trace_Agent:false,
 	Trace_StMac:false,
 	Trace_Proc:false,
-	// (for tough test) insert random msec delay 
-	DelayMin:0,
-	DelayMax:400,
-	// (for tough test) maybe break ordering by delay 
-//	Unorderable:true,
-	// (for tough test) ratio of dubbed packet on received 
-//	DubRatio:0.25,
-//	DubIntervalMin:0,
-//	DubIntervalMax:500,
+	// tough test for sending 
+	ToughOut:{
+		// insert random msec delay 
+		DelayMin:0,
+		DelayMax:400,
+		// maybe break ordering by delay 
+//		Unorderable:true,
+		// ratio of packet dubbing
+//		DubRatio:0.25,
+//		DubIntervalMin:0,
+//		DubIntervalMax:500,
+	},
+	// tough test for receiving 
+	ToughIn:{
+		// insert random msec delay 
+		DelayMin:0,
+		DelayMax:400,
+		// maybe break ordering by delay 
+//		Unorderable:true,
+		// ratio of packet dubbing
+//		DubRatio:0.25,
+//		DubIntervalMin:0,
+//		DubIntervalMax:500,
+	},
 	// (for tough test) maybe cutoff during receiving 
-	OnGate:(recver,rawdata,prop)=>{
+	OnGate:(driver,rawdata,prop)=>{
 //		if(Math.random()<0.25)return rawdata.substring(0,Math.random()*rawdata.length);
 		return rawdata;
 	},
 }
 
-// receiver 
-let recv_host=Network.CreateReceiver(recvopt);
-let recv_guest=Network.CreateReceiver(recvopt);
-
-recv_host.SetTracing_Receiver(false);
-recv_guest.SetTracing_Receiver(false);
-
-// sender setting
-const sendopt={
-	Log:log_local,
-	Launcher:launcher,
-	HappenTo:hap_local,
-	TraceAgent:false,
-	TraceStMac:false,
-	TraceProc:false,
-	// (for tough test) insert random msec delay 
-	DelayMin:0,
-	DelayMax:400,
-	// (for tough test) maybe break ordering by delay 
-//	Unorderable:true,
-	// (for tough test) ratio of dubbed packet on received 
-//	DubRatio:0.25,
-//	DubIntervalMin:0,
-//	DubIntervalMax:500,
-}
-
-// sender 
-let send_host=Network.CreateLoopback(recv_guest,sendopt);
-let send_guest=Network.CreateLoopback(recv_host,sendopt);
+// network driver 
+let host2guest=Network.CreateLoopback(drvopt);
+let guest2host=Network.CreateLoopback(drvopt);
 
 // transport setting
 const tpopt={
@@ -100,7 +89,7 @@ const tpopt={
 	TraceAgent:false,
 	TraceStMac:false,
 	TraceProc:false,
-	PIDPrefix:'Exam061',
+	PIDPrefix:'Exam062_',
 	PayloadSpecs:pld_specs,
 }
 
@@ -127,8 +116,8 @@ let tp_host=Network.CreateTransport(Object.assign(tpopt,{
 		},
 	},
 }));
-tp_host.AttachReceiver('port_host',recv_host);
-tp_host.AttachSender('port_host',send_host);
+tp_host.AttachReceiver('port_host',guest2host);
+tp_host.AttachSender('port_host',host2guest);
 tp_host.SetSelector((tp,target,prop)=>'port_host');
 tp_host.SetTracing_Transport(false);
 tp_host.SetTracing_Agent(false);
@@ -146,8 +135,8 @@ let tp_guest=Network.CreateTransport(Object.assign(tpopt,{
 		},
 	},
 }));
-tp_guest.AttachReceiver('port_guest',recv_guest);
-tp_guest.AttachSender('port_guest',send_guest);
+tp_guest.AttachReceiver('port_guest',host2guest);
+tp_guest.AttachSender('port_guest',guest2host);
 tp_guest.SetSelector((tp,target,prop)=>'port_guest');
 tp_guest.SetTracing_Transport(false);
 tp_guest.SetTracing_Agent(false);

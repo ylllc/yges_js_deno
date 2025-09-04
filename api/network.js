@@ -34,21 +34,31 @@ function _recvctrlset_new(){
 	return ctset;
 }
 
-function _receiver_new(opt={}){
+function _driver_new(opt={}){
 
 	opt=YgEs.Validate(opt,{Others:true,Struct:{
-		Name:{Literal:true,Default:'YgEs.Receiver'},
-		Trace_Receiver:{Boolable:true},
+		Name:{Literal:true,Default:'YgEs.NetworkDriver'},
+		Trace_Network:{Boolable:true},
 		Log:{Class:'YgEs.LocalLog',Default:Log},
 		AgentBypasses:{List:{Literal:true}},
-		Unorderable:{Boolable:true,Default:false},
-		DelayMin:{Integer:true,Default:0},
-		DelayMax:{Integer:true,Default:0},
-		DubRatio:{Numeric:true,Default:0.0},
-		DubIntervalMin:{Integer:true,Default:0},
-		DubIntervalMax:{Integer:true,Default:0},
-		OnGate:{Callable:true,Default:(recver,rawdata)=>rawdata},
-		OnDecode:{Callable:true,Default:(recver,rawdata)=>{
+		ToughOut:{Struct:{
+			Unorderable:{Boolable:true,Default:false},
+			DelayMin:{Integer:true,Default:0},
+			DelayMax:{Integer:true,Default:0},
+			DubRatio:{Numeric:true,Default:0.0},
+			DubIntervalMin:{Integer:true,Default:0},
+			DubIntervalMax:{Integer:true,Default:0},
+		}},
+		ToughIn:{Struct:{
+			Unorderable:{Boolable:true,Default:false},
+			DelayMin:{Integer:true,Default:0},
+			DelayMax:{Integer:true,Default:0},
+			DubRatio:{Numeric:true,Default:0.0},
+			DubIntervalMin:{Integer:true,Default:0},
+			DubIntervalMax:{Integer:true,Default:0},
+		}},
+		OnGate:{Callable:true,Default:(driver,rawdata)=>rawdata},
+		OnDecode:{Callable:true,Default:(driver,rawdata)=>{
 			try{
 				return JSON.parse(rawdata);
 			}
@@ -56,65 +66,90 @@ function _receiver_new(opt={}){
 				return null;
 			}
 		}},
+		OnEncode:{Callable:true,Default:(sender,contents,prop)=>{
+			return JSON.stringify(contents);
+		}},
+		OnSend:{Callable:true,Default:(sender,rawdata,prop)=>{
+			log.Fatal('OnSend is not impremented in Sender',rawdata);
+		}},
 	}},'opt');
 
-	opt.AgentBypasses.push('IsConnected','GetConnectionName',
-		'GetTransport','CutOff','Receive');
+	opt.AgentBypasses.push('IsListening','GetConnectionName',
+		'GetTransport','CutOff','Receive','Send');
 
 	const onClose=opt.OnClose??((agent)=>{});
 	opt.OnClose=(agent)=>{
 
-		recver.CutOff();
+		driver.CutOff();
 		onClose(agent);
 	}
 
 	const checkReady=()=>{
-		if(!recver.IsReady()){
-			log.Fatal('Receiver ('+recver.GetCaption()+') is not ready');
+		if(!driver.IsReady()){
+			log.Fatal('NetworkDriver ('+driver.GetCaption()+') is not ready');
 			return false;
 		}
 		return true;
 	}
 
+	const callSend=(rawdata,prop)=>{
+
+		priv.trace(()=>'sending from NetworkDriver ('+driver.GetCaption()+')');
+
+		opt.OnSend(driver,rawdata,prop);
+		if(opt.ToughOut.DubRatio<=0)return;
+		if(Math.random()>=opt.ToughOut.DubRatio)return;
+
+		priv.trace(()=>'dubs sending on NetworkDriver ('+driver.GetCaption()+')');
+
+		let delay=(opt.DubIntervalMax<1)?0:
+			(opt.ToughOut.DubIntervalMin+Math.random()*(opt.ToughOut.DubIntervalMax-opt.ToughOut.DubIntervalMin));
+		launch_out.Delay(delay,()=>callSend(rawdata,prop));
+	}
+
 	const callRecv=(contents,prop)=>{
 
-		let tp=recver.GetTransport();
+		let tp=driver.GetTransport();
 		if(!tp){
-			log.Warn('Notice ('+recver.GetCaption()+') already cutoff',contents);
+			log.Notice('NetworkDriver ('+driver.GetCaption()+') already cutoff',contents);
 			return;
 		}
 		tp._recv(contents,prop);
 
-		if(opt.DubRatio<=0)return;
-		if(Math.random()>=opt.DubRatio)return;
+		if(opt.ToughIn.DubRatio<=0)return;
+		if(Math.random()>=opt.ToughIn.DubRatio)return;
 
 		let delay=(opt.DubIntervalMax<1)?0:
-			(opt.DubIntervalMin+Math.random()*(opt.DubIntervalMax-opt.DubIntervalMin));
-		launch.Delay(delay,()=>callRecv(contents,prop));
+			(opt.ToughIn.DubIntervalMin+Math.random()*(opt.DubIntervalMax-opt.ToughIn.DubIntervalMin));
+		launch_in.Delay(delay,()=>callRecv(contents,prop));
 	}
 
 	let log=opt.Log;
-	let recver=Agent.StandBy(opt);
-	const launch=recver.GetLauncher().CreateLauncher({Limit:opt.Unorderable?-1:1});
-	const priv=recver.Extend('YgEs.Receiver',{
+	let driver=Agent.StandBy(opt);
+	const launch_in=driver.GetLauncher().CreateLauncher({Limit:opt.ToughIn.Unorderable?-1:1});
+	const launch_out=driver.GetLauncher().CreateLauncher({Limit:opt.ToughOut.Unorderable?-1:1});
+	const priv=driver.Extend('YgEs.NetworkDriver',{
 		// private 
+		tracing_network:opt.Trace||opt.Trace_Network,
 
 		// control set 
 		cset:_recvctrlset_new(),
-		// handle for conecting Transport 
+
+		// receiver handle for conecting Transport 
+		// caution: 
+		// Sender not recognize connecting Transport 
+		// and can connect from many Transport 
 		h4t:null,
 
-		tracing_receiver:opt.Trace||opt.Trace_Receiver,
-
 		trace:(msg)=>{
-			if(!priv.tracing_receiver)return;
+			if(!priv.tracing_network)return;
 			log.Trace(msg);
 		},
 	},{
 		// public
-		SetTracing_Receiver:(side)=>priv.tracing_receiver=!!side,
+		SetTracing_Network:(side)=>priv.tracing_network=!!side,
 
-		IsConnected:()=>!!priv.h4t,
+		IsListening:()=>!!priv.h4t,
 		GetConnectionName:()=>{
 			if(!priv.h4t)return undefined;
 			return priv.h4t.GetConnectionName();
@@ -133,44 +168,59 @@ function _receiver_new(opt={}){
 		Receive:(rawdata,prop={})=>{
 
 			if(!priv.h4t){
-				priv.trace(()=>'Receiver ('+recver.GetCaption()+') not attached to a Transport, abandon it');
+				priv.trace(()=>'NetworkDriver ('+driver.GetCaption()+') not attached to a Transport, abandon it');
 				return;
 			}
-			if(!recver.IsReady()){
-				priv.trace(()=>'Receiver ('+recver.GetCaption()+') received, but out of the service, abandon it');
+			if(!driver.IsReady()){
+				priv.trace(()=>'NetworkDriver ('+driver.GetCaption()+') received, but out of the service, abandon it');
 				return;
 			}
 
-			rawdata=opt.OnGate(recver,rawdata,prop);
+			rawdata=opt.OnGate(driver,rawdata,prop);
 			if(!rawdata){
-				priv.trace(()=>'Receiver ('+recver.GetCaption()+') received invalid');
+				priv.trace(()=>'NetworkDriver ('+driver.GetCaption()+') received invalid');
 				return;
 			}
 
-			let contents=opt.OnDecode(recver,rawdata,prop);
+			let contents=opt.OnDecode(driver,rawdata,prop);
 			if(!contents){
-				priv.trace(()=>'Receiver ('+recver.GetCaption()+') received broken');
+				priv.trace(()=>'NetworkDriver ('+driver.GetCaption()+') received broken');
 				return;
 			}
 
-			priv.trace(()=>'Receiver ('+recver.GetCaption()+') received');
+			priv.trace(()=>'NetworkDriver ('+driver.GetCaption()+') received');
 
 			if(opt.DelayMax<1){
 				callRecv(contents,prop);
 			}
 			else{
 				let delay=(opt.DelayMax<1)?0:
-					(opt.DelayMin+Math.random()*(opt.DelayMax-opt.DelayMin));
-				launch.Delay(delay,()=>callRecv(contents,prop));
+					(opt.ToughIn.DelayMin+Math.random()*(opt.ToughIn.DelayMax-opt.ToughIn.DelayMin));
+				launch_in.Delay(delay,()=>callRecv(contents,prop));
+			}
+		},
+
+		Send:(contents,prop={})=>{
+			if(!checkReady())return;
+
+			let rawdata=opt.OnEncode(driver,contents,prop);
+
+			if(opt.DelayMax<1){
+				callSend(rawdata,prop);
+			}
+			else{
+				let delay=(opt.DelayMax<1)?0:
+					(opt.ToughOut.DelayMin+Math.random()*(opt.ToughOut.DelayMax-opt.ToughOut.DelayMin));
+				launch_out.Delay(delay,()=>callSend(rawdata,prop));
 			}
 		},
 
 		// friends 
-		_connectFromTransport:(name,tp)=>{
+		_connectReceiverFromTransport:(name,tp)=>{
 
 			priv.trace(()=>'new Receiver connection named '+name+' for a Transport '+tp.GetCaption());
 
-			let rh=priv.h4t=recver.Fetch();
+			let rh=priv.h4t=driver.Fetch();
 			rh.Extend('ReceiverFromTransport',{
 				// private 
 			},{
@@ -182,109 +232,12 @@ function _receiver_new(opt={}){
 
 			return rh;
 		},
-	});
 
-	const agent_SetTracing=recver.Inherit('SetTracing',(side)=>{
-		agent_SetTracing(side);
-		recver.SetTracing_Receiver(side);
-	});
-
-	return recver;
-}
-
-function _sender_new(opt={}){
-
-	opt=YgEs.Validate(opt,{Others:true,Struct:{
-		Name:{Literal:true,Default:'YgEs.Sender'},
-		Trace_Sender:{Boolable:true},
-		Log:{Class:'YgEs.LocalLog',Default:Log},
-		AgentBypasses:{List:{Literal:true}},
-		Unorderable:{Boolable:true,Default:false},
-		DelayMin:{Integer:true,Default:0},
-		DelayMax:{Integer:true,Default:0},
-		DubRatio:{Numeric:true,Default:0.0},
-		DubIntervalMin:{Integer:true,Default:0},
-		DubIntervalMax:{Integer:true,Default:0},
-		OnEncode:{Callable:true,Default:(sender,contents,prop)=>{
-			return JSON.stringify(contents);
-		}},
-		OnSend:{Callable:true,Default:(sender,rawdata,prop)=>{
-			log.Fatal('OnSend is not impremented in Sender',rawdata);
-		}},
-	}},'opt');
-
-	let log=opt.Log;
-
-	opt.AgentBypasses.push('Send');
-
-	const onClose=opt.OnClose??((agent)=>{});
-	opt.OnClose=(agent)=>{
-
-		onClose(agent);
-	}
-
-	const checkReady=()=>{
-		if(!sender.IsReady()){
-			log.Fatal('Sender ('+sender.GetCaption()+') is not ready');
-			return false;
-		}
-		return true;
-	}
-
-	const callSend=(rawdata,prop)=>{
-
-		priv.trace(()=>'sending from Sender ('+sender.GetCaption()+')');
-
-		opt.OnSend(sender,rawdata,prop);
-		if(opt.DubRatio<=0)return;
-		if(Math.random()>=opt.DubRatio)return;
-
-		priv.trace(()=>'dubs sending on Sender ('+sender.GetCaption()+')');
-
-		let delay=(opt.DubIntervalMax<1)?0:
-			(opt.DubIntervalMin+Math.random()*(opt.DubIntervalMax-opt.DubIntervalMin));
-		launch.Delay(delay,()=>callSend(rawdata,prop));
-	}
-
-	let sender=Agent.StandBy(opt);
-	let launch=sender.GetLauncher().CreateLauncher({Limit:opt.Unorderable?-1:1});
-	let priv=sender.Extend('YsEs.Sender',{
-		// private 
-		tracing_sender:opt.Trace||opt.Trace_Sender,
-
-		// caution: 
-		// Sender not recognize connecting Transport 
-		// and can connect from many Transport 
-
-		trace:(msg)=>{
-			if(!priv.tracing_sender)return;
-			log.Trace(msg);
-		},
-	},{
-		// public 
-		SetTracing_Sender:(side)=>priv.tracing_sender=!!side,
-
-		Send:(contents,prop={})=>{
-			if(!checkReady())return;
-
-			let rawdata=opt.OnEncode(sender,contents,prop);
-
-			if(opt.DelayMax<1){
-				callSend(rawdata,prop);
-			}
-			else{
-				let delay=(opt.DelayMax<1)?0:
-					(opt.DelayMin+Math.random()*(opt.DelayMax-opt.DelayMin));
-				launch.Delay(delay,()=>callSend(rawdata,prop));
-			}
-		},
-
-		// friends 
-		_connectFromTransport:(name,tp)=>{
+		_connectSenderFromTransport:(name,tp)=>{
 
 			priv.trace(()=>'new Sender connection named '+name+' for a Transport '+tp.GetCaption());
 
-			let sh=sender.Fetch();
+			let sh=driver.Fetch();
 			sh.Extend('SenderFromTransport',{
 				// private 
 			},{
@@ -296,18 +249,17 @@ function _sender_new(opt={}){
 
 			return sh;
 		},
-
 	});
 
-	const agent_SetTracing=sender.Inherit('SetTracing',(side)=>{
+	const agent_SetTracing=driver.Inherit('SetTracing',(side)=>{
 		agent_SetTracing(side);
-		sender.SetTracing_Sender(side);
+		driver.SetTracing_Network(side);
 	});
 
-	return sender;
+	return driver;
 }
 
-function _loopback_new(receiver,opt={}){
+function _loopback_new(opt={}){
 
 	opt=YgEs.Validate(opt,{Others:true,Struct:{
 		Name:{Literal:true,Default:'YgEs.Sender.Loopback'},
@@ -317,24 +269,18 @@ function _loopback_new(receiver,opt={}){
 
 	let log=opt.Log;
 
-	opt.OnSend=(sender,rawdata,prop)=>{
-		if(!receiver)return;
-		receiver.Receive(rawdata,prop);
+	opt.OnSend=(driver,rawdata,prop)=>{
+		driver.Receive(rawdata,prop);
 	}
 
-	if(!receiver){
-		log.Fatal('receiver not defined for '+name);
-	}
-	else opt.Dependencies.push(receiver.Fetch());
-
-	let sender=_sender_new(opt);
-	sender.Extend('YgEs.Sender.Loopback',{
+	let driver=_driver_new(opt);
+	driver.Trait('YgEs.Sender.Loopback',{
 		// private 
 	},{
 		// public 
 	});
 
-	return sender;
+	return driver;
 }
 
 function _terminate_new(opt={}){
@@ -346,18 +292,18 @@ function _terminate_new(opt={}){
 
 	let log=opt.Log;
 
-	opt.OnSend=(sender,rawdata,prop)=>{
+	opt.OnSend=(driver,rawdata,prop)=>{
 		log.Tick('Sending terminated',rawdata);
 	}
 
-	let sender=_sender_new(opt);
-	sender.Extend('YgEs.Sender.Terminate',{
+	let driver=_driver_new(opt);
+	driver.Trait('YgEs.Sender.Terminate',{
 		// private 
 	},{
 		// public 
 	});
 
-	return sender;
+	return driver;
 }
 
 function _tpctrl_new(){
@@ -392,7 +338,7 @@ function _transport_new(opt={}){
 		Trace_Transport:{Boolable:true},
 		Log:{Class:'YgEs.LocalLog',Default:Log},
 		AgentBypasses:{List:{Literal:true}},
-		PIDPrefix:{Literal:true},
+		PIDPrefix:{Literal:true,Default:''},
 		PayloadSpecs:{Dict:{Struct:true}},
 		PayloadHooks:{Dict:{Struct:true}},
 	}},'opt');
@@ -494,12 +440,12 @@ function _transport_new(opt={}){
 			}
 
 			recver=recver.GetAgent();
-			if(recver.IsConnected()){
+			if(recver.IsListening()){
 				log.Warn('Receiver ('+recver.GetCaption()+') already connected, cut off it');
 				recver.GetTransport().DetachReceiver(recver.GetConnectionName());
 			}
 
-			priv.recver[name]=recver._connectFromTransport(name,tp);
+			priv.recver[name]=recver._connectReceiverFromTransport(name,tp);
 		},
 
 		DetachReceiver:(name)=>{
@@ -523,7 +469,7 @@ function _transport_new(opt={}){
 
 			sender=sender.GetAgent();
 
-			priv.sender[name]=sender._connectFromTransport(name,tp);
+			priv.sender[name]=sender._connectSenderFromTransport(name,tp);
 		},
 
 		DetachSender:(name)=>{
@@ -553,7 +499,7 @@ function _transport_new(opt={}){
 				ep.GetTransport().Disconnect(eh.GetConnectionName());
 			}
 
-			priv.ep[name]=ep._connectFromTransport(name,tp);
+			priv.ep[name]=ep._connectEndPointFromTransport(name,tp);
 		},
 
 		Disconnect:(name)=>{
@@ -917,7 +863,7 @@ function _endpoint_new(opt={}){
 		},
 
 		// friends 
-		_connectFromTransport:(name,tp)=>{
+		_connectEndPointFromTransport:(name,tp)=>{
 
 			priv.trace(()=>'new EndPoint connection named '+name+' for a Transport '+tp.GetCaption());
 
@@ -961,13 +907,12 @@ let Network=YgEs.Network={
 	Name:'YgEs.Network',
 	User:{},
 
-	CreateReceiver:_receiver_new,
-	CreateSender:_sender_new,
-	CreateTransport:_transport_new,
-	CreateEndPoint:_endpoint_new,
-
+	CreateDriver:_driver_new,
 	CreateLoopback:_loopback_new,
 	CreateTerminator:_terminate_new,
+
+	CreateTransport:_transport_new,
+	CreateEndPoint:_endpoint_new,
 }
 
 })();

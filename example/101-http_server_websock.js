@@ -45,26 +45,24 @@ const pld_specs={
 	},
 }
 
-// WebSocket receiver 
-const recvopt={
+// WebSocket driver 
+const drvopt={
 	Log:log_local,
 	Launcher:launcher,
 	HappenTo:hap_local,
-	// (for tough test) insert random msec delay 
-	DelayMin:200,
-	DelayMax:1500,
-}
-let ws_receiver=Network.CreateReceiver(recvopt);
-
-// WebSocket sender 
-const sendopt={
-	Log:log_local,
-	Launcher:launcher,
-	HappenTo:hap_local,
-	// (for tough test) insert random msec delay 
-	DelayMin:200,
-	DelayMax:1500,
-	OnSend:(sender,rawdata,prop)=>{
+	// tough test for sending 
+	ToughOut:{
+		// insert random msec delay 
+//		DelayMin:200,
+//		DelayMax:1500,
+	},
+	// tough test for receiving 
+	ToughIn:{
+		// insert random msec delay 
+		DelayMin:200,
+		DelayMax:1500,
+	},
+	OnSend:(driver,rawdata,prop)=>{
 
 		let prot=prop.Prot;
 		if(!prot){
@@ -81,14 +79,14 @@ const sendopt={
 		ctx.Send(rawdata);
 	},
 }
-let ws_sender=Network.CreateSender(sendopt);
+let ws_driver=Network.CreateDriver(drvopt);
 
 // WebSocket Transport 
 const tpopt={
 	Log:log_local,
 	Launcher:launcher,
 	HappenTo:hap_local,
-	PIDPrefix:'Exam101',
+	PIDPrefix:'Exam101_',
 	PayloadSpecs:pld_specs,
 	PayloadHooks:{
 		ECHO_REQ:{
@@ -125,8 +123,8 @@ const tpopt={
 	},
 }
 let ws_transport=Network.CreateTransport(tpopt);
-ws_transport.AttachReceiver('ws',ws_receiver);
-ws_transport.AttachSender('ws',ws_sender);
+ws_transport.AttachReceiver('ws',ws_driver);
+ws_transport.AttachSender('ws',ws_driver);
 ws_transport.SetSelector((tp,target,prop)=>'ws');
 
 // WebSocket EndPoint 
@@ -199,7 +197,7 @@ function _server_new(name,port,interval){
 
 			Log.Trace('msg from '+pid+': '+msg);
 
-			ws_receiver.Receive(msg,{Prot:prot});
+			ws_driver.Receive(msg,{Prot:prot});
 		},
 		OnError:(ctx,err)=>{
 			Log.Fatal('error in '+ctx.ClientID,err);

@@ -22,54 +22,52 @@ let hap_local=HappeningManager.CreateLocal({
 	OnHappen:(hm,hap)=>{log_local.Fatal(hap.GetProp());},
 });
 
-// receiver setting
-const recvopt={
+// driver setting
+const drvopt={
 	Log:log_local,
 	Launcher:launcher,
 	HappenTo:hap_local,
 	Trace_Agent:false,
 	Trace_StMac:false,
 	Trace_Proc:false,
-	// (for tough test) insert random msec delay 
-	DelayMin:0,
-	DelayMax:400,
-	// (for tough test) maybe break ordering by delay 
-//	Unorderable:true,
-	// (for tough test) ratio of dubbed packet on received 
-//	DubRatio:0.25,
-//	DubIntervalMin:0,
-//	DubIntervalMax:500,
+	// tough test for sending 
+	ToughOut:{
+		// insert random msec delay 
+		DelayMin:0,
+		DelayMax:400,
+		// maybe break ordering by delay 
+//		Unorderable:true,
+		// ratio of packet dubbing
+//		DubRatio:0.25,
+//		DubIntervalMin:0,
+//		DubIntervalMax:500,
+	},
+	// tough test for receiving 
+	ToughIn:{
+		// insert random msec delay 
+		DelayMin:0,
+		DelayMax:400,
+		// maybe break ordering by delay 
+//		Unorderable:true,
+		// ratio of packet dubbing
+//		DubRatio:0.25,
+//		DubIntervalMin:0,
+//		DubIntervalMax:500,
+	},
 	// (for tough test) maybe cutoff during receiving 
-	OnGate:(recver,rawdata,prop)=>{
+	OnGate:(driver,rawdata,prop)=>{
 //		if(Math.random()<0.25)return rawdata.substring(0,Math.random()*rawdata.length);
 		return rawdata;
 	},
 }
 
-// receiver 
-let recv=Network.CreateReceiver(recvopt);
+// loopback driver 
+let loopback=Network.CreateLoopback(drvopt);
+// terminate driver 
+let terminal=Network.CreateTerminator(drvopt);
 
-recv.SetTracing_Receiver(false);
-
-// sender setting
-const sendopt={
-	Log:log_local,
-	Launcher:launcher,
-	HappenTo:hap_local,
-	// (for tough test) insert random msec delay 
-	DelayMin:0,
-	DelayMax:400,
-	// (for tough test) maybe break ordering by delay 
-	Unorderable:false,
-}
-
-// loopback sender 
-let loopback=Network.CreateLoopback(recv,sendopt);
-// terminate sender 
-let terminal=Network.CreateTerminator(sendopt);
-
-loopback.SetTracing_Sender(false);
-terminal.SetTracing_Sender(false);
+loopback.SetTracing_Network(false);
+terminal.SetTracing_Network(false);
 
 // transport setting
 const tpopt={
@@ -85,7 +83,7 @@ let tp=Network.CreateTransport(tpopt);
 tp.SetTracing_Transport(false);
 tp.SetTracing_Agent(false);
 
-tp.AttachReceiver('lb',recv);
+tp.AttachReceiver('lb',loopback);
 tp.AttachSender('lb',loopback);
 tp.AttachSender('tm',terminal);
 
