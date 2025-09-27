@@ -17,7 +17,7 @@ Log.Showable=Log.LEVEL.TRACE;
 // Example: HTTP Server with WebSocket -- //
 
 const LIFEFILE='../!http_server_running';
-const WSHostEPN='WSHost';
+const WSHostEPN='WebSockMaster';
 
 // HTTP Server 
 import './100-http_server.js'; 
@@ -45,11 +45,47 @@ const pld_specs={
 	},
 }
 
-// WebSocket driver 
-const drvopt={
+// payload definition (server side hooks) 
+const pld_server={
+	ECHO_REQ:{
+		OnBound:(tp,payload,prop)=>{
+
+			Log.Trace('bound new Protocol',payload);
+
+			// host EndPoint name to respond 
+			return prop.HostEPN;
+		},
+		OnRespond:(tp,prot,payload,prop)=>{
+
+			Log.Trace('respond in Protocol '+prot.GetPID(),payload);
+
+			// replying 
+			prot.Send(payload.From,'ECHO_REP',payload.Body,prop);
+
+			// this Protocol is controlled by a client, don't continue 
+			return false;
+		},
+	},
+}
+
+var server_ws=WebSockServer.Manage(8801,{
 	Log:log_local,
 	Launcher:launcher,
 	HappenTo:hap_local,
+	PIDPrefix:'Exam101_',
+	PayloadSpecs:pld_specs,
+	PayloadHooks:pld_server,
+
+	OnOpen:(agent)=>{
+		Log.Info('WebSockServerManager opening');
+	},
+	OnClose:(agent)=>{
+		Log.Info('WebSockServerManager closing');
+	},
+	OnReady:(agent)=>{
+		Log.Info('WebSockServerManager ready');
+	},
+
 	// tough test for sending 
 	ToughOut:{
 		// insert random msec delay 
@@ -62,161 +98,14 @@ const drvopt={
 		DelayMin:200,
 		DelayMax:1500,
 	},
-	OnSend:(driver,rawdata,prop)=>{
-
-		let prot=prop.Prot;
-		if(!prot){
-			Log.Notice('Protocol missing',rawdata);
-			return;
-		}
-
-		let ctx=prot.User.Context;
-		if(!ctx){
-			Log.Notice('WebSock context missing',rawdata);
-			return;
-		}
-
-		ctx.Send(rawdata);
-	},
-}
-let ws_driver=Network.CreateDriver(drvopt);
-
-// WebSocket Transport 
-const tpopt={
-	Log:log_local,
-	Launcher:launcher,
-	HappenTo:hap_local,
-	PIDPrefix:'Exam101_',
-	PayloadSpecs:pld_specs,
-	PayloadHooks:{
-		ECHO_REQ:{
-			OnRequest:(tp,payload,prop)=>{
-
-				let prot=prop.Prot;
-				if(!prot){
-					Log.Notice('Protocol missing',payload);
-					return;
-				}
-
-				Log.Trace('requested out of Protocol',payload);
-
-				// replying 
-				prot.Send(payload.From,'ECHO_REP',payload.Body,{Prot:prot});
-			},
-			OnBound:(tp,payload,prop)=>{
-
-				Log.Trace('bound new Protocol',payload);
-
-				return WSHostEPN;
-			},
-			OnRespond:(tp,prot,payload,prop)=>{
-
-				Log.Trace('respond in Protocol '+prot.GetPID(),payload);
-
-				// replying 
-				prot.Send(payload.From,'ECHO_REP',payload.Body,prop);
-
-				// this Protocol is continued 
-				return true;
-			},
-		},
-	},
-}
-let ws_transport=Network.CreateTransport(tpopt);
-ws_transport.AttachReceiver('ws',ws_driver);
-ws_transport.AttachSender('ws',ws_driver);
-ws_transport.SetSelector((tp,target,prop)=>'ws');
-
-// WebSocket EndPoint 
-const epopt={
-	Log:log_local,
-	Launcher:launcher,
-	HappenTo:hap_local,
-}
-let ws_endpoint=Network.CreateEndPoint(epopt).Fetch();
-ws_transport.Connect(WSHostEPN,ws_endpoint);
-
-function _server_new(name,port,interval){
-
-	let protocol={}
-
-	let opt={
-		// max clients 
-		ConnectionLimit:5,
-
-		OnOpen:(agent)=>{
-			Log.Trace('WebSockServer opening');
-			ws_endpoint.Open();
-			agent.WaitFor('NetworkLayer',()=>ws_endpoint.IsReady());
-		},
-		OnClose:(agent)=>{
-			Log.Trace('WebSockServer closing');
-			ws_endpoint.Close();
-
-			for(let pid in protocol)protocol[pid].Release();
-			protocol={}
-		},
-		OnReady:(agent)=>{
-			Log.Trace('WebSockServer ready');
-
-
-
-		},
-		OnConnect:(ctx,req)=>{
-
-			let prot=ws_transport.NewProtocol(WSHostEPN);
-			let pid=prot.GetPID();
-
-			Log.Info('client come: '+pid);
-
-			ctx.ClientID=pid;
-			prot.User.Context=ctx;
-			protocol[pid]=prot;
-
-			return true;
-		},
-		OnDisconnect:(ctx)=>{
-
-			let pid=ctx.ClientID;
-			let prot=protocol[pid];
-			if(!prot)return;
-
-			Log.Info('client gone: '+pid);
-
-			prot.Release();
-			delete protocol[pid];
-		},
-		OnReceived:(ctx,msg,isbin)=>{
-
-			let pid=ctx.ClientID;
-			let prot=protocol[pid];
-			if(!prot){
-				Log.Notice('invalid msg from '+pid+': '+msg);
-				return;
-			}
-
-			Log.Trace('msg from '+pid+': '+msg);
-
-			ws_driver.Receive(msg,{Prot:prot});
-		},
-		OnError:(ctx,err)=>{
-			Log.Fatal('error in '+ctx.ClientID,err);
-		},
-	}
-
-	// create a server instance 
-	let server=WebSockServer.SetUp(port,opt);
-	return server.Fetch();
-}
-
-var server_ws=_server_new('WebSockForHTTPServer',8801,100);
+}).Fetch();
 
 (async()=>{
 	// start server instances 
 	server_ws.Open();
 
-	// wait for server EndPoint ready 
-	await Timing.SyncKit(1000,()=>ws_endpoint.IsReady()).ToPromise();
+	// wait for server ready 
+	await Timing.SyncKit(1000,()=>server_ws.IsReady()).ToPromise();
 
 	// keep during LIFEFILE exists 
 	await Timing.SyncKit(100,()=>{

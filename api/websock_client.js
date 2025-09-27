@@ -24,9 +24,18 @@ function _client_new(url,opt={}){
 		OnConnected:{Callable:true,Default:(agent)=>{}},
 		OnDisconnected:{Callable:true,Default:(agent,normal)=>{}},
 		OnReceived:{Callable:true,Default:(agent,data)=>{}},
+		OnOpen:{Callable:true,Default:(agent)=>{}},
+		OnReady:{Callable:true,Default:(agent)=>{}},
+		OnClose:{Callable:true,Default:(agent)=>{}},
+		OnFinish:{Callable:true,Default:(agent,cleaned)=>{}},
 	}},'opt');
 
 	const log=opt.Log??Log;
+
+	const onOpenExtra=opt.OnOpen;
+	const onReadyExtra=opt.OnReady;
+	const onCloseExtra=opt.OnClose;
+	const onFinishExtra=opt.OnFinish;
 
 	let field={
 		Log:log,
@@ -42,9 +51,13 @@ function _client_new(url,opt={}){
 			let done=false;
 			agent_priv.connect(()=>{done=true;});
 			agent.WaitFor('WebSock client connecting',()=>done);
+
+			onOpenExtra(agent);
 		},
 		OnReady:(agent)=>{
 			opt.OnConnected(agent);
+
+			onReadyExtra(agent);
 		},
 		OnPollInHealthy:(agent)=>{
 			if(!agent_priv.internal){
@@ -59,11 +72,16 @@ function _client_new(url,opt={}){
 			}
 		},
 		OnClose:(agent)=>{
+			onCloseExtra(agent);
+
 			opt.OnDisconnected(agent,true);
 			agent_priv.internal.close(1000);
 		},
 		OnFinish:(agent,clean)=>{
 			log.Info('end of WebSock client: '+url);
+
+			onFinishExtra(agent);
+
 			agent_priv.internal.onopen=null;
 			agent_priv.internal.onclose=null;
 			agent_priv.internal.onmessage=null;
